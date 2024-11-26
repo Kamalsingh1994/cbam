@@ -42,7 +42,7 @@
  "list_title": "Your Goods",
  "login_required": 1,
  "max_attachment_size": 0,
- "modified": "2024-10-29 15:40:20.000795",
+ "modified": "2024-11-19 10:36:30.292924",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "complete-goods-data",
@@ -81,7 +81,7 @@
    "precision": "",
    "read_only": 1,
    "reqd": 0,
-   "show_in_filter": 0
+   "show_in_filter": 1
   },
   {
    "allow_read_on_all_link_options": 0,
