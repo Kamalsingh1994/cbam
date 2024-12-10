@@ -19,7 +19,7 @@ class CBAMEmissionData(Document):
 		if has_cbam_installation_changed:
 			installation = frappe.get_doc("CBAM Installation", self.cbam_installation)
 			installation.append("emission_datas", {
-				"emission_data": self.name,
+				"emission_data": self.name
 			})
 			installation.save()
 

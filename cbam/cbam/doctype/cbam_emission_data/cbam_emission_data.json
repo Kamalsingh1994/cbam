@@ -1,12 +1,13 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:EmD-N.{##}-{installation_name}-direct:{specific_direct_embedded_emissions}-indirect:{electricity_consumed}",
+ "autoname": "format:ED-{installation_name}-{label}-{##}",
  "creation": "2024-10-02 10:40:00.483236",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "operating_company_and_installation_section",
+  "label",
   "uuid_installation",
   "cbam_installation",
   "installation_name",
@@ -130,11 +131,18 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Installation Name"
+  },
+  {
+   "fetch_from": "cbam_installation.uuid_installation",
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "label": "Label",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-10-24 10:03:12.160836",
+ "modified": "2024-12-04 13:25:01.442760",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Emission Data",

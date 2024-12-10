@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../apps/cbam/cbam/public/js/conf.js"],
+  "sourcesContent": ["frappe.provide(\"cbam\");"],
+  "mappings": "MAAA,OAAO,QAAQ,MAAM",
+  "names": []
+}

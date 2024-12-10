@@ -1,14 +1,9 @@
 {% extends "templates/web.html" %}
 {% block page_content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CBAM Data Confirmation</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+
+{% include "templates/includes/web_sidebar.html" %}
+
+
     <div class="container">
         <h1>{{ title }}</h1>
         <p>EU's Carbon Border Adjustment Mechanism (CBAM) by Gallehr</p>
@@ -54,6 +49,5 @@
             {% endif %}
         </section>
     </div>
-</body>
-</html>
+
 {% endblock %}

@@ -22,10 +22,8 @@
                   <select type="text" class="form-control  status-filter" data-fieldtype="Select" data-fieldname="status" placeholder="">
                     <option value="">All</option>
                     <option value="Raw Data">Raw Data</option>
-                    <option value="Split for completing">Split for completing</option>
-                    <option value="Split">Split</option>
-                    <option value="Done">Done</option>
-                    <option value="Rejected">Rejected</option>
+                    <option value="Sent for confirmation">Sent for confirmation</option>
+                    <option value="Confirmed">Confirmed</option>
                   </select>
                 </span>
 
@@ -33,7 +31,11 @@
                   <span>Selected: <span class="selected-no">0</span></span>
                 </div>
 
-                
+                <button class="btn btn-primary btn-sm primary-action">
+                  <span> 
+                    <span><a href = "#" class="ex-pay-link add-new">Add New Supplier</a></span>
+                  </span>
+                </button>
               </div>
           </div>
         </div>
@@ -52,24 +54,24 @@
                     />
                   </span>
                 <span class="level-item bold ellipsis">
-                  <span class="invoice-title ellipsis" title="Sales Invoice">Article Nr</span>
+                  <span class="invoice-title ellipsis" title="Sales Invoice">Supplier Number</span>
                 </span>
               </div>
               
               <div class="list-row-col list-subject level tc-container">
-                <span class="tc-text">Good Description</span>
+                <span class="tc-text">Supplier Name</span>
               </div>
               <div class="list-row-col list-subject level gt-container ">
-                <span class="gt-text">Raw Mass</span>
+                <span class="gt-text">Company Phone No.</span>
               </div>
               <div class="list-row-col list-subject level gt-container ">
-                <span class="gt-text">Importer</span>
+                <span class="gt-text">Country</span>
               </div>
               <div class="list-row-col list-subject level status-title">
                 <span class="gt-text">Status</span>
               </div>
               <div class="list-row-col list-subject level gt-container ">
-                <span class="gt-text">Parts</span>
+                <span class="gt-text">Zip code</span>
               </div>
               <!-- <div class="list-row-col list-subject level prt-container">
                 <span class="prt-text">Actions</span>
@@ -79,9 +81,9 @@
             <div class="level-right "><span class="space-hidden">0</span></span>
             </div>
           </div>
-          {% set goods_list = frappe.get_list("Good") %}
-          {% for i in goods_list %}
-          {% set doc = frappe.get_doc("Good", i) %}
+          {% set supplier_list = frappe.get_list("Supplier") %}
+          {% for i in supplier_list %}
+          {% set doc = frappe.get_doc("Supplier", i.name) %}
           <div class="content-container">
             <div class="level list-row-head content-head">
               <div class="level-left list-body-grid">
@@ -97,21 +99,21 @@
                         />
                       </span>
                     <span class="level-item bold ">
-                    <span class=" inv-name" data-doctype="DocType" data-name="{{doc.article_number}}" title="Sales Invoice" >{{doc.article_number}}</span>
+                    <span class=" inv-name" data-doctype="DocType" data-name="{{doc.supplier_number}}" title="Sales Invoice" >{{doc.supplier_number}}</span>
                   </span>
                 </div>
                 <div class="list-row-col list-subject level tc-container gd">
-                    <span><span class="currency"></span><span class="inv-tax">{{doc.good_description}}</span></span>
+                    <span><span class="inv-tax">{{doc.supplier_name}}</span></span>
                   </div>
                 
                 <div class="list-row-col list-subject level tc-container rm">
-                  <span><span class="currency"></span> <span class="inv-tax">{{doc.raw_mass}}</span></span>
+                  <span><span class="inv-tax">{{doc.company_phone_number}}</span></span>
                 </div>
                 
                 
                 <div class="list-row-col list-subject level gt-container">
                   
-                  <span><span class="currency"></span> <span class="inv-amount" data-gt=grand_total>{{frappe.db.get_value("Supplier", doc.supplier, "supplier_name")}}</span></span>
+                  <span><span class="inv-amount" data-gt=grand_total>{{doc.country}}</span></span>
                 </div>
                 <div class="list-row-col list-subject level ">
                     <span
@@ -121,7 +123,7 @@
                     </span>
                   </div>
                 <div class="list-row-col list-subject level gt-container parts-cont">
-                  <span></span>
+                  <span>{{doc.zip_code}}</span>
                 </div>
                 <!-- <div class="popup-options list-row-col list-subject level prt-container">
                   <button class="action-btn text-muted btn btn-default icon-btn">
@@ -143,20 +145,17 @@
               </div>
               <div class="level-right popup-options">
                 <button class="action-btn text-muted btn btn-default icon-btn">
-                  <svg class="action-btn icon icon-sm">
+                  Edit
+                  <!-- <svg class="action-btn icon icon-sm">
                     <use class="action-btn" href="#icon-dot-vertical"></use>
-                  </svg>
+                  </svg> -->
                   <!-- <svg class="icon print-btn icon-sm" aria-hidden="true">
                     <use class="print-btn" href="#icon-printer"></use>
                   </svg> -->
                 </button>
-                <div class="options-abs hidden">
-                  <button class="abs-option-btn" data-action="Split">Split</button>
-                  <button class="abs-option-btn" data-action="Forward">Forward</button>
-                  <button class="abs-option-btn" data-action="Reject">Reject</button>
-                  <!-- <button class="abs-option-btn" data-action="Add Installation">Add Installation</button> -->
-                  <button class="abs-option-btn" data-action="Add Emission Data">Add Emission</button>
-                </div>
+                <!-- <div class="options-abs hidden">
+                  <button class="abs-option-btn" data-action="Edit">Edit</button>
+                </div> -->
                 <span class="ml-2 collapse-indicator mb-1 arr-icon">
                   <svg class="es-icon es-line icon-sm arr-icon" aria-hidden="true">
                     <use class="mb-1 arr-icon arrow" href= "#es-line-down"></use>
@@ -170,32 +169,32 @@
                 
                 <div class="tc-field-cont field-cont">
                   <span class="field-label">Internal Customs Import Number</span>
-                  <div class="field tc-field">{{doc.internal_customs_import_number}}</div>
+                  <div class="field tc-field">{{doc.internal_customs_import_number or ""}}</div>
                 </div>
                 
                 <div class="tc-field-cont field-cont">
                   <span class="field-label">Country of origin</span>
-                  <div class="field tc-field">{{doc.country_of_origin}}</div>
+                  <div class="field tc-field">{{doc.country_of_origin or ""}}</div>
                 </div>
 
                 <div class="tc-field-cont field-cont">
                   <span class="field-label">Customs value in Euro</span>
-                  <div class="field tc-field">{{doc.customs_value}}</div>
+                  <div class="field tc-field">{{doc.customs_value or ""}}</div>
                 </div>
 
                 <div class="tc-field-cont field-cont">
                   <span class="field-label">Invoice number</span>
-                  <div class="field tc-field">{{doc.invoice_number}}</div>
+                  <div class="field tc-field">{{doc.invoice_number or ""}}</div>
                 </div>
 
                 <div class="tc-field-cont field-cont">
                   <span class="field-label">Hand over date</span>
-                  <div class="field tc-field">{{doc.hand_over_date}}</div>
+                  <div class="field tc-field">{{doc.hand_over_date or ""}}</div>
                 </div>
 
                 <div class="tc-field-cont field-cont">
                   <span class="field-label">Customs Tariff Number</span>
-                  <div class="field tc-field">{{doc.customs_tariff_number}}</div>
+                  <div class="field tc-field">{{doc.customs_tariff_number or ""}}</div>
                 </div>
                 <div class="prt-field-cont field-cont field-res" style="align-self: flex-end;">
                   <div class="tc-field prt-field print-btn">

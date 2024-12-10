@@ -77,7 +77,7 @@ class CBAMInstallation(Document):
 			frappe.throw(_("User not found"))
 		role_list = [r.role for r in user.roles]
 		#frappe.msgprint(str(role_list))
-		if "Supplier" in role_list:
+		if "Supplier" in role_list or self.contact_person == "Different contact person":
 			employee_list = frappe.get_all("Supplier Employee", filters={"email": user_email}, fields=["name"], pluck="name")
 			if not employee_list:
 				frappe.throw("You are not registered as an employee of a supplier. Please login with another user.")

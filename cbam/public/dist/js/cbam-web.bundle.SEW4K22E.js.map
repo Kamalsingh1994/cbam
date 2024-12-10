@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../apps/cbam/cbam/public/js/web/utils.js"],
+  "sourcesContent": ["frappe.provide(\"cbam.utils\")\n\n$.extend(cbam.utils, {\n    add_new_supplier(doc){\n        console.log(\"aaa\")\n    }\n})"],
+  "mappings": "MAAA,OAAO,QAAQ,YAAY,EAE3B,EAAE,OAAO,KAAK,MAAO,CACjB,iBAAiBA,EAAI,CACjB,QAAQ,IAAI,KAAK,CACrB,CACJ,CAAC",
+  "names": ["doc"]
+}

@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "format:SUP-{supplier_name}-{supplier_number}",
- "creation": "2024-08-20 15:35:42.305765",
+ "creation": "2024-12-04 14:13:21.112013",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -45,30 +45,6 @@
  ],
  "fields": [
   {
-   "fieldname": "contact_details_section",
-   "fieldtype": "Section Break",
-   "label": "Contact Details"
-  },
-  {
-   "fieldname": "city",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "City",
-   "read_only_depends_on": "eval:doc.status!=\"Raw Data\""
-  },
-  {
-   "fieldname": "supplier_name",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Supplier Name",
-   "read_only_depends_on": "eval:doc.status!=\"Raw Data\"",
-   "reqd": 1
-  },
-  {
-   "fieldname": "column_break_uisi",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "Raw Data",
    "description": "Raw Data = Not sent to the Main Contact Employee yet.<br>After sending, the data cannot be changed anymore.",
    "fieldname": "status",
@@ -76,22 +52,36 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Raw Data\nSent for confirmation\nConfirmed"
-  },
-  {
-   "fieldname": "company_phone_number",
-   "fieldtype": "Phone",
-   "label": "Company Phone Number",
-   "read_only_depends_on": "eval:doc.status!=\"Raw Data\""
+   "options": "Raw Data\nSent for confirmation\nConfirmed",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_xlzx",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "goods_list_section",
-   "fieldtype": "Section Break",
-   "label": "Goods List"
+   "description": "Number of levels below the direct Supplier. E.g. Level 2 is the Sub-Sub-Supplier. ",
+   "fieldname": "sub_supplier_level",
+   "fieldtype": "Int",
+   "label": "Sub Supplier Level",
+   "read_only": 1
+  },
+  {
+   "description": "Supplier Level 0 / Direct Supplier of Reporting Declarant",
+   "fieldname": "original_parent_supplier_number",
+   "fieldtype": "Data",
+   "label": "Original Parent Supplier Number",
+   "read_only": 1
+  },
+  {
+   "fieldname": "direct_parent_supplier",
+   "fieldtype": "Data",
+   "label": "Direct Parent Supplier",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_muwl",
+   "fieldtype": "Column Break"
   },
   {
    "default": "0",
@@ -100,6 +90,17 @@
    "fieldtype": "Check",
    "label": "Contact details confirmed by supplier",
    "permlevel": 1
+  },
+  {
+   "fieldname": "confirmation_web_form",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "confirmation web form"
+  },
+  {
+   "fieldname": "contact_details_section",
+   "fieldtype": "Section Break",
+   "label": "Contact Details"
   },
   {
    "description": "Numbers only. If the number includes an S, it describes the level of Sub-Supplier. <br>E.g. S2-400006 is the Sub-Sub-Supplier of 400006.",
@@ -111,11 +112,35 @@
    "reqd": 1
   },
   {
+   "fieldname": "supplier_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Supplier Name",
+   "read_only_depends_on": "eval:doc.status!=\"Raw Data\"",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company_phone_number",
+   "fieldtype": "Phone",
+   "label": "Company Phone Number",
+   "read_only_depends_on": "eval:doc.status!=\"Raw Data\""
+  },
+  {
    "description": "Note: This is not the communication email. All communication will be through employee emails. The current email field is only used to complete company data and is not mandatory.",
    "fieldname": "company_email",
    "fieldtype": "Data",
    "label": "Company Email",
    "options": "Email"
+  },
+  {
+   "fieldname": "column_break_uisi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "street_and_number",
+   "fieldtype": "Data",
+   "label": "Street and Number",
+   "read_only_depends_on": "eval:doc.status!=\"Raw Data\""
   },
   {
    "fieldname": "zip_code",
@@ -125,23 +150,23 @@
    "read_only_depends_on": "eval:doc.status!=\"Raw Data\""
   },
   {
-   "fieldname": "employees",
-   "fieldtype": "Table",
-   "label": "Employees",
-   "options": "Supplier Employee Item",
-   "read_only": 1
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "City",
+   "read_only_depends_on": "eval:doc.status!=\"Raw Data\""
   },
   {
-   "fieldname": "employee_section",
+   "fieldname": "country",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Country",
+   "read_only_depends_on": "eval:doc.status!=\"Raw Data\""
+  },
+  {
+   "fieldname": "main_contact_section",
    "fieldtype": "Section Break",
-   "label": "Overview all Employees"
-  },
-  {
-   "fieldname": "goods",
-   "fieldtype": "Table",
-   "label": "Goods",
-   "options": "Good Item",
-   "read_only": 1
+   "label": "Commercial Contact"
   },
   {
    "fieldname": "main_contact_employee_last_name",
@@ -153,11 +178,6 @@
    "fieldname": "main_contact_employee_first_name",
    "fieldtype": "Data",
    "label": "Main Contact Employee First Name"
-  },
-  {
-   "fieldname": "main_contact_section",
-   "fieldtype": "Section Break",
-   "label": "Commercial Contact"
   },
   {
    "fieldname": "column_break_qmcl",
@@ -179,49 +199,6 @@
    "fieldname": "main_contact_employee_position",
    "fieldtype": "Data",
    "label": "Main Contact Employee Position"
-  },
-  {
-   "fieldname": "street_and_number",
-   "fieldtype": "Data",
-   "label": "Street and Number",
-   "read_only_depends_on": "eval:doc.status!=\"Raw Data\""
-  },
-  {
-   "fieldname": "country",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Country",
-   "read_only_depends_on": "eval:doc.status!=\"Raw Data\""
-  },
-  {
-   "description": "Number of levels below the direct Supplier. E.g. Level 2 is the Sub-Sub-Supplier. ",
-   "fieldname": "sub_supplier_level",
-   "fieldtype": "Int",
-   "label": "Sub Supplier Level",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_muwl",
-   "fieldtype": "Column Break"
-  },
-  {
-   "description": "Supplier Level 0 / Direct Supplier of Reporting Declarant",
-   "fieldname": "original_parent_supplier_number",
-   "fieldtype": "Data",
-   "label": "Original Parent Supplier Number",
-   "read_only": 1
-  },
-  {
-   "fieldname": "direct_parent_supplier",
-   "fieldtype": "Data",
-   "label": "Direct Parent Supplier",
-   "read_only": 1
-  },
-  {
-   "fieldname": "confirmation_web_form",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "confirmation web form"
   },
   {
    "fieldname": "cbam_representive_details_section",
@@ -259,14 +236,38 @@
    "fieldname": "cbam_representive_employee_position",
    "fieldtype": "Data",
    "label": "CBAM Representive Employee Position"
+  },
+  {
+   "fieldname": "employee_section",
+   "fieldtype": "Section Break",
+   "label": "Overview all Employees"
+  },
+  {
+   "fieldname": "employees",
+   "fieldtype": "Table",
+   "label": "Employees",
+   "options": "Supplier Employee Item",
+   "read_only": 1
+  },
+  {
+   "fieldname": "goods_list_section",
+   "fieldtype": "Section Break",
+   "label": "Goods List"
+  },
+  {
+   "fieldname": "goods",
+   "fieldtype": "Table",
+   "label": "Goods",
+   "options": "Good Item",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-04 14:22:54.661064",
+ "modified": "2024-12-04 14:13:21.112013",
  "modified_by": "Administrator",
  "module": "CBAM",
- "name": "Supplier",
+ "name": "CBAM Supplier",
  "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [

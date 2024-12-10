@@ -1,0 +1,2 @@
+(()=>{frappe.provide("cbam.utils");$.extend(cbam.utils,{add_new_supplier(e){console.log("aaa")},new_doc(e){frappe.call({method:"cbam.utils.create_new_doc",args:{doc:e},freeze:!0,freeze_message:`Creating new ${e.doctype}, please wait....`,callback(a){msgprint("Created new doc.")}})},_get_links(e){return new Promise(function(a,s){frappe.call({method:"cbam.utils.links.get_links",args:{doctype:e},callback(t){t.message&&a(t.message)}})})},async get_links(e){return await cbam.utils._get_links(e)}});})();
+//# sourceMappingURL=cbam-utils.bundle.ZPIYOSCU.js.map

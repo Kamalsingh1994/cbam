@@ -1,0 +1,201 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+{% include "templates/includes/web_sidebar.html" %}
+<main class="main container my-4 ">
+  <div class="page-content" style="margin: auto; height: 100%;">
+    
+    
+
+    <!-- {% if 1==1 %}
+      {% if 1==1 %} -->
+        
+
+        <div class="list-container" >
+          <div class="list-header">
+            <div class="sub-header">
+              <h1 class="heading-primary">
+                {{title}}
+              </h1>
+              <div class="selected-cta-container">
+                <button class="btn btn-primary btn-sm primary-action">
+                  <span> 
+                    <span><a href = "#" class="ex-pay-link add-new">Save</a></span>
+                  </span>
+                </button>
+              </div>
+          </div>
+        </div>
+        
+        <div class="list-row-container">
+          {% set doc = frappe.get_doc("Supplier", "SUP-Nasir Khan-S2-12222")%}
+          <div class="content-container">
+            <div class="container info-container">
+              
+              <h2>Contact Details</h2>
+              <div class="container responsive-md" style="width: 100%">
+                
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Supplier Number</span>
+                  <div class="field tc-field">{{doc.supplier_number or ""}}</div>
+                </div>
+                
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Street and Number</span>
+                  <div class="field tc-field">{{doc.street_and_number or ""}}</div>
+                </div>
+                
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Supplier Name</span>
+                  <div class="field tc-field">{{doc.supplier_name or ""}}</div>
+                </div>
+                
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Zip Code</span>
+                  <div class="field tc-field">{{doc.zip_code or ""}}</div>
+                </div>
+
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Company Phone Number</span>
+                  <div class="field tc-field">{{doc.company_phone_number or ""}}</div>
+                </div>
+
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">City</span>
+                  <div class="field tc-field">{{doc.city or ""}}</div>
+                </div>
+
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Country</span>
+                  <div class="field tc-field">{{doc.country or ""}}</div>
+                </div>
+                
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Company Email</span>
+                  <div class="field tc-field">{{doc.company_email or ""}}</div>
+                </div>
+              </div>
+              
+              <h2>Commercial Contact</h2>
+              <div class="container responsive-md" style="width: 100%">
+                
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Main Contact Employee Last Name</span>
+                  <div class="field tc-field">{{doc.main_contact_employee_last_name or ""}}</div>
+                </div>
+                
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Main Contact Employee Email</span>
+                  <div class="field tc-field">{{doc.main_contact_employee_email or ""}}</div>
+                </div>
+                
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Main Contact Employee First Name</span>
+                  <div class="field tc-field">{{doc.main_contact_employee_first_name or ""}}</div>
+                </div>
+                
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Main Contact Employee Phone Number</span>
+                  <div class="field tc-field">{{doc.main_contact_employee_phone_number or ""}}</div>
+                </div>
+                
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Main Contact Employee Position</span>
+                  <div class="field tc-field">{{doc.main_contact_employee_position or ""}}</div>
+                </div>
+              </div>
+
+              <h2>CBAM Representive Details</h2>
+              <div class="container responsive-md" style="width: 100%">
+                
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">CBAM Representive Last Name</span>
+                  <div class="field tc-field">{{doc.cbam_representive_last_name or ""}}</div>
+                </div>
+                
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">CBAM Representive Employee Email</span>
+                  <div class="field tc-field">{{doc.cbam_representive_employee_email or ""}}</div>
+                </div>
+                
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">CBAM Representive Employee First Name</span>
+                  <div class="field tc-field">{{doc.cbam_representive_employee_first_name or ""}}</div>
+                </div>
+                
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">CBAM Representive Employee Phone Number</span>
+                  <div class="field tc-field">{{doc.cbam_representive_employee_phone_number or ""}}</div>
+                </div>
+                
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">CBAM Representive Employee Position</span>
+                  <div class="field tc-field">{{doc.cbam_representive_employee_position or ""}}</div>
+                </div>
+
+              </div>
+
+              <h2>Overview all Employees</h2>
+              <div class="table-responsive" style="width: 100%;">
+              <table class="table" style="width: 100%;">
+                  <tr>
+                    <td width="1%"><strong>No.</strong></td>
+                    <td width="25%"><strong>Employee Number</strong></td>
+                    <td width="25%"><strong>Employee Last Name</strong></td>
+                    <td width="25%"><strong>Employee Email</strong></td>
+                  </tr>
+                  
+                  {% for emp in doc.employees%}
+                  <tr>
+                    <td>{{emp.idx or ""}}</td>
+                    <td>{{emp.employee_number or ""}}</td>
+                    <td>{{emp.employee_last_name or ""}}</td>
+                    <td>{{emp.employee_email or ""}}</td>
+                  </tr>
+                  {% endfor %}
+              </table>
+              </div>
+
+              <!-- <h2>Goods List</h2>
+              <div class="table-responsive" style="width: 100%;">
+              <table class="table" style="width: 100%;">
+                  <tr>
+                    <td width="1%"><strong>No.</strong></td>
+                    <td width="25%"><strong>Good Number</strong></td>
+                    <td width="25%"><strong>Supplier</strong></td>
+                    <td width="25%"><strong>Employee</strong></td>
+                    <td width="25%"><strong>Status</strong></td>
+                  </tr>
+                  
+                  {% for good in doc.goods%}
+                  <tr>
+                    <td>{{good.idx or ""}}</td>
+                    <td>{{good.good_number or ""}}</td>
+                    <td>{{good.supplier or ""}}</td>
+                    <td>{{good.employee or ""}}</td>
+                    <td>{{good.status or ""}}</td>
+                  </tr>
+                  {% endfor %}
+              </table>
+              </div> -->
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    <!-- {% else %}
+      <div class="page-card">
+        <h5 class="page-card-head">
+          <span class="indicator red">Not Permitted</span>
+        </h5>
+        <div class="page-card-body">
+          <p>You do not have access to this page.</p>
+          <div>
+            <a href="/login" class="btn btn-primary btn-sm btn-block">Login</a>
+          </div>
+        </div>
+      </div>
+    {% endif %} -->
+  </div>
+</main>
+    
+{% endblock %}
