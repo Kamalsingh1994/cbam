@@ -132,28 +132,6 @@
                   <span class="field-label">CBAM Representive Employee Position</span>
                   <div class="field tc-field">{{doc.cbam_representive_employee_position or ""}}</div>
                 </div>
-
-              </div>
-
-              <h2>Overview all Employees</h2>
-              <div class="table-responsive" style="width: 100%;">
-              <table class="table" style="width: 100%;">
-                  <tr>
-                    <td width="1%"><strong>No.</strong></td>
-                    <td width="25%"><strong>Employee Number</strong></td>
-                    <td width="25%"><strong>Employee Last Name</strong></td>
-                    <td width="25%"><strong>Employee Email</strong></td>
-                  </tr>
-                  
-                  {% for emp in doc.employees%}
-                  <tr>
-                    <td>{{emp.idx or ""}}</td>
-                    <td>{{emp.employee_number or ""}}</td>
-                    <td>{{emp.employee_last_name or ""}}</td>
-                    <td>{{emp.employee_email or ""}}</td>
-                  </tr>
-                  {% endfor %}
-              </table>
               </div>
 
               <!-- <h2>Goods List</h2>
