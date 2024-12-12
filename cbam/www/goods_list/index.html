@@ -111,7 +111,7 @@
                 
                 <div class="list-row-col list-subject level gt-container">
                   
-                  <span><span class="currency"></span> <span class="inv-amount" data-gt=grand_total>{{frappe.db.get_value("Supplier", doc.supplier, "supplier_name")}}</span></span>
+                  <span><span class="currency"></span> <span class="inv-amount" data-gt=grand_total>{{doc.supplier_name}}</span></span>
                 </div>
                 <div class="list-row-col list-subject level ">
                     <span

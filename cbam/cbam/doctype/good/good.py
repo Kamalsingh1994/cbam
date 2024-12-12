@@ -7,11 +7,17 @@ from cbam.send_email.create_email import create_email
 from cbam.send_email.create_new_supplier_user import create_new_supplier_user
 
 class Good(Document):
-	def before_validate(self):
+	def _before_validate(self):
 		self.set_confirmation_web_form_to_none()
 		self.check_confirmation_checkbox()
 
-	def before_save(self):
+
+
+	def validate(self):
+		self.operating_company = frappe.db.get_value("Operating Company", {"supplier_number": self.supplier_number, "declarent":self.declarent}, "name")
+
+
+	def _before_save(self):
 		self.delete_old_employee_if_supplier_changed()
 		self.get_main_contact_employee()
 		if self.is_data_confirmed == True and self.manufacture == "I am able to provide the emission data of this product":
@@ -20,7 +26,7 @@ class Good(Document):
 		self.add_to_employee_cht()
 		self.add_to_customs_import_cht()
 
-	def validate(self):
+	def _validate(self):
 		if self.manufacture == "The mass of this product needs to be split into several parts, due to shared responsibilities. I will assign the responsible parties" and not self.good_splitted:
 			self.split_good()
 		elif self.manufacture == "I am not able to provide emission data and will delegate this request":

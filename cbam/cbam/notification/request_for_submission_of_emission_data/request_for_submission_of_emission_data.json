@@ -1,0 +1,28 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "creation": "2024-12-12 14:25:07.736939",
+ "days_in_advance": 0,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Operating Company",
+ "enabled": 1,
+ "event": "Custom",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "<p>Dear {{doc.main_contact_employee_last_name}},</p>\n\n<p>{{frappe.db.get_value(\"User\", frappe.session.user, 'title')}} has requested you to submit data on the behalf of {{doc.supplier_name}}.</p>\n\n<p>please <a href= \"frappe.utils.get_url()/login#login-with-email-link\">login</a> to CBAM-Platform and submit the emission data.</p>\n\n<p>Thanks,\nCBAM</p>\n",
+ "message_type": "Markdown",
+ "modified": "2024-12-12 14:28:06.335683",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "Request for Submission of Emission Data",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_document_field": "main_contact_employee_email"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "subject": "Request for Submission of Emission Data"
+}

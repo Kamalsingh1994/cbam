@@ -62,7 +62,7 @@
                 <span class="tc-text">Supplier Name</span>
               </div>
               <div class="list-row-col list-subject level gt-container ">
-                <span class="gt-text">Company Phone No.</span>
+                <span class="gt-text">Phone No.</span>
               </div>
               <div class="list-row-col list-subject level gt-container ">
                 <span class="gt-text">Country</span>
@@ -81,9 +81,9 @@
             <div class="level-right "><span class="space-hidden">0</span></span>
             </div>
           </div>
-          {% set supplier_list = frappe.get_list("Supplier") %}
+          {% set supplier_list = frappe.get_list("Operating Company") %}
           {% for i in supplier_list %}
-          {% set doc = frappe.get_doc("Supplier", i.name) %}
+          {% set doc = frappe.get_doc("Operating Company", i.name) %}
           <div class="content-container">
             <div class="level list-row-head content-head">
               <div class="level-left list-body-grid">

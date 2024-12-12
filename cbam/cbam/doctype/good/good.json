@@ -1,49 +1,53 @@
 {
  "actions": [],
- "allow_rename": 1,
- "autoname": "format:GOO-MRN{master_reference_number_mrn}",
+ "allow_import": 1,
+ "autoname": "naming_series:naming_series",
  "creation": "2024-08-20 15:54:48.908679",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "sending_and_confirmation_states_section",
-  "status",
-  "parent_good",
+  "naming_series",
   "column_break_fkff",
-  "is_data_confirmed",
-  "confirmation_web_form",
+  "status",
+  "column_break_xqou",
+  "parent_good",
   "goods_data_section",
-  "master_reference_number_mrn",
-  "invoice_number",
   "article_number",
-  "customs_tariff_number",
-  "column_break_qjtl",
-  "good_description",
   "hand_over_date",
+  "column_break_qjtl",
   "internal_customs_import_number",
+  "customs_tariff_number",
+  "column_break_jhfv",
+  "good_description",
   "values_section",
   "column_break_kaso",
   "raw_mass",
-  "customs_procedure",
-  "customs_value",
   "currency",
   "column_break_jims",
+  "customs_procedure",
+  "customs_value",
+  "column_break_jevc",
   "country_of_origin",
   "shipping_country",
   "supplier_section",
-  "supplier",
+  "operating_company",
+  "declarent",
   "column_break_lqxr",
-  "employee",
-  "employee_email",
+  "supplier_name",
+  "supplier_number",
+  "column_break_fkqq",
+  "importing_company",
+  "section_break_yaqq",
+  "confirmation_web_form",
+  "is_data_confirmed",
+  "invoice_number",
   "split_the_good_in_various_components_section",
   "manufacture",
   "good_splitted",
   "forwarding_details_section",
-  "forward_to",
-  "forwarded_from_employee",
   "forwarded_from_supplier",
   "column_break_awva",
-  "forward_to_employee",
   "forward_to_supplier",
   "1_component_section",
   "split_raw_mass_1",
@@ -75,39 +79,33 @@
   "column_break_rjiw",
   "responsible_employee_5",
   "responsible_supplier_5",
-  "add_operating_company_section",
-  "place_holder_for_web_form_button_oc",
-  "add_installations_and_emission_data_section",
-  "plance_holder_for_web_form_buttons_inst_and_ed",
   "requested_data_section",
   "installation",
   "emission_data",
   "column_break_wczo",
   "direct_emission_data",
-  "indirect_emission_data",
-  "goods_components_section",
-  "good_components"
+  "indirect_emission_data"
  ],
  "fields": [
   {
    "fieldname": "sending_and_confirmation_states_section",
-   "fieldtype": "Section Break",
-   "label": "Sending and Confirmation States"
+   "fieldtype": "Section Break"
   },
   {
-   "default": "Raw Data",
+   "default": "Draft",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Status",
-   "options": "Raw Data\nSent for completing\nSplit\nDone\nRejected",
+   "options": "Draft\nData Requested\nData Assigned\nData Submitted\nSplit\nForwarded\nRejected",
    "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")"
   },
   {
-   "description": "Shows the direct Parent, from which this Good was split.",
    "fieldname": "parent_good",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Parent Good",
+   "options": "Good",
    "read_only": 1
   },
   {
@@ -131,15 +129,7 @@
   {
    "fieldname": "goods_data_section",
    "fieldtype": "Section Break",
-   "label": "Goods Data"
-  },
-  {
-   "description": "Numbers only!",
-   "fieldname": "master_reference_number_mrn",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Master Reference Number MRN",
-   "reqd": 1
+   "label": "Goods Description"
   },
   {
    "description": "DE: Rechungsnummer",
@@ -153,7 +143,6 @@
    "label": "Article Number"
   },
   {
-   "description": "Up to 8 digits, no spaces or other characters.\nDE: Zolltarifnummer",
    "fieldname": "customs_tariff_number",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -168,17 +157,15 @@
   {
    "description": "DE: Warenbezeichnung",
    "fieldname": "good_description",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "in_list_view": 1,
-   "label": "Good description",
+   "label": "Good Description",
    "reqd": 1
   },
   {
-   "description": "DE: \u00dcberlassungsdatum",
    "fieldname": "hand_over_date",
    "fieldtype": "Date",
-   "in_list_view": 1,
-   "label": "Hand over date"
+   "label": "Handover Date"
   },
   {
    "fieldname": "internal_customs_import_number",
@@ -190,14 +177,13 @@
   {
    "fieldname": "values_section",
    "fieldtype": "Section Break",
-   "label": "Values"
+   "label": "Customs Import Details"
   },
   {
    "fieldname": "column_break_kaso",
    "fieldtype": "Column Break"
   },
   {
-   "description": "DE: Rohmasse (in metrischen Kilogram)",
    "fieldname": "raw_mass",
    "fieldtype": "Float",
    "label": "Raw mass in Kilograms",
@@ -207,18 +193,16 @@
    "reqd": 1
   },
   {
-   "description": "DE: Zollverfahren",
    "fieldname": "customs_procedure",
    "fieldtype": "Data",
-   "label": "Customs procedure",
+   "label": "Customs Procedure",
    "read_only_depends_on": "eval:doc.manufacture==\"I am NOT the manufacturer of the whole amount of the product\"",
    "reqd": 1
   },
   {
-   "description": "DE: Zollwert \u20ac",
    "fieldname": "customs_value",
    "fieldtype": "Currency",
-   "label": "Customs value in Euro",
+   "label": "Customs Value in Euro",
    "non_negative": 1,
    "options": "currency",
    "read_only": 1
@@ -237,7 +221,7 @@
   {
    "fieldname": "country_of_origin",
    "fieldtype": "Link",
-   "label": "Country of origin",
+   "label": "Country of Origin",
    "options": "Country Code",
    "read_only_depends_on": "eval:doc.manufacture==\"I am NOT the manufacturer of the whole amount of the product\"",
    "reqd": 1
@@ -245,44 +229,23 @@
   {
    "fieldname": "shipping_country",
    "fieldtype": "Link",
-   "label": "Shipping country",
+   "label": "Shipping Country",
    "options": "Country Code",
    "read_only_depends_on": "eval:doc.manufacture==\"I am NOT the manufacturer of the whole amount of the product\""
   },
   {
    "fieldname": "supplier_section",
    "fieldtype": "Section Break",
-   "label": "Supplier and Responsible Employee"
-  },
-  {
-   "fieldname": "supplier",
-   "fieldtype": "Link",
-   "label": "Supplier",
-   "options": "Supplier",
-   "reqd": 1
+   "label": "Operating Company and Supplier Details "
   },
   {
    "fieldname": "column_break_lqxr",
    "fieldtype": "Column Break"
   },
   {
-   "description": "If left empty, this field will be automatically filled by the main contact of the Supplier, from the field on the left.",
-   "fieldname": "employee",
-   "fieldtype": "Link",
-   "label": "Employee",
-   "options": "Supplier Employee"
-  },
-  {
-   "fetch_from": "employee.email",
-   "fieldname": "employee_email",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Employee Email",
-   "options": "Email"
-  },
-  {
    "fieldname": "split_the_good_in_various_components_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Split the Good in various Components, if needed"
   },
   {
@@ -512,31 +475,10 @@
    "options": "Supplier"
   },
   {
-   "fieldname": "add_operating_company_section",
-   "fieldtype": "Section Break",
-   "hidden": 1,
-   "label": "Add Operating Company"
-  },
-  {
-   "fieldname": "place_holder_for_web_form_button_oc",
-   "fieldtype": "Button",
-   "label": "Place holder for Web Form Button OC"
-  },
-  {
-   "fieldname": "add_installations_and_emission_data_section",
-   "fieldtype": "Section Break",
-   "hidden": 1,
-   "label": "Add Installations and Emission Data"
-  },
-  {
-   "fieldname": "plance_holder_for_web_form_buttons_inst_and_ed",
-   "fieldtype": "Button",
-   "label": "Plance holder for Web Form Buttons Inst and ED"
-  },
-  {
    "depends_on": "eval:doc.manufacture==\"I am the manufacture\"",
    "fieldname": "requested_data_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Requested Data",
    "read_only": 1
   },
@@ -579,56 +521,22 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval:doc.manufacture==\"I am NOT the manufacturer of the whole amount of the product\"",
-   "fieldname": "goods_components_section",
-   "fieldtype": "Section Break",
-   "label": "Goods Components ",
-   "read_only_depends_on": "eval:doc.manufacture==\"I am NOT the manufacturer of the whole amount of the product\""
-  },
-  {
-   "depends_on": "eval:doc.status==\"Split\"",
-   "fieldname": "good_components",
-   "fieldtype": "Table",
-   "label": "Good Components",
-   "options": "Good Item"
-  },
-  {
    "fieldname": "forwarding_details_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Forwarding Details",
    "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")"
-  },
-  {
-   "fieldname": "forward_to",
-   "fieldtype": "Select",
-   "label": "Forward to",
-   "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")",
-   "options": "\nAnother Employee\nAnother Supplier"
-  },
-  {
-   "fieldname": "forwarded_from_employee",
-   "fieldtype": "Link",
-   "label": "Forwarded from Employee",
-   "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")",
-   "options": "Supplier Employee"
   },
   {
    "fieldname": "forwarded_from_supplier",
    "fieldtype": "Link",
    "label": "Forwarded from Supplier",
-   "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")",
-   "options": "Supplier"
+   "options": "Supplier",
+   "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")"
   },
   {
    "fieldname": "column_break_awva",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "forward_to_employee",
-   "fieldtype": "Link",
-   "hidden": 1,
-   "label": "Forward to Employee",
-   "options": "Supplier Employee"
   },
   {
    "fieldname": "forward_to_supplier",
@@ -636,6 +544,68 @@
    "hidden": 1,
    "label": "Forward to Supplier",
    "options": "Supplier"
+  },
+  {
+   "fieldname": "operating_company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Operating Company",
+   "options": "Operating Company"
+  },
+  {
+   "fieldname": "supplier_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Supplier Name"
+  },
+  {
+   "fieldname": "supplier_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Supplier Number"
+  },
+  {
+   "fieldname": "declarent",
+   "fieldtype": "Data",
+   "label": "Declarent"
+  },
+  {
+   "default": "G-",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "G-",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "importing_company",
+   "fieldtype": "Data",
+   "label": "Importing Company"
+  },
+  {
+   "fieldname": "section_break_yaqq",
+   "fieldtype": "Section Break",
+   "hidden": 1
+  },
+  {
+   "fieldname": "column_break_xqou",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_jhfv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_jevc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_fkqq",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -645,11 +615,11 @@
    "link_fieldname": "supplier"
   }
  ],
- "modified": "2024-10-28 12:50:13.359560",
+ "modified": "2024-12-12 17:29:08.945100",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
- "naming_rule": "Expression",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
@@ -663,9 +633,41 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "if_owner": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Declarent",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Commercial Contact",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "CBAM Representative",
+   "share": 1,
+   "write": 1
   }
  ],
- "search_fields": "master_reference_number_mrn",
  "sort_field": "name",
  "sort_order": "ASC",
  "states": [
@@ -686,8 +688,8 @@
    "title": "Done"
   },
   {
-    "color": "Red",
-    "title": "Rejected"
-   }
+   "color": "Red",
+   "title": "Rejected"
+  }
  ]
 }

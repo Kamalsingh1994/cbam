@@ -7,6 +7,11 @@
  "field_order": [
   "general_settings_section",
   "admin_role",
+  "declarent_user_role",
+  "column_break_ftqk",
+  "commercial_contact_user_role",
+  "column_break_pzpa",
+  "cbam_representative_user_role",
   "emission_data_submission_details_section",
   "tier_n1_unregistered_template",
   "tier_n1_registered_template",
@@ -75,12 +80,41 @@
    "fieldtype": "Link",
    "label": "Supplier Good Rejection Notification Template",
    "options": "Notification"
+  },
+  {
+   "default": "Declarent",
+   "fieldname": "declarent_user_role",
+   "fieldtype": "Link",
+   "label": "Declarent User Role",
+   "options": "Role"
+  },
+  {
+   "fieldname": "column_break_ftqk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Commercial Contact",
+   "fieldname": "commercial_contact_user_role",
+   "fieldtype": "Link",
+   "label": "Commercial Contact User Role",
+   "options": "Role"
+  },
+  {
+   "fieldname": "column_break_pzpa",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "CBAM Representative",
+   "fieldname": "cbam_representative_user_role",
+   "fieldtype": "Link",
+   "label": "CBAM Representative User Role",
+   "options": "Role"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-10-29 15:59:18.035120",
+ "modified": "2024-12-12 17:51:29.840474",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Settings",

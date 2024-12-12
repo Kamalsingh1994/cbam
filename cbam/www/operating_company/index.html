@@ -18,17 +18,17 @@
                 {{title}}
               </h1>
               <div class="selected-cta-container">
-                <button class="btn btn-primary btn-sm primary-action">
+                <!-- <button class="btn btn-primary btn-sm primary-action">
                   <span> 
                     <span><a href = "#" class="ex-pay-link add-new">Save</a></span>
                   </span>
-                </button>
+                </button> -->
               </div>
           </div>
         </div>
-        
+        {% if frappe.db.exists("Operating Company", {"commercial_contact_user": frappe.session.user})%}
         <div class="list-row-container">
-          {% set doc = frappe.get_doc("Supplier", "SUP-Nasir Khan-S2-12222")%}
+          {% set doc = frappe.get_doc("Operating Company", {"commercial_contact_user": frappe.session.user})%}
           <div class="content-container">
             <div class="container info-container">
               
@@ -159,6 +159,9 @@
             </div>
           </div>
         </div>
+        {%else%}
+        <h2>You do not have any Operating Company Assigned</h2>
+        {% endif %}
       {% endif %}
     <!-- {% else %}
       <div class="page-card">

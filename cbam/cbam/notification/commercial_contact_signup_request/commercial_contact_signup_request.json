@@ -1,0 +1,28 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "creation": "2024-12-12 14:09:15.019889",
+ "days_in_advance": 0,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Operating Company",
+ "enabled": 1,
+ "event": "Custom",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "<p>Dear {{doc.main_contact_employee_last_name}},</p>\n\n<p>Please complete your signup by loging into the CBAM-Platform using below link.</p>\n\n<p><a href='{{frappe.utils.get_url()}}/login#login-with-email-link'> Link</a></p>\n",
+ "message_type": "Markdown",
+ "modified": "2024-12-12 14:22:55.742322",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "Commercial Contact Signup Request",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_document_field": "main_contact_employee_email"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "subject": "CBAM - Signup Request"
+}

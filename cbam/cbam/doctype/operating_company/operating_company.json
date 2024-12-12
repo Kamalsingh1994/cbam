@@ -1,27 +1,28 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
- "autoname": "format:SUP-{supplier_name}-{supplier_number}",
- "creation": "2024-12-04 14:13:21.112013",
+ "autoname": "naming_series:naming_series",
+ "creation": "2024-12-12 09:28:35.764207",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "status",
-  "column_break_xlzx",
-  "sub_supplier_level",
-  "original_parent_supplier_number",
-  "direct_parent_supplier",
-  "column_break_muwl",
-  "is_data_confirmed",
-  "confirmation_web_form",
-  "contact_details_section",
-  "supplier_number",
+  "naming_series",
   "supplier_name",
+  "supplier_number",
+  "column_break_xlzx",
+  "status",
+  "declarent",
+  "create_commercial_contact_user",
+  "column_break_muwl",
+  "parent_operating_company",
+  "contact_details_section",
   "company_phone_number",
   "company_email",
   "column_break_uisi",
   "street_and_number",
   "zip_code",
+  "column_break_noxo",
   "city",
   "country",
   "main_contact_section",
@@ -30,29 +31,36 @@
   "column_break_qmcl",
   "main_contact_employee_email",
   "main_contact_employee_phone_number",
+  "column_break_thjw",
   "main_contact_employee_position",
+  "commercial_contact_user",
   "cbam_representive_details_section",
   "cbam_representive_last_name",
   "cbam_representive_employee_first_name",
   "column_break_xrkz",
   "cbam_representive_employee_email",
   "cbam_representive_employee_phone_number",
+  "column_break_gupg",
   "cbam_representive_employee_position",
-  "employee_section",
-  "employees",
+  "cbam_representative_user",
+  "section_break_tjym",
+  "original_parent_supplier_number",
+  "confirmation_web_form",
+  "is_data_confirmed",
+  "direct_parent_supplier",
+  "sub_supplier_level",
   "goods_list_section",
   "goods"
  ],
  "fields": [
   {
-   "default": "Raw Data",
-   "description": "Raw Data = Not sent to the Main Contact Employee yet.<br>After sending, the data cannot be changed anymore.",
+   "default": "Verification Needed",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Raw Data\nSent for confirmation\nConfirmed",
+   "options": "Verification Needed\nPending Verification\nContact Verified\nCompany Verified",
    "read_only": 1
   },
   {
@@ -103,27 +111,22 @@
    "label": "Contact Details"
   },
   {
-   "description": "Numbers only. If the number includes an S, it describes the level of Sub-Supplier. <br>E.g. S2-400006 is the Sub-Sub-Supplier of 400006.",
    "fieldname": "supplier_number",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Supplier Number",
-   "read_only_depends_on": "eval:doc.status!=\"Raw Data\"",
-   "reqd": 1
+   "label": "Supplier Number"
   },
   {
    "fieldname": "supplier_name",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Supplier Name",
-   "read_only_depends_on": "eval:doc.status!=\"Raw Data\"",
    "reqd": 1
   },
   {
    "fieldname": "company_phone_number",
    "fieldtype": "Phone",
-   "label": "Company Phone Number",
-   "read_only_depends_on": "eval:doc.status!=\"Raw Data\""
+   "label": "Company Phone Number"
   },
   {
    "description": "Note: This is not the communication email. All communication will be through employee emails. The current email field is only used to complete company data and is not mandatory.",
@@ -139,29 +142,25 @@
   {
    "fieldname": "street_and_number",
    "fieldtype": "Data",
-   "label": "Street and Number",
-   "read_only_depends_on": "eval:doc.status!=\"Raw Data\""
+   "label": "Street and Number"
   },
   {
    "fieldname": "zip_code",
    "fieldtype": "Data",
    "label": "Zip code",
-   "non_negative": 1,
-   "read_only_depends_on": "eval:doc.status!=\"Raw Data\""
+   "non_negative": 1
   },
   {
    "fieldname": "city",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "City",
-   "read_only_depends_on": "eval:doc.status!=\"Raw Data\""
+   "label": "City"
   },
   {
    "fieldname": "country",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Country",
-   "read_only_depends_on": "eval:doc.status!=\"Raw Data\""
+   "label": "Country"
   },
   {
    "fieldname": "main_contact_section",
@@ -171,13 +170,12 @@
   {
    "fieldname": "main_contact_employee_last_name",
    "fieldtype": "Data",
-   "label": "Main Contact Employee Last Name",
-   "reqd": 1
+   "label": "Commercial Contact Last Name"
   },
   {
    "fieldname": "main_contact_employee_first_name",
    "fieldtype": "Data",
-   "label": "Main Contact Employee First Name"
+   "label": "Commercial Contact First Name"
   },
   {
    "fieldname": "column_break_qmcl",
@@ -186,19 +184,18 @@
   {
    "fieldname": "main_contact_employee_email",
    "fieldtype": "Data",
-   "label": "Main Contact Employee Email",
-   "options": "Email",
-   "reqd": 1
+   "label": "Commercial Contact Email",
+   "options": "Email"
   },
   {
    "fieldname": "main_contact_employee_phone_number",
    "fieldtype": "Phone",
-   "label": "Main Contact Employee Phone Number"
+   "label": "Commercial Contact Phone Number"
   },
   {
    "fieldname": "main_contact_employee_position",
    "fieldtype": "Data",
-   "label": "Main Contact Employee Position"
+   "label": "Commercial Contact Position"
   },
   {
    "fieldname": "cbam_representive_details_section",
@@ -208,13 +205,12 @@
   {
    "fieldname": "cbam_representive_last_name",
    "fieldtype": "Data",
-   "label": "CBAM Representive Last Name",
-   "reqd": 1
+   "label": "CBAM Representative Last Name"
   },
   {
    "fieldname": "cbam_representive_employee_first_name",
    "fieldtype": "Data",
-   "label": "CBAM Representive Employee First Name"
+   "label": "CBAM Representative First Name"
   },
   {
    "fieldname": "column_break_xrkz",
@@ -223,35 +219,23 @@
   {
    "fieldname": "cbam_representive_employee_email",
    "fieldtype": "Data",
-   "label": "CBAM Representive Employee Email",
-   "options": "Email",
-   "reqd": 1
+   "label": "CBAM Representative  Email",
+   "options": "Email"
   },
   {
    "fieldname": "cbam_representive_employee_phone_number",
    "fieldtype": "Phone",
-   "label": "CBAM Representive Employee Phone Number"
+   "label": "CBAM Representative  Phone Number"
   },
   {
    "fieldname": "cbam_representive_employee_position",
    "fieldtype": "Data",
-   "label": "CBAM Representive Employee Position"
-  },
-  {
-   "fieldname": "employee_section",
-   "fieldtype": "Section Break",
-   "label": "Overview all Employees"
-  },
-  {
-   "fieldname": "employees",
-   "fieldtype": "Table",
-   "label": "Employees",
-   "options": "Supplier Employee Item",
-   "read_only": 1
+   "label": "CBAM Representative  Position"
   },
   {
    "fieldname": "goods_list_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Goods List"
   },
   {
@@ -260,15 +244,71 @@
    "label": "Goods",
    "options": "Good Item",
    "read_only": 1
+  },
+  {
+   "fieldname": "parent_operating_company",
+   "fieldtype": "Link",
+   "label": "Parent Operating Company",
+   "options": "Operating Company"
+  },
+  {
+   "default": "OC-",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "OC-",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_noxo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_thjw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_gupg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_tjym",
+   "fieldtype": "Section Break",
+   "hidden": 1
+  },
+  {
+   "fieldname": "commercial_contact_user",
+   "fieldtype": "Link",
+   "label": "Commercial Contact User",
+   "options": "User"
+  },
+  {
+   "fieldname": "cbam_representative_user",
+   "fieldtype": "Link",
+   "label": "CBAM Representative User",
+   "options": "User"
+  },
+  {
+   "default": "0",
+   "fieldname": "create_commercial_contact_user",
+   "fieldtype": "Check",
+   "label": "Create Commercial Contact User",
+   "read_only_depends_on": "eval:doc.commercial_contact_user"
+  },
+  {
+   "fieldname": "declarent",
+   "fieldtype": "Data",
+   "label": "Declarent",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-04 14:13:21.112013",
+ "modified": "2024-12-12 17:27:49.679096",
  "modified_by": "Administrator",
  "module": "CBAM",
- "name": "CBAM Supplier",
- "naming_rule": "Expression",
+ "name": "Operating Company",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
@@ -276,10 +316,38 @@
    "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "if_owner": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Declarent",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "if_owner": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Commercial Contact",
+   "select": 1,
    "share": 1,
    "write": 1
   }
