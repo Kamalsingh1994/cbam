@@ -14,6 +14,7 @@ window.addEventListener("DOMContentLoaded", function() {
     const selectedEl = document.querySelector(".selected-no");
     const statusFilter = document.querySelector(".status-filter");
     const dropDownCont = document.querySelectorAll(".options-abs");
+    const dataBtnEl = document.querySelectorAll(".data-btn");
 
     let boxesLen = 0;
     let selected = 0;
@@ -226,6 +227,13 @@ window.addEventListener("DOMContentLoaded", function() {
         d.show();
     }
 
+    const toggleDataBtn = function(toggle) {
+        if(toggle) {
+            dataBtnEl.forEach(btn => btn.classList.add("hidden"));
+        } else {
+            dataBtnEl.forEach(btn => btn.classList.remove("hidden"));
+        }
+    }
  
 
     contentContainer.forEach(container => {
@@ -326,6 +334,7 @@ window.addEventListener("DOMContentLoaded", function() {
     totalCheckbox.addEventListener("click", function() {
         if(totalCheckbox.checked) {
             checkVisibleBoxes();
+            toggleDataBtn(false);
             selected = boxesLen;
             selectedEl.textContent = selected;
             contentContainer.forEach(container => {
@@ -338,6 +347,7 @@ window.addEventListener("DOMContentLoaded", function() {
         } else {
             selected = 0;
             amount = 0;
+            toggleDataBtn(true);
             selectedEl.textContent = selected;
             checkboxes.forEach(box => {
                 box.checked = false;
@@ -357,8 +367,15 @@ window.addEventListener("DOMContentLoaded", function() {
                 selected--;
             }
 
+            if(selected > 0) {
+                toggleDataBtn(false);
+            } else {
+                toggleDataBtn(true);
+            }
+
             selectedEl.textContent = selected;
             
+
             if(selected === boxesLen) {
                 setTotalCheckBoxes(true);
             }

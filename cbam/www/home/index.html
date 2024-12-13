@@ -1,53 +1,50 @@
 {% extends "templates/web.html" %}
+
 {% block page_content %}
-
 {% include "templates/includes/web_sidebar.html" %}
+<main class="main container my-4 ">
+  <div class="page-content" style="margin: auto; height: 100%;">
+    
+    
 
+    <!-- {% if 1==1 %}
+      {% if 1==1 %} -->
+        
 
-    <div class="container">
-        <h1>{{ title }}</h1>
-        <p>EU's Carbon Border Adjustment Mechanism (CBAM) by Gallehr</p>
-
-        <section class="confirmation-section">
-            {% if employee == "No employee found" %}
-
-            <h2>Your user is not associated with a supplier, their employees, or any goods.</h2>
-            {% else %}
-            <h2>Please go through your data and confirm</h2>
-            <div class="confirmation-container">
-                <div class="steps">
-                    {% if is_employee_main_contact %}
-                    <div class="confirmation-box">
-                        <h3>Confirm your Company Data</h3>
-                        {% if is_supplier_data_confirmed %}
-                        <button class="button-done">Done</button>
-                        {% else %}
-                        <a href="/confirm-supplier-data/{{ supplier }}/edit"><button>Access</button></a>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-
-                    <div class="confirmation-box">
-                        <h3>Confirm your Personal Data</h3>
-                        {% if is_employee_data_confirmed %}
-                        <button class="button-done">Done</button>
-                        {% else %}
-                        <a href="/confirm-employee-details/{{ employee }}/edit"><button>Access</button></a>
-                        {% endif %}
-                    </div>
-
-                    <div class="confirmation-box">
-                        <h3>Complete the Goods Data</h3>
-                        {% if is_some_good_pending %}
-                        <a href="/goods_list"><button>Access</button></a>
-                        {% else %}
-                        <button class="button-done">Done</button>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-        </section>
-    </div>
-
+        <div class="list-container" >
+          <div class="list-header">
+            <div class="sub-header">
+              <h1 class="heading-primary">
+                {{title}}
+              </h1>
+          </div>
+        </div>
+        
+        <div class="list-row-container">
+          <div class="content-container">
+            <span style="width: 100%;">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias neque Lorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias nequeLorem ipsum dolor sit amet consectetur, adipisicing elit. Sapiente, quasi hic accusantium molestias neque voluptates repellendus quam? Iure minus quibusdam possimus recusandae ipsam commodi, autem non facere necessitatibus voluptate quam!Loreml Lorem ipsum dolor, sit amet consectetur adipisicing elit. Culpa eveniet eius ex veniam. Debitis eius libero provident totam nisi adipisci delectus animi illo minus architecto. Doloribus, quidem. Voluptatibus, repellat explicabo? Lorem ipsum dolor sit amet consectetur adipisicing elit. Optio corporis rerum perspiciatis exercitationem eveniet sapiente suscipit cum sed mollitia repudiandae autem at, nisi temporibus facere placeat dolores eius odio officia! ipsum dolor, sit amet consectetur adipisicing elit. Adipisci vitae excepturi tempore dolorem minus quis fuga eos quod incidunt, temporibus voluptas dicta reiciendis, ducimus ut earum ea iure aut consectetur.</span>
+          </div>
+          <div class="video-container">
+            <iframe class="video-frame"
+                src="https://www.youtube.com/embed/tgbNymZ7vqY">
+            </iframe>
+          </div>
+        </div>
+      {% endif %}
+    <!-- {% else %}
+      <div class="page-card">
+        <h5 class="page-card-head">
+          <span class="indicator red">Not Permitted</span>
+        </h5>
+        <div class="page-card-body">
+          <p>You do not have access to this page.</p>
+          <div>
+            <a href="/login" class="btn btn-primary btn-sm btn-block">Login</a>
+          </div>
+        </div>
+      </div>
+    {% endif %} -->
+  </div>
+</main>
+    
 {% endblock %}

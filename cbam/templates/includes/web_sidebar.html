@@ -1,7 +1,11 @@
 {% macro render_sidebar_item(item) %}
 <li class="{{ 'sidebar-group' if item.group_title else 'sidebar-item' }}">
 	{%- if item.group_title -%}
-
+	<span class="sidebar-item-icon" item-icon="{{item.icon}}">
+		<svg class="icon  icon-md"  aria-hidden="true">
+			<use class="" href="#icon-table_2"></use>
+		</svg>
+	</span>
 	<h6>{{ item.group_title }}</h6>
 	{{ render_sidebar_items(item.group_items) }}
 
@@ -42,7 +46,7 @@
 	{% endif %}
 	<div class="sidebar-items">
 		{% set sidebar_items = [
-			{"group_title": "", "group_items": [], "type": "link", "route": "goods_list", "title": "Goods"},
+			{"group_title": "", "group_items": [], "type": "link", "route": "goods_list", "title": "Goods", icon: "table_2"},
 			{"group_title": "", "group_items": [], "type": "link", "route": "supplier_list", "title": "Suppliers"},
 			{"group_title": "", "group_items": [], "type": "link", "route": "installation_list", "title": "Installations"},
 			
