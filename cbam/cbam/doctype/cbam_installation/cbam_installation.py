@@ -19,7 +19,7 @@ class CBAMInstallation(Document):
 	def after_insert(self):
 		self.add_to_operating_company_cht()
 
-	def on_trash(self):
+	def _on_trash(self):
 		self.delete_child_from_operating_company_cht()
 		self.delete_link_in_good()
 
