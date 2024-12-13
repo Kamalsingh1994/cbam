@@ -16,5 +16,5 @@ def get_context(context):
     #     )
     # else:
     #     context.goods_list = []
-
+    return
     context.supplier_list = frappe.db.get_all("Supplier")
