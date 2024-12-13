@@ -301,10 +301,9 @@
   },
   {
    "fieldname": "forward_to_supplier",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "hidden": 1,
-   "label": "Forward to Supplier",
-   "options": "Supplier"
+   "label": "Forward to Supplier"
   },
   {
    "fieldname": "operating_company",
@@ -371,7 +370,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-13 12:59:09.587307",
+ "modified": "2024-12-13 13:06:33.128378",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
