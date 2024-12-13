@@ -3,6 +3,7 @@ no_cache = 1
 
 
 def get_context(context):
+    return
     context.user = frappe.session.user
     context.employee_list = frappe.db.get_all('Supplier Employee', filters={'email': context.user}, fields=['name'], pluck="name")
     if context.employee_list:
