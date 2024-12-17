@@ -1,0 +1,32 @@
+{% macro footer_link(item) %}
+<a href="{{ item.url | abs_url }}" {% if item.open_in_new_tab %} target="_blank" {% endif %} class="footer-link" rel="noreferrer">
+	{%- if item.icon -%}
+	<img src="{{ item.icon }}" alt="{{ item.label }}">
+	{%- else -%}
+	{{ item.label }}
+	{%- endif -%}
+</a>
+{% endmacro %}
+<div class="footer-links">
+	<div class="row">
+		<div class="footer-col-left col-sm-6">
+			<a class="footer-link" href="/imprint" rel="noreferrer">Impressum</a>
+			<a class="footer-link" href="/privacy-policy" rel="noreferrer">Privacy Policy</a>
+			<a class="footer-link" href="/terms" rel="noreferrer">Terms & Conditions</a>
+			
+		</div>
+
+		<div class="footer-col-right col-sm-6">
+			
+		</div>
+	</div>
+	<div class="row">
+		<div class="footer-col-left col-sm-6">
+			<strong>&copy;Gallehr & Partners GmbH</strong>
+		</div>
+
+		<div class="footer-col-right col-sm-6">
+			
+		</div>
+	</div>
+</div>

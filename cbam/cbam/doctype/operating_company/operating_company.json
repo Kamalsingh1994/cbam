@@ -298,17 +298,23 @@
   {
    "fieldname": "declarent",
    "fieldtype": "Data",
-   "label": "Declarent",
-   "reqd": 1
+   "label": "Declarent"
+  },
+  {
+   "fieldname": "parent_operating_company",
+   "fieldtype": "Link",
+   "label": "Parent Operating Company",
+   "options": "Operating Company"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-12 17:27:49.679096",
+ "modified": "2024-12-16 09:14:04.554985",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Operating Company",
  "naming_rule": "By \"Naming Series\" field",
+ "nsm_parent_field": "parent_operating_company",
  "owner": "Administrator",
  "permissions": [
   {

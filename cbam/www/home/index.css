@@ -11,7 +11,7 @@ body {
 }
 
 .main {
-    height: 80vh;
+    height: auto;
     max-width: 95% !important
 }
 
@@ -127,7 +127,6 @@ body {
 }
 
 .list-row-container {
-    overflow-y: auto;
     height: 88%;
     display: flex;
     flex-direction: column;
@@ -151,6 +150,7 @@ body {
 
 .content-container {
     width: 100%;
+    padding: 1rem;
     border-radius: var(--border-radius-md);
     background-color: var(--subtle-fg);
 }
@@ -330,10 +330,14 @@ input.list-row-checkbox {
     opacity: 0;
 }
 
-.web-footer {
-    display: none;
-    visibility: hidden;
-    opacity: 0;
+.web-footer a:link,
+.web-footer a:visited,
+.web-footer input,
+.web-footer input::placeholder,
+.footer-logo-extension .input-group #footer-subscribe-email, 
+.footer-logo-extension .input-group #footer-subscribe-button
+ {
+    font-size: 1.2rem;
 }
 
 .page-content {
@@ -418,8 +422,8 @@ input.list-row-checkbox {
     display: flex;
     flex-direction: column;
     position: absolute;
-    top: 72%;
-    left: -177%;
+    top: 2.3rem;
+    left: -14.5rem;
     gap: .5rem;
     background-color: #fff;
     border: 1px solid #c6c6c6;
@@ -470,6 +474,19 @@ input.list-row-checkbox {
 
 .parts-cont {
     margin-left: 0.48rem;
+}
+
+.video-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.video-frame {
+    width: 50%;
+    height: 40rem;
 }
 
 @media (min-width: 74.375em) {
