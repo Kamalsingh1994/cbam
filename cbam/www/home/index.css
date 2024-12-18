@@ -11,7 +11,7 @@ body {
 }
 
 .main {
-    height: 80vh;
+    height: auto;
     max-width: 95% !important
 }
 
@@ -23,9 +23,7 @@ body {
 .web-sidebar a {
     font-size: 1.4rem;
 }
-.tc-field {
-    height: 4.2rem;
-}
+
 .navbar-brand {
     font-size: 1.8rem;
 }
@@ -129,7 +127,6 @@ body {
 }
 
 .list-row-container {
-    overflow-y: auto;
     height: 88%;
     display: flex;
     flex-direction: column;
@@ -153,6 +150,7 @@ body {
 
 .content-container {
     width: 100%;
+    padding: 1rem;
     border-radius: var(--border-radius-md);
     background-color: var(--subtle-fg);
 }
@@ -476,6 +474,19 @@ input.list-row-checkbox {
 
 .parts-cont {
     margin-left: 0.48rem;
+}
+
+.video-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.video-frame {
+    width: 50%;
+    height: 40rem;
 }
 
 @media (min-width: 74.375em) {

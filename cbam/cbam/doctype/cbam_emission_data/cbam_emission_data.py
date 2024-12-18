@@ -21,7 +21,7 @@ class CBAMEmissionData(Document):
 			installation.append("emission_datas", {
 				"emission_data": self.name
 			})
-			installation.save()
+			installation.save(ignore_permissions=True)
 
 	def delete_child_from_installation_cht(self):
 		if self.cbam_installation:

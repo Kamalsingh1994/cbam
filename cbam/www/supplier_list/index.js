@@ -42,15 +42,17 @@ window.addEventListener("DOMContentLoaded", function() {
             fields: [
                 {
                     label: __("Supplier Number"),
-                    fieldname: "reason",
+                    fieldname: "supplier_number",
                     fieldtype: "Data",
+                    reqd:1
                    
                     
                 },
                 {
                     label: __("Supplier Name"),
-                    fieldname: "reason3",
+                    fieldname: "supplier_name",
                     fieldtype: "Data",
+                    reqd:1
                     //options: "Same contact person as Operating Company\nDifferent contact person\nNo contact person for this Installation"
                    
                     
@@ -62,7 +64,7 @@ window.addEventListener("DOMContentLoaded", function() {
                 },
                 {
                     label: __("City"),
-                    fieldname: "reason",
+                    fieldname: "city",
                     fieldtype: "Data",
                    
                     
@@ -70,7 +72,7 @@ window.addEventListener("DOMContentLoaded", function() {
                 
                 {
                     label: __("Country"),
-                    fieldname: "reason",
+                    fieldname: "country",
                     fieldtype: "Data",
                    
                     
@@ -87,7 +89,7 @@ window.addEventListener("DOMContentLoaded", function() {
                 },
                 {
                     label: __("First Name"),
-                    fieldname: "reason",
+                    fieldname: "main_contact_employee_first_name",
                     fieldtype: "Data",
                    
                     
@@ -95,14 +97,15 @@ window.addEventListener("DOMContentLoaded", function() {
                 
                 {
                     label: __("Last Name"),
-                    fieldname: "reason",
+                    fieldname: "main_contact_employee_last_name",
                     fieldtype: "Data",
+                    reqd:1
                    
                     
                 },
                 {
                     label: __("Main Contact Employee Position"),
-                    fieldname: "reason",
+                    fieldname: "main_contact_employee_position",
                     fieldtype: "Data",
                    
                     
@@ -114,8 +117,9 @@ window.addEventListener("DOMContentLoaded", function() {
                 },
                 {
                     label: __("Email"),
-                    fieldname: "reason",
+                    fieldname: "main_contact_employee_email",
                     fieldtype: "Data",
+                    reqd:1
                    
                     
                 },
@@ -135,7 +139,9 @@ window.addEventListener("DOMContentLoaded", function() {
             primary_action_label: 'Create Supplier',
             //secondary_action_label: '',
             primary_action(values) {
-                console.log(values);
+                values.doctype = "Operating Company"
+                values.create_commercial_contact_user = 1
+                cbam.utils.new_doc(values)
                 d.hide();
             },
             secondary_action(values) {

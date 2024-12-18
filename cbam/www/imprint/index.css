@@ -10,6 +10,11 @@ body {
     font-size: 1.6rem;
 }
 
+h2 {
+    margin-top: 0;
+    margin-bottom: 3rem;
+}
+
 .main {
     height: 80vh;
     max-width: 95% !important
@@ -23,9 +28,7 @@ body {
 .web-sidebar a {
     font-size: 1.4rem;
 }
-.tc-field {
-    height: 4.2rem;
-}
+
 .navbar-brand {
     font-size: 1.8rem;
 }
@@ -130,7 +133,7 @@ body {
 
 .list-row-container {
     overflow-y: auto;
-    height: 88%;
+    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -263,10 +266,10 @@ input.list-row-checkbox {
 .responsive-md {
     opacity: 1;
     visibility: visible;
-    display: grid;
-    align-content: center;
-    justify-content: center;
-    grid-template-columns: 1fr 1fr 1fr;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
     gap: 1rem;
 }
 
@@ -289,7 +292,8 @@ input.list-row-checkbox {
     justify-content: center;
     align-items: center;
     gap: 1.5rem;
-    padding: 0 3rem 2rem 3rem;
+    padding: 3rem;
+    color: #000;
 }
 
 .field {
@@ -424,8 +428,8 @@ input.list-row-checkbox {
     display: flex;
     flex-direction: column;
     position: absolute;
-    top: 2.3rem;
-    left: -14.5rem;
+    top: 72%;
+    left: -177%;
     gap: .5rem;
     background-color: #fff;
     border: 1px solid #c6c6c6;
@@ -476,6 +480,63 @@ input.list-row-checkbox {
 
 .parts-cont {
     margin-left: 0.48rem;
+}
+
+.privacy-head {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: 1.5rem;
+}
+
+.policies-container {
+    font-size: 1.5rem;
+}
+
+.head-para {
+    width: 100%;
+    margin-top: 2rem;
+    text-align: justify;
+}
+
+.policies-container {
+    margin-left: -6rem;
+}
+
+.policies-list .policy:not(:last-child) {
+    margin-bottom: 2.5rem;
+}
+
+.policy-text {
+    text-align: justify;
+}
+
+.policy::marker,
+.policy .policy-title,
+.bold {
+    font-weight: 600;
+}
+
+.policy .policy-div {
+    margin-left: 2rem;
+    gap: 1.8rem;
+}
+
+.sub-list-container {
+    margin-left: -2.5rem;
+}
+
+.sub-list-container ul {
+    list-style-type: disc;
+}
+
+.flex-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
 }
 
 @media (min-width: 74.375em) {

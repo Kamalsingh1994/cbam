@@ -138,8 +138,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Is the installation tracking emissions data?",
-   "options": "Yes\nNo",
-   "reqd": 1
+   "options": "Yes\nNo"
   },
   {
    "fieldname": "section_break_bseo",
@@ -156,8 +155,7 @@
    "fieldname": "is_the_installation_subject_to_an_emission_trading_system",
    "fieldtype": "Select",
    "label": "Is the installation subject to an emission trading system?",
-   "options": "Yes\nNo",
-   "reqd": 1
+   "options": "Yes\nNo"
   },
   {
    "depends_on": "eval:doc.is_the_installation_subject_to_an_emission_trading_system==\"Yes\"",
@@ -187,7 +185,7 @@
    "reqd": 1
   },
   {
-   "fetch_from": "operating_company.uuid",
+   "fetch_from": ".uuid",
    "fieldname": "uuid_operating_company",
    "fieldtype": "Data",
    "label": "UUID Operating Company",
@@ -244,7 +242,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-13 07:44:24.408134",
+ "modified": "2024-12-18 10:56:37.408117",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Installation",

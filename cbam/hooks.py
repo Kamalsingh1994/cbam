@@ -6,12 +6,15 @@ app_email = "wolfram.schmidt@phamos.eu"
 app_license = "mit"
 
 
-
+app_logo_url = 'assets/cbam/images/gallehr_partner_logo.png'
 
 #update boot context
 boot_session = "cbam.boot.update_boot_context"
 
-
+website_context = {
+    "logo": "assets/cbam/images/gallehr_partner_logo.png",
+    "splash_image": "assets/cbam/images/gallehr_partner_logo.png"
+}
 # Apps
 # ------------------
 

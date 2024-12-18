@@ -23,9 +23,7 @@ body {
 .web-sidebar a {
     font-size: 1.4rem;
 }
-.tc-field {
-    height: 4.2rem;
-}
+
 .navbar-brand {
     font-size: 1.8rem;
 }
@@ -332,14 +330,10 @@ input.list-row-checkbox {
     opacity: 0;
 }
 
-.web-footer a:link,
-.web-footer a:visited,
-.web-footer input,
-.web-footer input::placeholder,
-.footer-logo-extension .input-group #footer-subscribe-email, 
-.footer-logo-extension .input-group #footer-subscribe-button
- {
-    font-size: 1.2rem;
+.web-footer {
+    display: none;
+    visibility: hidden;
+    opacity: 0;
 }
 
 .page-content {

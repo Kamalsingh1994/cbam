@@ -2,30 +2,30 @@
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2024-09-04 12:07:07.288109",
+  "modified": "2024-12-18 11:05:32.487472",
   "name": "00 Reporting Declarant",
-  "role_profile": "00 Reporting Declarant",
+  "role_profile": "Declarant",
   "roles": [
    {
     "parent": "00 Reporting Declarant",
     "parentfield": "roles",
     "parenttype": "Role Profile",
-    "role": "Reporting Declarant"
+    "role": "Declarent"
    }
   ]
  },
  {
   "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2024-09-04 12:38:01.405109",
+  "modified": "2024-12-18 11:05:15.974201",
   "name": "00 Supplier",
-  "role_profile": "00 Supplier",
+  "role_profile": "Commercial Contact",
   "roles": [
    {
     "parent": "00 Supplier",
     "parentfield": "roles",
     "parenttype": "Role Profile",
-    "role": "Supplier"
+    "role": "Commercial Contact"
    }
   ]
  }

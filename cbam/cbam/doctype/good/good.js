@@ -37,14 +37,17 @@ frappe.ui.form.on('Good', {
 
 frappe.ui.form.on("Good", {
     refresh(frm) {
-        frm.add_custom_button(__("Send Email"), function () {
+        if(["Data Submitted", "Rejected"].includes(frm.doc.status)){
+            return
+        }
+        frm.add_custom_button(__("Send Data Request"), function () {
             // console.log("create new supplier");
             frappe.call({
-                method: "cbam.send_email.send_email_from_good.send_email",
-                args: {
-                    good: cur_frm.docname,
-                },
+                method: "send_data_request",
+                doc: frm.doc,
+                freeze: true,
+                freeze_message: "Sending Data Request...."
             });
-        }, __("⚠️ Look out! ⚠️"));
+        });
     },
 });

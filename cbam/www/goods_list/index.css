@@ -330,10 +330,14 @@ input.list-row-checkbox {
     opacity: 0;
 }
 
-.web-footer {
-    display: none;
-    visibility: hidden;
-    opacity: 0;
+.web-footer a:link,
+.web-footer a:visited,
+.web-footer input,
+.web-footer input::placeholder,
+.footer-logo-extension .input-group #footer-subscribe-email, 
+.footer-logo-extension .input-group #footer-subscribe-button
+ {
+    font-size: 1.2rem;
 }
 
 .page-content {
@@ -418,8 +422,8 @@ input.list-row-checkbox {
     display: flex;
     flex-direction: column;
     position: absolute;
-    top: 2.3rem;
-    left: -14.5rem;
+    top: 72%;
+    left: -177%;
     gap: .5rem;
     background-color: #fff;
     border: 1px solid #c6c6c6;
