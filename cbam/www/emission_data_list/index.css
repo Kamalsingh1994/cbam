@@ -326,12 +326,15 @@ input.list-row-checkbox {
     opacity: 0;
 }
 
-.web-footer {
-    display: none;
-    visibility: hidden;
-    opacity: 0;
+.web-footer a:link,
+.web-footer a:visited,
+.web-footer input,
+.web-footer input::placeholder,
+.footer-logo-extension .input-group #footer-subscribe-email, 
+.footer-logo-extension .input-group #footer-subscribe-button
+ {
+    font-size: 1.2rem;
 }
-
 .page-content {
     margin: auto; 
     height: 100%;

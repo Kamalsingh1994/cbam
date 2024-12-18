@@ -10,16 +10,16 @@ class CBAMInstallation(Document):
 	def before_naming(self):
 		self.generated_uuid()
 
-	def before_insert(self):
+	def _1before_insert(self):
 		self.set_operating_company()
 
-	def before_validate(self):
+	def _1before_validate(self):
 		self.add_same_contact_person()
 
-	def after_insert(self):
+	def _after_insert(self):
 		self.add_to_operating_company_cht()
 
-	def _on_trash(self):
+	def _1on_trash(self):
 		self.delete_child_from_operating_company_cht()
 		self.delete_link_in_good()
 
@@ -28,6 +28,7 @@ class CBAMInstallation(Document):
 		self.uuid_installation =cstr(uuid.uuid4())
 
 	def add_same_contact_person(self):
+		return
 		has_contact_person_changed = self.has_value_changed("contact_person")
 		has_operating_company_changed = self.has_value_changed("operating_company")
 		if has_contact_person_changed:

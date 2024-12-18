@@ -18,7 +18,8 @@
   "supplier_good_rejection_notification_template",
   "column_break_tiem",
   "tier_1_unregistered_employee_template",
-  "tier_1_registered_employee_template"
+  "tier_1_registered_employee_template",
+  "data_request_template"
  ],
  "fields": [
   {
@@ -109,12 +110,18 @@
    "fieldtype": "Link",
    "label": "CBAM Representative User Role",
    "options": "Role"
+  },
+  {
+   "fieldname": "data_request_template",
+   "fieldtype": "Link",
+   "label": "Data Request Template",
+   "options": "Notification"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-12-12 17:51:29.840474",
+ "modified": "2024-12-17 14:46:29.099206",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Settings",

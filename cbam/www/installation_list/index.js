@@ -71,7 +71,8 @@ window.addEventListener("DOMContentLoaded", function() {
                     label: __("Country Code"),
                     fieldname: "country_code",
                     fieldtype: "Autocomplete",
-                    options: await cbam.utils.get_links("Country Code")
+                    options: await cbam.utils.get_links("Country Code"),
+                    reqd:1
                     
                 },
               

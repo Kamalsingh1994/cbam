@@ -10,16 +10,16 @@
  "event": "Custom",
  "idx": 0,
  "is_standard": 1,
- "message": "<p>Dear {{doc.main_contact_employee_last_name}},</p>\n\n<p>{{frappe.db.get_value(\"User\", frappe.session.user, 'title')}} has requested you to submit data on the behalf of {{doc.supplier_name}}.</p>\n\n<p>please <a href= \"frappe.utils.get_url()/login#login-with-email-link\">login</a> to CBAM-Platform and submit the emission data.</p>\n\n<p>Thanks,\nCBAM</p>\n",
- "message_type": "Markdown",
- "modified": "2024-12-12 14:28:06.335683",
+ "message": "<p>Dear Mr./Mrs. {{doc.main_contact_employee_last_name}},</p>\n\n<p>As announced in the last Email I am now sending you the data request for the CBAM report of this quarter. <br><br>\nPlease, follow this <a href='{{frappe.utils.get_url()}}/login#login-with-email-link'>link</a> in order to provide the required data. You will be guided through the process step by step. If you have any questions, please feel free to contact me or our service provider using cbam@gallehr.de. \n<br>\n<br>\nWe would appreciate it if you could complete the data request at your earliest convenience.\n<br>\n<br>\nThank you for your prompt attention to this matter.\n</p>\n\n<p><br><br>\nBest regards,<br>\n{{frappe.db.get_value(\"User\", frappe.session.user, 'full_name')}}<br>\n{{doc.declarent}}</p></p>\n",
+ "message_type": "HTML",
+ "modified": "2024-12-18 09:51:04.840800",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Request for Submission of Emission Data",
  "owner": "Administrator",
  "recipients": [
   {
-   "receiver_by_document_field": "main_contact_employee_email"
+   "receiver_by_document_field": "commercial_contact_user"
   }
  ],
  "send_system_notification": 0,

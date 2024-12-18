@@ -1,6 +1,6 @@
 # Copyright (c) 2024, phamos GmbH and contributors
 # For license information, please see license.txt
-
+import json
 import frappe
 from frappe.model.document import Document
 from cbam.send_email.create_email import create_email
@@ -239,7 +239,17 @@ class Good(Document):
 			notification = frappe.get_doc("Notification", template)
 			notification.send(self)
 
-
+	@frappe.whitelist()
+	def send_data_request(self):
+		if self.status in ["Data Submitted", "Rejected"]:
+			return
+		email = frappe.get_doc("Notification", frappe.db.get_single_value("CBAM Settings", "data_request_template"))
+		
+		if not email:
+			frappe.throw("Please setup Data Request Notification Template in CBAM Settings")
+		opp = frappe.get_doc("Operating Company", self.operating_company)
+		opp.declarent = self.declarent
+		email.send(opp)
 
 
 def delete_good_item(good, parenttype):
@@ -249,3 +259,24 @@ def delete_good_item(good, parenttype):
 		"name": good_item
 	})
 	frappe.db.commit()
+
+
+@frappe.whitelist()
+def send_data_request(goods):
+	goods = json.loads(goods)
+	supp = []
+	for g in goods:
+		if not g.get("operating_company") in supp:
+			supp.append(g.get("operating_company"))
+
+	email = frappe.get_doc("Notification", frappe.db.get_single_value("CBAM Settings", "data_request_template"))
+	if not email:
+		frappe.throw("Please setup Data Request Notification Template in CBAM Settings")
+		
+	for s in supp:
+		op = frappe.get_doc("Operating Company", s)
+		op.declarent = "OBB"
+		email.send(op)
+
+
+
