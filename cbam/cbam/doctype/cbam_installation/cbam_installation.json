@@ -242,7 +242,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-18 10:56:37.408117",
+ "modified": "2024-12-18 16:55:33.124304",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Installation",
@@ -260,6 +260,29 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "if_owner": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Commercial Contact",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Declarent",
+   "select": 1,
+   "share": 1
   }
  ],
  "sort_field": "modified",
