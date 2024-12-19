@@ -7,6 +7,7 @@ from frappe.model.document import Document
 
 class OperatingCompany(Document):
 	def validate(self):
+		username = ""
 		self.flags.new_flag = True
 		if self.create_commercial_contact_user and not self.commercial_contact_user:
 			username = frappe.db.get_value("User", self.main_contact_employee_email, "name")
