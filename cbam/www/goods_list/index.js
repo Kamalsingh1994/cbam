@@ -31,50 +31,50 @@ window.addEventListener("DOMContentLoaded", function() {
         }
     })
 
-    const CreateForwardDialog = function(docName){
+    const CreateForwardDialog = async function(docName){
         let d = new frappe.ui.Dialog({
             title: `Forwarding Request`,
             fields: [
-                {
-                    label: __("Forward to"),
-                    fieldname: "forward_to_party",
-                    fieldtype: "Select",
-                    default: "",
-                    options: "\nSub Supplier\nCollegue"
-                },
-                {
-                    label: __(""),
-                    fieldname: "cb1",
-                    fieldtype: "Column Break",
-                },
+                // {
+                //     label: __("Forward to"),
+                //     fieldname: "forward_to_party",
+                //     fieldtype: "Select",
+                //     default: "",
+                //     options: "\nSub Supplier\nCollegue"
+                // },
+                // {
+                //     label: __(""),
+                //     fieldname: "cb1",
+                //     fieldtype: "Column Break",
+                // },
                 {
                     label: __("Sub Supplier"),
                     fieldname: "supplier",
-                    fieldtype: "Link",
+                    fieldtype: "Autocomplete",
                     default: "",
-                    options: "Supplier",
-                    depends_on: "eval:doc.forward_to_party == 'Sub Supplier'"
+                    options: await cbam.utils.get_links("Operating Company"),
+                    //depends_on: "eval:doc.forward_to_party == 'Sub Supplier'"
                 },
-                {
-                    label: __("Employee"),
-                    fieldname: "employee",
-                    fieldtype: "Link",
-                    default: "",
-                    options: "Supplier Employee",
-                    depends_on: "eval:doc.forward_to_party == 'Collegue'"
-                },
+                // {
+                //     label: __("Employee"),
+                //     fieldname: "employee",
+                //     fieldtype: "Link",
+                //     default: "",
+                //     options: "Supplier Employee",
+                //     depends_on: "eval:doc.forward_to_party == 'Collegue'"
+                // },
 
             ],
-            size: 'extra-large', // small, large, extra-large 
+            size: 'large', // small, large, extra-large 
             primary_action_label: 'Submit',
             primary_action(values) {
-                console.log(values);
-                d.hide();
+                cbam.utils.forward_good("")
             }
         });
 
                    
         d.show();
+        d.$wrapper.find('.modal-dialog').css("height", "350px");
     }
 
     const CreateRejectDialog = function(docName){
@@ -90,7 +90,7 @@ window.addEventListener("DOMContentLoaded", function() {
                 }
 
             ],
-            size: 'extra-large', // small, large, extra-large 
+            size: 'small', // small, large, extra-large 
             primary_action_label: 'Reject Goods',
             //secondary_action_label: '',
             primary_action(values) {
@@ -167,20 +167,33 @@ window.addEventListener("DOMContentLoaded", function() {
 
    const CreateEmissionDialog = async function(){
     let d = new frappe.ui.Dialog({
-        title: `Rejecting Request`,
+        title: `Assigning Emission Data`,
         fields: [
             {
                 label: __("Emission"),
                 fieldname: "emission_data",
                 fieldtype: "Autocomplete",
                 default: "",
-                options: await cbam.utils.get_links("CBAM Emission Data")
+                options: await cbam.utils.get_links("CBAM Emission Data"),
+                change: async () =>{
+                    let installation =  await cbam.utils.get_installation(d.get_value("emission_data"));
+                    console.log(installation)
+                    d.set_value("installation", installation)
+                 }
                 //options: "\nSub Supplier\nCollegue"
-            }
+            },
+            {
+                label: __("Installation"),
+                fieldname: "installation",
+                fieldtype: "Data",
+                default: "",
+                //options: "\nSub Supplier\nCollegue"
+            },
+
 
         ],
-        size: 'extra-large', // small, large, extra-large 
-        primary_action_label: 'Reject Goods',
+        size: 'large', // small, large, extra-large 
+        primary_action_label: 'Assign Emission Data',
         //secondary_action_label: '',
         primary_action(values) {
             console.log(values);
@@ -197,6 +210,8 @@ window.addEventListener("DOMContentLoaded", function() {
 
                
     d.show();
+    d.$wrapper.find('.modal-dialog').css("height", "350px");
+    
     }
 
 

@@ -150,9 +150,17 @@ body {
 
 .content-container {
     width: 100%;
-    padding: 1rem;
+    padding: 2rem;
     border-radius: var(--border-radius-md);
     background-color: var(--subtle-fg);
+}
+
+.text-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
 }
 
 .container-head {
@@ -477,9 +485,6 @@ input.list-row-checkbox {
 }
 
 .video-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     width: 100%;
     height: 100%;
 }
@@ -487,6 +492,40 @@ input.list-row-checkbox {
 .video-frame {
     width: 50%;
     height: 40rem;
+}
+
+.policy-text {
+    font-size: 1.6rem;
+    text-align: justify;
+}
+
+.sub-policy-text {
+    font-size: 1.5rem;
+    text-align: justify;
+}
+
+.bold {
+    font-weight: 600;
+}
+
+.text-content,
+.flex-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.text-content {
+    gap: 3rem;
+}
+
+.flex-col {
+    gap: 0.5rem;
+}
+
+.underline {
+    border-bottom: 1px solid #525252;
 }
 
 @media (min-width: 74.375em) {
