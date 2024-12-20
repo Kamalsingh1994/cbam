@@ -476,6 +476,13 @@ input.list-row-checkbox {
     margin-left: 0.48rem;
 }
 
+.action-btn-flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
 @media (min-width: 74.375em) {
     .container-xl, .container-lg, .container-md, .container-sm, .container {
         max-width: 141.5rem;

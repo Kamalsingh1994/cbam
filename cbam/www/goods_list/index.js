@@ -15,7 +15,9 @@ window.addEventListener("DOMContentLoaded", function() {
     const statusFilter = document.querySelector(".status-filter");
     const dropDownCont = document.querySelectorAll(".options-abs");
     const dataBtnEl = document.querySelectorAll(".data-btn");
+    const bulkassign = document.querySelector("#bulkassign-data");
 
+    
     let boxesLen = 0;
     let selected = 0;
     let amount = 0;
@@ -31,44 +33,76 @@ window.addEventListener("DOMContentLoaded", function() {
         }
     })
 
-    const CreateForwardDialog = async function(docName){
+    bulkassign.addEventListener("click", function(e){
+        e.preventDefault();
+        //const doc_list = document.querySelectorAll("#doc-name")
+        const doc_list = []
+        contentContainer.forEach(container =>{
+            var index = container.querySelector('#index');
+            if(index.querySelector("#list_check").checked){
+                doc_list.push(index.querySelector('#doc-name').dataset.name)
+            }
+        })
+        console.log(doc_list)
+        CreateEmissionDialog(doc_list)
+    })
+
+
+
+    const CreateSubmitDialog = function(docName){
+        let d = new frappe.ui.Dialog({
+            title: `Rejecting Request`,
+            fields: [
+                {
+                    label: __("Reason to Reject"),
+                    fieldname: "reason",
+                    fieldtype: "Small Text",
+                    default: "",
+                    //options: "\nSub Supplier\nCollegue"
+                }
+
+            ],
+            size: 'small', // small, large, extra-large 
+            primary_action_label: 'Reject Goods',
+            //secondary_action_label: '',
+            primary_action(values) {
+                console.log(values);
+                d.hide();
+            },
+            secondary_action(values) {
+                
+               
+                
+                no+=1
+                
+            }
+        });
+    
+
+
+
+
+    const CreateForwardDialog = async function(goods){
         let d = new frappe.ui.Dialog({
             title: `Forwarding Request`,
             fields: [
-                // {
-                //     label: __("Forward to"),
-                //     fieldname: "forward_to_party",
-                //     fieldtype: "Select",
-                //     default: "",
-                //     options: "\nSub Supplier\nCollegue"
-                // },
-                // {
-                //     label: __(""),
-                //     fieldname: "cb1",
-                //     fieldtype: "Column Break",
-                // },
                 {
-                    label: __("Sub Supplier"),
+                    label: __("Supplier"),
                     fieldname: "supplier",
                     fieldtype: "Autocomplete",
                     default: "",
                     options: await cbam.utils.get_links("Operating Company"),
                     //depends_on: "eval:doc.forward_to_party == 'Sub Supplier'"
                 },
-                // {
-                //     label: __("Employee"),
-                //     fieldname: "employee",
-                //     fieldtype: "Link",
-                //     default: "",
-                //     options: "Supplier Employee",
-                //     depends_on: "eval:doc.forward_to_party == 'Collegue'"
-                // },
-
+                
             ],
             size: 'large', // small, large, extra-large 
             primary_action_label: 'Submit',
             primary_action(values) {
-                cbam.utils.forward_good("")
+                if(!Array.isArray(goods)){
+                    goods = [goods]
+                }
+                cbam.utils.forward_goods(values.supplier, goods)
             }
         });
 
@@ -165,7 +199,7 @@ window.addEventListener("DOMContentLoaded", function() {
 
 
 
-   const CreateEmissionDialog = async function(){
+   const CreateEmissionDialog = async function(good){
     let d = new frappe.ui.Dialog({
         title: `Assigning Emission Data`,
         fields: [
@@ -187,6 +221,7 @@ window.addEventListener("DOMContentLoaded", function() {
                 fieldname: "installation",
                 fieldtype: "Data",
                 default: "",
+                read_only: 1
                 //options: "\nSub Supplier\nCollegue"
             },
 
@@ -196,16 +231,13 @@ window.addEventListener("DOMContentLoaded", function() {
         primary_action_label: 'Assign Emission Data',
         //secondary_action_label: '',
         primary_action(values) {
-            console.log(values);
             d.hide();
-        },
-        secondary_action(values) {
-            
-           
-            
-            no+=1
-            
+            if(!Array.isArray(good)){
+                good = [good]
+            }
+            cbam.utils.assign_emission(values.emission_data, good)
         }
+        
     });
 
                
@@ -250,6 +282,8 @@ window.addEventListener("DOMContentLoaded", function() {
         }
     }
  
+
+    
 
     contentContainer.forEach(container => {
         const absBtn = container.querySelectorAll(".abs-option-btn");

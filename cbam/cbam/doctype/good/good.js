@@ -46,7 +46,11 @@ frappe.ui.form.on("Good", {
                 method: "send_data_request",
                 doc: frm.doc,
                 freeze: true,
-                freeze_message: "Sending Data Request...."
+                freeze_message: "Sending Data Request....",
+                callback(r){
+                    msgprint("Data Requested Successfully")
+                    frm.reload_doc()
+                }
             });
         });
     },

@@ -37,7 +37,7 @@ class OperatingCompany(Document):
 	@frappe.whitelist()
 	def send_signup_request(self):
 		email = frappe.get_doc("Notification", "Commercial Contact Signup Request")
-		self.declarent = "OBE"
+		self.declarent = self.declarent
 		email.send(self)
 
 	def create_permissions(self, user=None):

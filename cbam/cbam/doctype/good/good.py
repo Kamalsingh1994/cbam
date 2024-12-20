@@ -26,7 +26,7 @@ class Good(Document):
 		self.add_to_employee_cht()
 		self.add_to_customs_import_cht()
 
-	def _validate(self):
+	def _1validate(self):
 		if self.manufacture == "The mass of this product needs to be split into several parts, due to shared responsibilities. I will assign the responsible parties" and not self.good_splitted:
 			self.split_good()
 		elif self.manufacture == "I am not able to provide emission data and will delegate this request":
@@ -248,8 +248,10 @@ class Good(Document):
 		if not email:
 			frappe.throw("Please setup Data Request Notification Template in CBAM Settings")
 		opp = frappe.get_doc("Operating Company", self.operating_company)
-		opp.declarent = self.declarent
+		opp.declarent = opp.declarent
 		email.send(opp)
+		self.status = "Data Requested"
+		self.save()
 
 
 def delete_good_item(good, parenttype):
@@ -275,8 +277,9 @@ def send_data_request(goods):
 		
 	for s in supp:
 		op = frappe.get_doc("Operating Company", s)
-		op.declarent = "OBB"
+		op.declarent = op.declarent
 		email.send(op)
-
+	for g in goods:
+		frappe.db.set_value("Good", g.get("name"), "status", "Data Requested")
 
 

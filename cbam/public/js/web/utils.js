@@ -11,7 +11,7 @@ $.extend(cbam.utils, {
             freeze: true,
             freeze_message: `Creating new ${doc.doctype}, please wait....`,
             callback(r){
-                msgprint("Created new doc.")
+                msgprint(`New ${doc.doctype}: ${r.message.name} created`)
             }
         })
     },
@@ -58,13 +58,31 @@ $.extend(cbam.utils, {
         return await cbam.utils._get_installation(emission);
     },
 
-    forward_goods(args){
+    forward_goods(supplier, goods){
         frappe.call({
-            method: "cbam.utils.forward_good",
-            args:args,
+            method: "cbam.utils.goods.forward_goods",
+            args:{
+                goods: goods,
+                supplier: supplier
+            },
             callback(){
                 msgprint("Goods forwarded.")
               } 
+        })
+    },
+    assign_emission(emission, goods){
+        frappe.call({
+            method: "cbam.utils.goods.assign_emission",
+            args:{
+                emission: emission,
+                goods: goods
+            },
+            freeze: true,
+            freeze_message: `Assigning Emissions, please wait....`,
+            callback(){
+                msgprint("Emissions assigned successfully.")
+            }
+
         })
     }
 })
