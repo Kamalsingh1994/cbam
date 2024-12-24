@@ -14,11 +14,10 @@
                 <span class="status-filter-container">
                   <select type="text" class="form-control  status-filter" data-fieldtype="Select" data-fieldname="status" placeholder="">
                     <option value="">All</option>
-                    <option value="Raw Data">Raw Data</option>
-                    <option value="Split for completing">Split for completing</option>
-                    <option value="Split">Split</option>
-                    <option value="Done">Done</option>
-                    <option value="Rejected">Rejected</option>
+                    <option value="Data Requested">Data Requested</option>
+                    <option value="Data Assigned">Data Assigned</option>
+                    <option value="Data Submitted">Data Submitted</option>
+                    
                   </select>
                 </span>
 
@@ -30,7 +29,7 @@
                     <span class="action-btn-flex">
                       <span class="hidden-xs actions-btn-group-label" data-label="Actions">
                         <span>
-                          <span class="alt-underline">A</span>ctions</span>
+                          <span class="alt-underline"></span>Actions</span>
                         </span>
                         <svg class="icon icon-xs">
                           <use href="#icon-select"></use>
@@ -39,12 +38,12 @@
                   </button>
                   <ul class="dropdown-menu dropdown-menu-right" role="menu">
                     <li class="user-action">
-                      <a id="bulkassign-data" class="grey-link dropdown-item" href="#" onclick="return false;">
+                      <a id="bulkforward-data" class="grey-link dropdown-item" href="#" onclick="return false;">
                         <span class="menu-item-label" data-label="Forward"><span>Forward</span></span>
                       </a>
                     </li>
                     <li class="user-action">
-                      <a id="bulkassign-data" class="grey-link dropdown-item" href="#" onclick="return false;">
+                      <a id="bulkreject-data" class="grey-link dropdown-item" href="#" onclick="return false;">
                         <span class="menu-item-label" data-label="Reject"><span>Reject</span></span>
                       </a>
                     </li>
@@ -116,7 +115,7 @@
             <div class="level-right "><span class="space-hidden">0</span></span>
             </div>
           </div>
-          {% set goods_list = frappe.get_list("Good") %}
+          {% set goods_list = frappe.get_list("Good", filters={"status": ["!=", "Draft"]}) %}
           {% for i in goods_list %}
           {% set doc = frappe.get_doc("Good", i) %}
           <div class="content-container">
@@ -180,6 +179,8 @@
                 </div>-->
               </div>
               <div class="level-right popup-options">
+                {%if doc.status != "Data Submitted"%}
+                
                 <button class="action-btn text-muted btn btn-default icon-btn">
                   <svg class="action-btn icon icon-sm">
                     <use class="action-btn" href="#icon-dot-vertical"></use>
@@ -188,6 +189,9 @@
                     <use class="print-btn" href="#icon-printer"></use>
                   </svg> -->
                 </button>
+                {%else%}
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                {%endif%}
                 <div class="options-abs hidden">
                   <button class="abs-option-btn" data-action="Split">Split</button>
                   <button class="abs-option-btn" data-action="Forward">Forward</button>

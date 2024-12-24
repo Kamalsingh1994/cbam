@@ -1,3 +1,6 @@
+
+
+
 window.addEventListener("DOMContentLoaded", function() {
     // This condition is to stop the rest of the code from executing if the user is not authorized.
     // frappe.call({
@@ -5,7 +8,7 @@ window.addEventListener("DOMContentLoaded", function() {
     //     callback: function(r) {
     //     }
     // });
-
+    
     const contentContainer = document.querySelectorAll(".content-container");
     const infoContainer = document.querySelectorAll(".info-container");
     const arrowEl = document.querySelectorAll(".arrow");
@@ -16,6 +19,9 @@ window.addEventListener("DOMContentLoaded", function() {
     const dropDownCont = document.querySelectorAll(".options-abs");
     const dataBtnEl = document.querySelectorAll(".data-btn");
     const bulkassign = document.querySelector("#bulkassign-data");
+    const bulksubmit = document.querySelector("#bulksubmit-data");
+    const bulkforward = document.querySelector("#bulkforward-data");
+    const bulkreject = document.querySelector("#bulkreject-data");
 
     
     let boxesLen = 0;
@@ -43,42 +49,53 @@ window.addEventListener("DOMContentLoaded", function() {
                 doc_list.push(index.querySelector('#doc-name').dataset.name)
             }
         })
-        console.log(doc_list)
+        
         CreateEmissionDialog(doc_list)
     })
 
-
-
-    const CreateSubmitDialog = function(docName){
-        let d = new frappe.ui.Dialog({
-            title: `Rejecting Request`,
-            fields: [
-                {
-                    label: __("Reason to Reject"),
-                    fieldname: "reason",
-                    fieldtype: "Small Text",
-                    default: "",
-                    //options: "\nSub Supplier\nCollegue"
-                }
-
-            ],
-            size: 'small', // small, large, extra-large 
-            primary_action_label: 'Reject Goods',
-            //secondary_action_label: '',
-            primary_action(values) {
-                console.log(values);
-                d.hide();
-            },
-            secondary_action(values) {
-                
-               
-                
-                no+=1
-                
+    bulkreject.addEventListener("click", function(e){
+        e.preventDefault();
+        //const doc_list = document.querySelectorAll("#doc-name")
+        const doc_list = []
+        contentContainer.forEach(container =>{
+            var index = container.querySelector('#index');
+            if(index.querySelector("#list_check").checked){
+                doc_list.push(index.querySelector('#doc-name').dataset.name)
             }
-        });
-    
+        })
+        
+        CreateRejectDialog(doc_list)
+    })
 
+    bulkforward.addEventListener("click", function(e){
+        e.preventDefault();
+        //const doc_list = document.querySelectorAll("#doc-name")
+        const doc_list = []
+        contentContainer.forEach(container =>{
+            var index = container.querySelector('#index');
+            if(index.querySelector("#list_check").checked){
+                doc_list.push(index.querySelector('#doc-name').dataset.name)
+            }
+        })
+        console.log(doc_list)
+        CreateForwardDialog(doc_list)
+    })
+
+
+    bulksubmit.addEventListener("click", function(e){
+        e.preventDefault();
+        //const doc_list = document.querySelectorAll("#doc-name")
+        const doc_list = []
+        contentContainer.forEach(container =>{
+            var index = container.querySelector('#index');
+            if(index.querySelector("#list_check").checked){
+                doc_list.push(index.querySelector('#doc-name').dataset.name)
+            }
+        })
+        
+        CreateEmissionSubmissionDialog(doc_list)
+    })
+    
 
 
 
@@ -91,7 +108,7 @@ window.addEventListener("DOMContentLoaded", function() {
                     fieldname: "supplier",
                     fieldtype: "Autocomplete",
                     default: "",
-                    options: await cbam.utils.get_links("Operating Company"),
+                    options: await cbam.utils.get_links("Operating Company", ["supplier_name as label", "name as value"]),
                     //depends_on: "eval:doc.forward_to_party == 'Sub Supplier'"
                 },
                 
@@ -99,10 +116,12 @@ window.addEventListener("DOMContentLoaded", function() {
             size: 'large', // small, large, extra-large 
             primary_action_label: 'Submit',
             primary_action(values) {
+              
                 if(!Array.isArray(goods)){
                     goods = [goods]
                 }
-                cbam.utils.forward_goods(values.supplier, goods)
+                cbam.goods.forward_goods(values.supplier, goods)
+                d.hide()
             }
         });
 
@@ -111,7 +130,7 @@ window.addEventListener("DOMContentLoaded", function() {
         d.$wrapper.find('.modal-dialog').css("height", "350px");
     }
 
-    const CreateRejectDialog = function(docName){
+    const CreateRejectDialog = function(goods){
         let d = new frappe.ui.Dialog({
             title: `Rejecting Request`,
             fields: [
@@ -128,14 +147,14 @@ window.addEventListener("DOMContentLoaded", function() {
             primary_action_label: 'Reject Goods',
             //secondary_action_label: '',
             primary_action(values) {
-                console.log(values);
+                cbam.goods.reject_goods(goods, values.reason)
                 d.hide();
             },
             secondary_action(values) {
                 
                
                 
-                no+=1
+                
                 
             }
         });
@@ -150,38 +169,34 @@ window.addEventListener("DOMContentLoaded", function() {
         return [
             {
                 label: __("Split with"),
-                fieldname: `forward_to_party_${no}`,
+                fieldname: `split_with`,
                 fieldtype: "Select",
-                default: "",
-                options: "\nSub Supplier\nInstallation",
+                default: "Supplier",
+                options: "\nSupplier\nInstallation",
                 change: () =>{
-                   console.log("Chanfe")
+                   
+                   console.log()
                     cur_dialog.refresh()
-                }
+                },
+                in_list_view: 1
+                
             },
             {
-                label: __(""),
+               
                 fieldname: "cb1",
                 fieldtype: "Column Break",
             },
             {
-                label: __("Sub Supplier"),
-                fieldname: `supplier_${no}`,
-                fieldtype: "Link",
+                label: __("Split with Name"),
+                fieldname: `split_with_name`,
+                fieldtype: "Autocomplete",
                 default: "",
-                //options: "Supplier",
-                depends_on: `eval:doc.forward_to_party_${no} == 'Sub Supplier'`
+                
+                
+                in_list_view: 1
             },
             {
-                label: __("Installation"),
-                fieldname: `installation_${no}`,
-                fieldtype: "Link",
-                default: "",
-                //options: "Installation",
-                depends_on: `eval:doc.forward_to_party_${no} == 'Installation'`
-            },
-            {
-                label: __(""),
+              
                 fieldname: "cb1",
                 fieldtype: "Column Break",
             },
@@ -189,7 +204,59 @@ window.addEventListener("DOMContentLoaded", function() {
                 label: __("Qty to Split"),
                 fieldname: `qty_${no}`,
                 fieldtype: "Float",
-                depends_on: `eval:doc.forward_to_party_${no}`
+                in_list_view: 1
+            },
+            
+            
+        ]
+        return [
+            {
+                label: __("Split with"),
+                fieldname: `forward_to_party_${no}`,
+                fieldtype: "Select",
+                default: "",
+                options: "\nSub Supplier\nInstallation",
+                change: () =>{
+                   
+                    cur_dialog.refresh()
+                },
+                in_list_view: 1
+                
+            },
+            {
+               
+                fieldname: "cb1",
+                fieldtype: "Column Break",
+            },
+            {
+                label: __("Supplier"),
+                fieldname: `supplier_${no}`,
+                fieldtype: "Link",
+                default: "",
+                //options: "Supplier",
+                depends_on: `eval:doc.forward_to_party_${no} == 'Sub Supplier'`,
+                in_list_view: 1
+            },
+            {
+                label: __("Installation"),
+                fieldname: `installation_${no}`,
+                fieldtype: "Link",
+                default: "",
+                //options: "Installation",
+                depends_on: `eval:doc.forward_to_party_${no} == 'Installation'`,
+                in_list_view: 1
+            },
+            {
+              
+                fieldname: "cb1",
+                fieldtype: "Column Break",
+            },
+            {
+                label: __("Qty to Split"),
+                fieldname: `qty_${no}`,
+                fieldtype: "Float",
+                depends_on: `eval:doc.forward_to_party_${no}`,
+                in_list_view: 1
             },
             
             
@@ -235,7 +302,7 @@ window.addEventListener("DOMContentLoaded", function() {
             if(!Array.isArray(good)){
                 good = [good]
             }
-            cbam.utils.assign_emission(values.emission_data, good)
+            cbam.goods.assign_emission(values.emission_data, good)
         }
         
     });
@@ -253,7 +320,60 @@ window.addEventListener("DOMContentLoaded", function() {
         let no = 1;
         let d = new frappe.ui.Dialog({
             title: `Spliting Goods`,
-            fields: fields,
+            fields: [
+                {
+                    fieldtype: "Table",
+                    fieldname: "table1",
+                    editable_grid: 0,
+                    fields: [
+                        {
+                            label: __("Split with"),
+                            fieldname: `split_with`,
+                            fieldtype: "Select",
+                            default: "Supplier",
+                            options: "\nSupplier\nInstallation",
+                            onchange: (event) => {
+								if (event) {
+									let name = $(event.currentTarget).closest(".grid-row").attr("data-name");
+									let item_row =
+										d.fields_dict.table1.grid.grid_rows_by_docname[name].columns.split_with_name.df.options=["AAA"];
+
+									
+									d.fields_dict.table1.grid.refresh();
+								}
+							},
+                            in_list_view: 1
+                            
+                        },
+                        {
+                           
+                            fieldname: "cb1",
+                            fieldtype: "Column Break",
+                        },
+                        {
+                            label: __("Split with Name"),
+                            fieldname: `split_with_name`,
+                            fieldtype: "Autocomplete",
+                            default: "",
+                            options: ["BB"],
+                            
+                            reqd: 1,  
+                            in_list_view: 1
+                        },
+                        {
+                          
+                            fieldname: "cb1",
+                            fieldtype: "Column Break",
+                        },
+                        {
+                            label: __("Qty to Split"),
+                            fieldname: `qty`,
+                            fieldtype: "Float",
+                            in_list_view: 1
+                        },
+                    ]
+                }
+            ],
             size: 'extra-large', // small, large, extra-large 
             primary_action_label: 'Split Goods',
             secondary_action_label: 'Add More',
@@ -304,15 +424,15 @@ window.addEventListener("DOMContentLoaded", function() {
                 else if(action == "Add Emission Data"){
                     CreateEmissionDialog(docName)
                 }
-                else if(action == "Add Installation"){
-                    CreateInstallationDialog(docName)
+                else if(action == "Submit Emission Data"){
+                    CreateEmissionSubmissionDialog(docName)
                 }
                 
             })
         })
 
 
-
+    
 
         container.addEventListener("click", function(e) {
             if(e.target.classList.contains("action-btn")) {
@@ -456,6 +576,136 @@ window.addEventListener("DOMContentLoaded", function() {
         //     }
         // });
     })
+    const SubmissionDialog = function(goods){
+        
+        
+        let d = new frappe.ui.Dialog({
+            title: 'Are you sure you want to proceed?',
+            fields: [
+                {
+                    fieldtype: "HTML",
+                    options: "This will submit the Emission data for the goods and will not be reverted."
+                }
+            ],
+            primary_action_label: 'Submit',
+            size: 'large', // small, large, extra-large 
+            primary_action(values) {
+                cbam.goods.submit_goods(goods)
+                d.hide();
+            }
+           
+        });
+        d.show()
+        
+    }
+
+
+    const CreateEmissionSubmissionDialog = async function(goods){
+        let supplier_details = await cbam.supplier.get_supplier();
+        if (supplier_details.status!="Company Verified"){
+            let d = new frappe.ui.Dialog({
+                title: `Please Confrim your Operating Company Details`,
+                fields: [
+                    {
+                        label: __("Operating Company Name"),
+                        fieldname: "supplier_name",
+                        fieldtype: "Data",
+                        
+                        default: supplier_details.supplier_name,
+                        read_only:1
+                        //options: "\nSub Supplier\nCollegue"
+                    },
+                    {
+                        label: __("<strong>Company Contact and Address</strong>"),
+                        fieldname: "sb1",
+                        fieldtype: "Section Break",
+                        
+                        
+                    },
+                    {
+                        label: __("Company Phone Number"),
+                        fieldname: "company_phone_number",
+                        fieldtype: "Data",
+                        default: supplier_details.company_phone_number
+                        
+                    },
+                    {
+                        label: __("Company Email"),
+                        fieldname: "company_email",
+                        fieldtype: "Data",
+                        default: supplier_details.company_email,
+                        options: "Email"
+                        
+                    },
+                    {
+                        label: __(""),
+                        fieldname: "cb1",
+                        fieldtype: "Column Break",
+                        
+                        
+                    },
+                    {
+                        label: __("Street and Number"),
+                        fieldname: "street_and_number",
+                        fieldtype: "Data",
+                        default: supplier_details.street_and_number
+                        
+                    },
+                    {
+                        label: __("Zip code"),
+                        fieldname: "zip_code",
+                        fieldtype: "Data",
+                        default: supplier_details.zip_code
+                        
+                    },
+                    {
+                        label: __(""),
+                        fieldname: "cb1",
+                        fieldtype: "Column Break",
+                        
+                        
+                    },
+                    {
+                        label: __("City"),
+                        fieldname: "city",
+                        fieldtype: "Data",
+                        default: supplier_details.city
+                        
+                    },
+                    {
+                        label: __("Country"),
+                        fieldname: "country",
+                        fieldtype: "Data",
+                        default: supplier_details.country
+                        
+                    }
+                    
+    
+                ],
+                size: 'extra-large', // small, large, extra-large 
+                primary_action_label: 'Confirm Details',
+                //secondary_action_label: '',
+                primary_action(values) {
+                    cbam.supplier.confirm_details(values)
+                    d.hide();
+                    SubmissionDialog(goods)
+                },
+                secondary_action(values) {
+                    
+                    
+                    
+                    no+=1
+                    
+                }
+            });
+            d.show()
+        }
+        else{
+            SubmissionDialog(goods)    
+        }
+        
+        
+    }
 
     if(document.querySelector(".list-container")) {
         const contentContainer = document.querySelectorAll(".content-container");
@@ -494,15 +744,6 @@ window.addEventListener("DOMContentLoaded", function() {
                 }
             });
         });
-
-        contentContainer.forEach(container => {
-            container.addEventListener("click", function(e) {
-                if(e.target.classList.contains("print-btn")) {
-                    const invName = container.querySelector(".inv-name").dataset.name;
-                    window.open(`${currentDomain}/printview?doctype=Sales%20Invoice&name=${invName}&trigger_print=1&format=${exPrintFormat || "Standard"}r&no_letterhead=1&letterhead=No%20Letterhead&settings=%7B%7D&_lang=en`);
-                    // window.open(`${currentDomain}/api/method/frappe.utils.print_format.download_pdf?doctype=Sales%20Invoice&name=${invName}&&format=${exPrintFormat || "Standard"}&no_letterhead=1&letterhead=No%20Letterhead&settings=%7B%7D&_lang=en`, '_blank');
-                }
-            })
-        })
     }
-});
+        
+})

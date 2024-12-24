@@ -1,5 +1,5 @@
 import frappe
-from frappe.boot import get_bootinfo as boot_info
+
 def update_boot_context(context):
     context.update({
         "cbam": {
@@ -11,11 +11,11 @@ def update_boot_context(context):
 
 
 
-def update_website_context(context):
+def update_website_context(bootinfo):
     
     
     
-    context.update({
+    bootinfo.update({
         "test": "sfd"
     })
 

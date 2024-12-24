@@ -1,9 +1,7 @@
 frappe.provide("cbam.utils")
 
 $.extend(cbam.utils, {
-    add_new_supplier(doc){
-        console.log("aaa")
-    },
+    
     new_doc(doc){
         frappe.call({
             method: "cbam.utils.create_new_doc",
@@ -15,12 +13,14 @@ $.extend(cbam.utils, {
             }
         })
     },
-    _get_links(doctype){
+
+    _get_links(doctype, fields){
        return new Promise(function(reslove, reject) {
             frappe.call({
                 method: "cbam.utils.links.get_links",
                 args:{
-                    doctype: doctype
+                    doctype: doctype,
+                    fields: fields
                 },
                 callback(r){
                     if(r.message){
@@ -33,8 +33,8 @@ $.extend(cbam.utils, {
         });
     
     },
-    async get_links(doctype){
-        return await cbam.utils._get_links(doctype);
+    async get_links(doctype, fields){
+        return await cbam.utils._get_links(doctype, fields);
     },
     _get_installation(emission){
         return new Promise(function(reslove, reject) {
@@ -58,31 +58,5 @@ $.extend(cbam.utils, {
         return await cbam.utils._get_installation(emission);
     },
 
-    forward_goods(supplier, goods){
-        frappe.call({
-            method: "cbam.utils.goods.forward_goods",
-            args:{
-                goods: goods,
-                supplier: supplier
-            },
-            callback(){
-                msgprint("Goods forwarded.")
-              } 
-        })
-    },
-    assign_emission(emission, goods){
-        frappe.call({
-            method: "cbam.utils.goods.assign_emission",
-            args:{
-                emission: emission,
-                goods: goods
-            },
-            freeze: true,
-            freeze_message: `Assigning Emissions, please wait....`,
-            callback(){
-                msgprint("Emissions assigned successfully.")
-            }
-
-        })
-    }
+    
 })

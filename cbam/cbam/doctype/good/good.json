@@ -41,7 +41,9 @@
   "forwarding_details_section",
   "forwarded_from_supplier",
   "column_break_awva",
-  "forward_to_supplier",
+  "rejection_details_section",
+  "rejected_from_supplier",
+  "rejection_reason",
   "requested_data_section",
   "installation",
   "emission_data",
@@ -229,6 +231,7 @@
   {
    "fieldname": "forwarded_from_supplier",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Forwarded from Supplier",
    "options": "Operating Company",
    "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")"
@@ -236,11 +239,6 @@
   {
    "fieldname": "column_break_awva",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "forward_to_supplier",
-   "fieldtype": "Data",
-   "label": "Forward to Supplier"
   },
   {
    "fieldname": "operating_company",
@@ -298,11 +296,29 @@
   {
    "fieldname": "column_break_fkqq",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rejection_details_section",
+   "fieldtype": "Section Break",
+   "label": "Rejection Details"
+  },
+  {
+   "fieldname": "rejection_reason",
+   "fieldtype": "Small Text",
+   "label": "Rejection Reason"
+  },
+  {
+   "fieldname": "rejected_from_supplier",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "label": "Rejected from Supplier",
+   "options": "Operating Company",
+   "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-20 09:47:55.186778",
+ "modified": "2024-12-24 08:23:05.356598",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",

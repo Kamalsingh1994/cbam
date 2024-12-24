@@ -31,7 +31,7 @@
           {% set doc = frappe.get_doc("Operating Company", {"commercial_contact_user": frappe.session.user})%}
           <div class="content-container">
             <div class="container info-container">
-              
+              <p hidden id="doc_dict">{{doc.as_dict()}}</p>
               <h2>Contact Details</h2>
               <div class="container responsive-md" style="width: 100%">
                 
@@ -76,7 +76,7 @@
                 </div>
                 <button class="btn btn-primary btn-sm primary-action">
                   <span> 
-                    <span><a href = "#" class="ex-pay-link add-newemission">Update Contact Details</a></span>
+                    <span><a href = "#" class="ex-pay-link add-newemission" id="company_contact">Update Contact Details</a></span>
                   </span>
                 </button>
               </div>

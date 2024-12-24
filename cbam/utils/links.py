@@ -1,7 +1,7 @@
 import frappe
 
 @frappe.whitelist()
-def get_links(doctype, fields = []):
+def get_links(doctype, fields=[]):
     if not fields:
         fields = ["name as label", "name as value"]
     return frappe.get_list(doctype, fields=fields)
