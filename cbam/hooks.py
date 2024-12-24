@@ -10,7 +10,7 @@ app_logo_url = 'assets/cbam/images/gallehr_partner_logo.png'
 
 #update boot context
 boot_session = "cbam.boot.update_boot_context"
-
+extend_bootinfo = "cbam.boot.update_website_context"
 website_context = {
     "logo": "assets/cbam/images/gallehr_partner_logo.png",
     "splash_image": "assets/cbam/images/gallehr_partner_logo.png"
@@ -78,7 +78,7 @@ web_include_js = [
 
 # website user home page (by Role)
 role_home_page = {
-	"Supplier": "confirmation_overview"
+	"Commercial Contact": "home"
 }
 
 # Generators

@@ -38,17 +38,12 @@
   "supplier_number",
   "column_break_fkqq",
   "importing_company",
-  "section_break_yaqq",
-  "confirmation_web_form",
-  "is_data_confirmed",
-  "invoice_number",
-  "split_the_good_in_various_components_section",
-  "manufacture",
-  "good_splitted",
   "forwarding_details_section",
   "forwarded_from_supplier",
   "column_break_awva",
-  "forward_to_supplier",
+  "rejection_details_section",
+  "rejected_from_supplier",
+  "rejection_reason",
   "requested_data_section",
   "installation",
   "emission_data",
@@ -83,29 +78,9 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "0",
-   "description": "Only the Supplier Employee can check this checkbox.",
-   "fieldname": "is_data_confirmed",
-   "fieldtype": "Check",
-   "label": "Good details confirmed or split by supplier",
-   "permlevel": 2
-  },
-  {
-   "fieldname": "confirmation_web_form",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "confirmation_web_form"
-  },
-  {
    "fieldname": "goods_data_section",
    "fieldtype": "Section Break",
    "label": "Goods Description"
-  },
-  {
-   "description": "DE: Rechungsnummer",
-   "fieldname": "invoice_number",
-   "fieldtype": "Data",
-   "label": "Invoice number"
   },
   {
    "fieldname": "article_number",
@@ -213,84 +188,50 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "split_the_good_in_various_components_section",
-   "fieldtype": "Section Break",
-   "hidden": 1,
-   "label": "Split the Good in various Components, if needed"
-  },
-  {
-   "default": "I am able to provide the emission data of this product",
-   "description": "Field can only be changed by Supplier User.",
-   "fieldname": "manufacture",
-   "fieldtype": "Select",
-   "label": "Are you the manufacturer of this product?/Can you provide the emission data for this product?",
-   "options": "I am able to provide the emission data of this product\nThe mass of this product needs to be split into several parts, due to shared responsibilities. I will assign the responsible parties\nI am not able to provide emission data and will delegate this request\nThis item was not purchased from us. I want to reject this request back to the sender.",
-   "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")"
-  },
-  {
-   "default": "0",
-   "fieldname": "good_splitted",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Good Splitted",
-   "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")"
-  },
-  {
-   "depends_on": "eval:doc.manufacture==\"I am the manufacture\"",
    "fieldname": "requested_data_section",
    "fieldtype": "Section Break",
-   "hidden": 1,
    "label": "Requested Data",
    "read_only": 1
   },
   {
-   "depends_on": "eval:doc.manufacture==\"I am the manufacture\"",
    "fetch_from": "emission_data.cbam_installation",
    "fieldname": "installation",
    "fieldtype": "Link",
    "label": "Installation",
-   "options": "CBAM Installation",
-   "read_only": 1
+   "options": "CBAM Installation"
   },
   {
-   "depends_on": "eval:doc.manufacture==\"I am the manufacture\"",
    "fieldname": "emission_data",
    "fieldtype": "Link",
    "label": "Emission Data",
-   "options": "CBAM Emission Data",
-   "read_only": 1
+   "options": "CBAM Emission Data"
   },
   {
    "fieldname": "column_break_wczo",
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.manufacture==\"I am the manufacture\"",
    "fetch_from": "emission_data.specific_direct_embedded_emissions",
    "fieldname": "direct_emission_data",
    "fieldtype": "Data",
-   "label": "Direct embedded emissions [t CO2/t product]",
-   "read_only": 1
+   "label": "Direct embedded emissions [t CO2/t product]"
   },
   {
-   "depends_on": "eval:doc.manufacture==\"I am the manufacture\"",
    "description": "Electricity consumed [MWh/t]",
    "fetch_from": "emission_data.electricity_consumed",
    "fieldname": "indirect_emission_data",
    "fieldtype": "Data",
-   "label": "Indirect embedded emissions [t CO2/t product]",
-   "read_only": 1
+   "label": "Indirect embedded emissions [t CO2/t product]"
   },
   {
    "fieldname": "forwarding_details_section",
    "fieldtype": "Section Break",
-   "hidden": 1,
-   "label": "Forwarding Details",
-   "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")"
+   "label": "Forwarding Details"
   },
   {
    "fieldname": "forwarded_from_supplier",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Forwarded from Supplier",
    "options": "Operating Company",
    "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")"
@@ -298,12 +239,6 @@
   {
    "fieldname": "column_break_awva",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "forward_to_supplier",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Forward to Supplier"
   },
   {
    "fieldname": "operating_company",
@@ -347,11 +282,6 @@
    "label": "Importing Company"
   },
   {
-   "fieldname": "section_break_yaqq",
-   "fieldtype": "Section Break",
-   "hidden": 1
-  },
-  {
    "fieldname": "column_break_xqou",
    "fieldtype": "Column Break"
   },
@@ -366,11 +296,29 @@
   {
    "fieldname": "column_break_fkqq",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "rejection_details_section",
+   "fieldtype": "Section Break",
+   "label": "Rejection Details"
+  },
+  {
+   "fieldname": "rejection_reason",
+   "fieldtype": "Small Text",
+   "label": "Rejection Reason"
+  },
+  {
+   "fieldname": "rejected_from_supplier",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "label": "Rejected from Supplier",
+   "options": "Operating Company",
+   "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-13 13:06:33.128378",
+ "modified": "2024-12-24 08:23:05.356598",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",

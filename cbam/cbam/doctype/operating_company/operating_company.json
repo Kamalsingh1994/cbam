@@ -60,8 +60,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Verification Needed\nPending Verification\nContact Verified\nCompany Verified",
-   "read_only": 1
+   "options": "Verification Needed\nPending Verification\nContact Verified\nCompany Verified"
   },
   {
    "fieldname": "column_break_xlzx",
@@ -125,7 +124,7 @@
   },
   {
    "fieldname": "company_phone_number",
-   "fieldtype": "Phone",
+   "fieldtype": "Data",
    "label": "Company Phone Number"
   },
   {
@@ -309,7 +308,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-18 11:23:43.191950",
+ "modified": "2024-12-24 09:46:45.012412",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Operating Company",
@@ -362,16 +361,16 @@
  "sort_order": "ASC",
  "states": [
   {
-   "color": "Gray",
-   "title": "Raw Data"
+   "color": "Orange",
+   "title": "Verification Needed"
   },
   {
    "color": "Yellow",
-   "title": "Sent for confirmation"
+   "title": "Pending Verification"
   },
   {
    "color": "Green",
-   "title": "Confirmed"
+   "title": "Company Verified"
   }
  ],
  "track_changes": 1

@@ -1,0 +1,258 @@
+<div class="page-content" style="margin: auto; height: 100%;">
+    <div class="list-container" >
+      <div class="list-header">
+        <div class="sub-header">
+          <h1 class="heading-primary">
+            {{title}}
+          </h1>
+          <div class="selected-cta-container">
+            <span class="status-filter-container">
+              <select type="text" class="form-control  status-filter" data-fieldtype="Select" data-fieldname="status" placeholder="">
+                <option value="">All</option>
+                <option value="Raw Data">Raw Data</option>
+                <option value="Split for completing">Split for completing</option>
+                <option value="Split">Split</option>
+                <option value="Done">Done</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </span>
+
+            <div class="selected-container">
+              <span>Selected: <span class="selected-no">0</span></span>
+            </div>
+            <div class="actions-btn-group hidden data-btn">       
+              <button type="button" class="btn btn-primary btn-sm" data-toggle="dropdown" aria-expanded="false">        
+                <span class="action-btn-flex">
+                  <span class="hidden-xs actions-btn-group-label" data-label="Actions">
+                    <span>
+                      <span class="alt-underline">A</span>ctions</span>
+                    </span>
+                    <svg class="icon icon-xs">
+                      <use href="#icon-select"></use>
+                    </svg>
+                </span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                <li class="user-action">
+                  <a id="bulkforward-data" class="grey-link dropdown-item" href="#" onclick="return false;">
+                    <span class="menu-item-label" data-label="Forward"><span>Forward</span></span>
+                  </a>
+                </li>
+                <li class="user-action">
+                  <a id="bulkreject-data" class="grey-link dropdown-item" href="#" onclick="return false;">
+                    <span class="menu-item-label" data-label="Reject"><span>Reject</span></span>
+                  </a>
+                </li>
+                <li class="user-action">
+                  <a id="bulkassign-data" class="grey-link dropdown-item" href="#" onclick="return false;">
+                    <span class="menu-item-label" data-label="Assign Emission"><span>Assign Emission</span></span>
+                  </a>
+                </li>
+                <li class="user-action">
+                  <a id="bulksubmit-data" class="grey-link dropdown-item" href="#" onclick="return false;">
+                    <span class="menu-item-label" data-label="Submit Emission"><span>Submit Emission</span></span>
+                  </a>
+                </li>
+              </ul>      
+            </div>
+            <!-- <button class="btn btn-primary btn-sm primary-action hidden data-btn" id="bulkassign-data">
+              <span> 
+                <span><a href = "#" class="ex-pay-link">Assign Emission Data</a></span>
+              </span>
+            </button>
+
+            <button class="btn hidden btn-primary btn-sm primary-action data-btn submit-data">
+              <span> 
+                <span><a href = "#" class="ex-pay-link">Submit Emission Data</a></span>
+              </span>
+            </button>             -->
+          </div>
+      </div>
+    </div>
+    
+    <div class="list-row-container">
+      <div class="level list-row-head container-head">
+        <div class="level-left list-head-grid">
+          <div class="list-row-col  list-subject level">
+            <span class="level-item select-like">
+                <input
+                class="total-checkbox"
+                class="list-row-checkbox"
+                type="checkbox"
+                data-doctype="DocType"
+                data-name="Sales Invoice"
+                />
+              </span>
+            <span class="level-item bold ellipsis">
+              <span class="invoice-title ellipsis" title="Sales Invoice">Article Nr</span>
+            </span>
+          </div>
+          
+          <div class="list-row-col list-subject level tc-container">
+            <span class="tc-text">Good Description</span>
+          </div>
+          <div class="list-row-col list-subject level gt-container ">
+            <span class="gt-text">Raw Mass</span>
+          </div>
+          <div class="list-row-col list-subject level gt-container ">
+            <span class="gt-text">Importer</span>
+          </div>
+          <div class="list-row-col list-subject level status-title">
+            <span class="gt-text">Status</span>
+          </div>
+          <div class="list-row-col list-subject level gt-container ">
+            <span class="gt-text">Parts</span>
+          </div>
+          <!-- <div class="list-row-col list-subject level prt-container">
+            <span class="prt-text">Actions</span>
+          </div> -->
+          
+        </div>
+        <div class="level-right "><span class="space-hidden">0</span></span>
+        </div>
+      </div>
+      
+      {% for i in goods_list %}
+      {% set doc = frappe.get_doc("Good", i) %}
+      <div class="content-container">
+        <div class="level list-row-head content-head">
+          <div class="level-left list-body-grid">
+            <div id="index" class="list-row-col  list-subject level">
+                <span class="level-item select-like">
+                    <input
+                    id="list_check"
+                    class="list-row-checkbox checkbox"
+                    type="checkbox"
+                    data-doctype="DocType"
+                    data-name="Sales Invoice"
+                    data-status=""
+                    
+                    />
+                  </span>
+                <span class="level-item bold ">
+                <span class=" inv-name" id="doc-name" data-doctype="DocType" data-name="{{doc.name}}" title="Sales Invoice" >{{doc.article_number}}</span>
+              </span>
+            </div>
+            <div class="list-row-col list-subject level tc-container gd">
+                <span><span class="currency"></span><span class="inv-tax">{{doc.good_description}}</span></span>
+              </div>
+            
+            <div class="list-row-col list-subject level tc-container rm">
+              <span><span class="currency"></span> <span class="inv-tax">{{doc.raw_mass}}</span></span>
+            </div>
+            
+            
+            <div class="list-row-col list-subject level gt-container">
+              
+              <span><span class="currency"></span> <span class="inv-amount" data-gt=grand_total>{{doc.importing_company}}</span></span>
+            </div>
+            <div class="list-row-col list-subject level ">
+                <span
+                  class="indicator-pill green filterable no-indicator-dot "
+                  title="Sales Invoices">
+                  <span data-status="{{doc.status}}" class="status">{{doc.status}}</span>
+                </span>
+              </div>
+            <div class="list-row-col list-subject level gt-container parts-cont">
+              <span></span>
+            </div>
+            <!-- <div class="popup-options list-row-col list-subject level prt-container">
+              <button class="action-btn text-muted btn btn-default icon-btn">
+                <svg class="action-btn icon icon-sm">
+                  <use class="action-btn" href="#icon-dot-vertical"></use>
+                </svg> -->
+                <!-- <svg class="icon print-btn icon-sm" aria-hidden="true">
+                  <use class="print-btn" href="#icon-printer"></use>
+                </svg> -->
+              <!-- </button>
+              <div class="options-abs hidden">
+                <button class="abs-option-btn" data-action="Split">Split</button>
+                <button class="abs-option-btn" data-action="Forward">Forward</button>
+                <button class="abs-option-btn" data-action="Reject">Reject</button>
+                <button class="abs-option-btn" data-action="Add Installation">Add Installation</button>
+                <button class="abs-option-btn" data-action="Add Emission Data">Add Emission Data</button>
+              </div>
+            </div>-->
+          </div>
+          <div class="level-right popup-options">
+            {%if doc.status != "Data Submitted"%}
+            
+            <button class="action-btn text-muted btn btn-default icon-btn">
+              <svg class="action-btn icon icon-sm">
+                <use class="action-btn" href="#icon-dot-vertical"></use>
+              </svg>
+              <!-- <svg class="icon print-btn icon-sm" aria-hidden="true">
+                <use class="print-btn" href="#icon-printer"></use>
+              </svg> -->
+            </button>
+            {%else%}
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            {%endif%}
+            <div class="options-abs hidden">
+              <button class="abs-option-btn" data-action="Split">Split</button>
+              <button class="abs-option-btn" data-action="Forward">Forward</button>
+              <button class="abs-option-btn" data-action="Reject">Reject</button>
+              <!-- <button class="abs-option-btn" data-action="Add Installation">Add Installation</button> -->
+              <button class="abs-option-btn" data-action="Add Emission Data">Add Emission</button>
+              <button class="abs-option-btn" data-action="Submit Emission Data">Submit Emission</button>
+            </div>
+            <span class="ml-2 collapse-indicator mb-1 arr-icon">
+              <svg class="es-icon es-line icon-sm arr-icon" aria-hidden="true">
+                <use class="mb-1 arr-icon arrow" href= "#es-line-down"></use>
+              </svg>
+            </span>
+          </div>
+        </div>
+        <div class="container info-container hidden">
+          
+          <div class="container responsive-md" style="width: 100%">
+            
+            <div class="tc-field-cont field-cont">
+              <span class="field-label">Internal Customs Import Number</span>
+              <div class="field tc-field">{{doc.internal_customs_import_number}}</div>
+            </div>
+            
+            <div class="tc-field-cont field-cont">
+              <span class="field-label">Country of origin</span>
+              <div class="field tc-field">{{doc.country_of_origin}}</div>
+            </div>
+
+            <div class="tc-field-cont field-cont">
+              <span class="field-label">Customs value in Euro</span>
+              <div class="field tc-field">{{doc.customs_value}}</div>
+            </div>
+
+            <div class="tc-field-cont field-cont">
+              <span class="field-label">Invoice number</span>
+              <div class="field tc-field">{{doc.invoice_number}}</div>
+            </div>
+
+            <div class="tc-field-cont field-cont">
+              <span class="field-label">Hand over date</span>
+              <div class="field tc-field">{{doc.hand_over_date}}</div>
+            </div>
+
+            <div class="tc-field-cont field-cont">
+              <span class="field-label">Customs Tariff Number</span>
+              <div class="field tc-field">{{doc.customs_tariff_number}}</div>
+            </div>
+            <div class="prt-field-cont field-cont field-res" style="align-self: flex-end;">
+              <div class="tc-field prt-field print-btn">
+                <button class="btn btn-primary print-btn btn-sm primary-action">
+                  <span class="print-btn prt-icon-cont">
+                    <svg class="icon print-btn icon-sm" aria-hidden="true" style="width: 12px; height: 12px;">
+                      <use class="print-btn" href="#icon-printer"></use>
+                    </svg>
+                    <span class="print-btn">Print</span>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  
+
+</div>

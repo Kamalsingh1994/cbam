@@ -1,9 +1,7 @@
 frappe.provide("cbam.utils")
 
 $.extend(cbam.utils, {
-    add_new_supplier(doc){
-        console.log("aaa")
-    },
+    
     new_doc(doc){
         frappe.call({
             method: "cbam.utils.create_new_doc",
@@ -11,16 +9,18 @@ $.extend(cbam.utils, {
             freeze: true,
             freeze_message: `Creating new ${doc.doctype}, please wait....`,
             callback(r){
-                msgprint("Created new doc.")
+                msgprint(`New ${doc.doctype}: ${r.message.name} created`)
             }
         })
     },
-    _get_links(doctype){
+
+    _get_links(doctype, fields){
        return new Promise(function(reslove, reject) {
             frappe.call({
                 method: "cbam.utils.links.get_links",
                 args:{
-                    doctype: doctype
+                    doctype: doctype,
+                    fields: fields
                 },
                 callback(r){
                     if(r.message){
@@ -33,8 +33,8 @@ $.extend(cbam.utils, {
         });
     
     },
-    async get_links(doctype){
-        return await cbam.utils._get_links(doctype);
+    async get_links(doctype, fields){
+        return await cbam.utils._get_links(doctype, fields);
     },
     _get_installation(emission){
         return new Promise(function(reslove, reject) {
@@ -58,13 +58,5 @@ $.extend(cbam.utils, {
         return await cbam.utils._get_installation(emission);
     },
 
-    forward_goods(args){
-        frappe.call({
-            method: "cbam.utils.forward_good",
-            args:args,
-            callback(){
-                msgprint("Goods forwarded.")
-              } 
-        })
-    }
+    
 })
