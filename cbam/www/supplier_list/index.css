@@ -152,6 +152,9 @@ body {
 }
 
 .content-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
     width: 100%;
     border-radius: var(--border-radius-md);
     background-color: var(--subtle-fg);

@@ -7,6 +7,14 @@ from frappe.model.document import Document
 
 class OperatingCompany(Document):
 	def validate(self):
+		self.create_commercial_contact()
+		self.create_cbam_user()
+
+
+	
+		
+
+	def create_commercial_contact(self):
 		username = ""
 		self.flags.new_flag = True
 		if self.create_commercial_contact_user and not self.commercial_contact_user:
@@ -28,16 +36,50 @@ class OperatingCompany(Document):
 		if not self.is_new():
 			self.flags.new_flag = False
 			self.create_permissions(username)
-
+		
 	
+
+
+	def create_cbam_user(self):
+		username = ""
+		self.flags.new_flag = True
+		if self.cbam_representive_employee_email and not self.cbam_representative_user:
+			username = frappe.db.get_value("User", self.cbam_representive_employee_email, "name")
+			if not username:
+				user = frappe.new_doc("User")
+				user.send_welcome_email = False
+				user.first_name = self.cbam_representive_last_name or self.cbam_representive_employee_first_name
+				user.email = self.cbam_representive_employee_email
+				user.append("roles",{
+					"role": frappe.db.get_single_value("CBAM Settings", "commercial_contact_user_role")
+				})
+				user.append("roles",{
+					"role": frappe.db.get_single_value("CBAM Settings", "cbam_representative_user_role")
+				})
+				user.save(ignore_permissions=True)
+				
+				username = user.name
+
+
+			self.cbam_representative_user = username
+		if not self.is_new():
+			self.flags.new_flag = False
+			self.create_permissions(username)
+		
+
+
 	def after_insert(self):
 		if self.flags.new_flag:
 			self.create_permissions()
+		if self.parent_operating_company:
+			self.send_signup_request()
 
 	@frappe.whitelist()
 	def send_signup_request(self):
-		email = frappe.get_doc("Notification", "Commercial Contact Signup Request")
-		self.declarent = self.declarent
+		email = frappe.get_doc("Notification", frappe.db.get_single_value("CBAM Settings", "signup_template"))
+		
+		#self.declarent = self.declarent if not self.parent_operating_company else frappe.db.get_value("Operating Company", self.parent_operating_company, "supplier_name")
+		
 		email.send(self)
 
 	def create_permissions(self, user=None):
@@ -48,3 +90,10 @@ class OperatingCompany(Document):
 				us_pem.allow = "Operating Company"
 				us_pem.for_value = self.name
 				us_pem.save(ignore_permissions=True)
+
+			if not frappe.db.exists("User Permission", {"user": self.commercial_contact_user, "for_value":self.declarent}):
+				aus_pem = frappe.new_doc("User Permission")
+				aus_pem.user = user or self.commercial_contact_user
+				aus_pem.allow = "Declarent"
+				aus_pem.for_value = self.declarent
+				aus_pem.save(ignore_permissions=True)

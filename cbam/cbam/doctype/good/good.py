@@ -5,12 +5,16 @@ import frappe
 from frappe.model.document import Document
 from cbam.send_email.create_email import create_email
 from cbam.send_email.create_new_supplier_user import create_new_supplier_user
+from frappe.model.naming import getseries
+
 
 class Good(Document):
-	def _before_validate(self):
-		self.set_confirmation_web_form_to_none()
-		self.check_confirmation_checkbox()
 
+
+	def autoname(self):
+		if self.parent_good:
+			prefix = self.parent_good
+			self.name = f'{prefix}-{getseries(prefix, 2)}'
 
 
 	def validate(self):
@@ -92,50 +96,35 @@ class Good(Document):
 
 			frappe.throw(f"The raw mass total of the components is not equal to the raw mass of the original good. <br><br> The total should be {original_raw_mass}, not {total_raw_mass}. <br><br> Please change the raw masses of the components and ensure that they add up to a total of {original_raw_mass}.")
 
-	def split_good(self):
-		self.handle_total_raw_mass()
-		for i in range(5):
-			good_no = i+1
-			if getattr(self, f"split_raw_mass_{good_no}") > 0:
-				self.create_new_good_doc(good_no)
+	def split_goods(self):
+		
+		for i in self.split_details:
+			self.create_new_good_doc(i.source, i.source_name, i.qty_to_split)
 
 		self.status = "Split"
-		self.good_splitted = 1
+		self.save(ignore_permissions=True)
+		
 
-	def create_new_good_doc(self, good_no):
-		new_good = frappe.new_doc("Good")
+
+	def create_new_good_doc(self, source, source_name, qty):
+		frappe.msgprint(source)
+		new_good = frappe.copy_doc(self)
 		new_good.parent_good = self.name
-		new_good.hand_over_date = self.hand_over_date
-		new_good.article_number = self.article_number
-		new_good.customs_tariff_number = self.customs_tariff_number
-		new_good.good_description = self.good_description
-		new_good.internal_customs_import_number = self.internal_customs_import_number
-		new_good.country_of_origin = self.country_of_origin
-		new_good.shipping_country = self.shipping_country
-		new_good.customs_procedure = self.customs_procedure
-		new_good.master_reference_number_mrn = self.master_reference_number_mrn + "-" + f"0{good_no-1}"
-		new_good.raw_mass = getattr(self, f"split_raw_mass_{good_no}")
-		responsiblity = getattr(self, f"responsibility_{good_no}")
-		if responsiblity == "I'm the responsible Person":
-			new_good.supplier = self.supplier
-			new_good.employee = self.employee
-		elif responsiblity == "Another employee is responsible":
-			new_good.supplier = self.supplier
-			new_good.employee = getattr(self, f"responsible_employee_{good_no}")
-		elif responsiblity == "Another supplier is responsible":
-			new_good.supplier = getattr(self, f"responsible_supplier_{good_no}")
+		new_good.raw_mass = qty
+		new_good.split_details = []
+		new_good.rejected_from_supplier = ""
+		new_good.forwarded_from_supplier = ""
+		new_good.installation = ""
+		new_good.emission_data = ""
+		if source == "CBAM Installation":
+			new_good.installation = source_name
 		else:
-			frappe.throw("Please select a responsibility")
-		new_good.get_main_contact_employee()
-		new_good.insert()
-
-		self.append("good_components", {
-			"good_number": new_good.name,
-			"supplier": new_good.supplier,
-			"employee": new_good.employee,
-			"status": "Raw Data"
-		})
-		new_good.send_email(responsiblity)
+			new_good.supplier_name, new_good.supplier_number = frappe.db.get_values("Operating Company", source_name, ["supplier_name", "supplier_number"])[0]
+		new_good.insert(ignore_permissions=True)
+		if not new_good.installation:
+			new_good.send_data_request()
+		
+		#new_good.send_email(responsiblity)
 
 	def add_to_supplier_cht(self):
 		if self.has_value_changed("supplier") and not self.is_new():
@@ -254,6 +243,19 @@ class Good(Document):
 		self.save()
 
 
+
+	def add_split_good_details(self, details):
+		for d in details:
+			self.append("split_details", {
+				"source": "CBAM Installation" if d.get("source") == "Installation" else "Operating Company",
+				"source_name": d.get("source_name"),
+				"qty_to_split": d.get("qty")
+			})
+		self.save(ignore_permissions=True)
+
+
+
+
 def delete_good_item(good, parenttype):
 	good_item_list = frappe.get_all("Good Item", filters={'good_number': good, 'parenttype': parenttype}, fields=["name"], pluck="name")
 	good_item = ', '.join(good_item_list)
@@ -261,6 +263,13 @@ def delete_good_item(good, parenttype):
 		"name": good_item
 	})
 	frappe.db.commit()
+
+
+
+
+
+
+
 
 
 @frappe.whitelist()

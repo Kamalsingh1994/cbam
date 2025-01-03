@@ -26,14 +26,13 @@
               </div>
           </div>
         </div>
-        {% if frappe.db.exists("Operating Company", {"commercial_contact_user": frappe.session.user})%}
         <div class="list-row-container">
-          {% set doc = frappe.get_doc("Operating Company", {"commercial_contact_user": frappe.session.user})%}
+          {% if doc %}
           <div class="content-container">
             <div class="container info-container">
               <p hidden id="doc_dict">{{doc.as_dict()}}</p>
-              <h2>Contact Details</h2>
-              <div class="container responsive-md" style="width: 100%">
+              <h2>Company Details</h2>
+              <div class="container responsive-md" id="contact" style="width: 100%">
                 
                 <div class="tc-field-cont field-cont">
                   <span class="field-label">Supplier Number</span>
@@ -56,7 +55,7 @@
                 </div>
 
                 <div class="tc-field-cont field-cont">
-                  <span class="field-label">Company Phone Number</span>
+                  <span class="field-label">Phone Number</span>
                   <div class="field tc-field">{{doc.company_phone_number or ""}}</div>
                 </div>
 
@@ -71,71 +70,88 @@
                 </div>
                 
                 <div class="tc-field-cont field-cont">
-                  <span class="field-label">Company Email</span>
+                  <span class="field-label">Email</span>
                   <div class="field tc-field">{{doc.company_email or ""}}</div>
                 </div>
-                <button class="btn btn-primary btn-sm primary-action">
-                  <span> 
-                    <span><a href = "#" class="ex-pay-link add-newemission" id="company_contact">Update Contact Details</a></span>
-                  </span>
-                </button>
+                <div class="tc-field-cont field-cont btn-div">
+                  <button class="btn btn-primary btn-sm primary-action">
+                    <span> 
+                      <span><a href = "#" class="ex-pay-link add-newemission" id="company_contact">Update Contact Details</a></span>
+                    </span>
+                  </button>
+                </div>
               </div>
               
               <h2>Commercial Contact</h2>
-              <div class="container responsive-md" style="width: 100%">
+              <div class="container responsive-md" id="commerical" style="width: 100%">
                 
                 <div class="tc-field-cont field-cont">
-                  <span class="field-label">Main Contact Employee Last Name</span>
+                  <span class="field-label">Last Name</span>
                   <div class="field tc-field">{{doc.main_contact_employee_last_name or ""}}</div>
                 </div>
                 
                 <div class="tc-field-cont field-cont">
-                  <span class="field-label">Main Contact Employee Email</span>
+                  <span class="field-label">Email</span>
                   <div class="field tc-field">{{doc.main_contact_employee_email or ""}}</div>
                 </div>
                 
                 <div class="tc-field-cont field-cont">
-                  <span class="field-label">Main Contact Employee First Name</span>
+                  <span class="field-label">First Name</span>
                   <div class="field tc-field">{{doc.main_contact_employee_first_name or ""}}</div>
                 </div>
                 
                 <div class="tc-field-cont field-cont">
-                  <span class="field-label">Main Contact Employee Phone Number</span>
+                  <span class="field-label">Phone Number</span>
                   <div class="field tc-field">{{doc.main_contact_employee_phone_number or ""}}</div>
                 </div>
                 
                 <div class="tc-field-cont field-cont">
-                  <span class="field-label">Main Contact Employee Position</span>
+                  <span class="field-label">Position</span>
                   <div class="field tc-field">{{doc.main_contact_employee_position or ""}}</div>
                 </div>
+                <div class="tc-field-cont field-cont btn-div">
+                  <button class="btn btn-primary btn-sm primary-action">
+                    <span> 
+                      <span><a href = "#" class="ex-pay-link add-newemission" id="commerical_contact">Update Commercial Contact Details</a></span>
+                    </span>
+                  </button>
+                </div>
               </div>
-
+              
               <h2>CBAM Representive Details</h2>
-              <div class="container responsive-md" style="width: 100%">
+              <div class="container responsive-md" id="cbam_representive" style="width: 100%">
                 
                 <div class="tc-field-cont field-cont">
-                  <span class="field-label">CBAM Representive Last Name</span>
+                  <span class="field-label">Last Name</span>
                   <div class="field tc-field">{{doc.cbam_representive_last_name or ""}}</div>
                 </div>
                 
                 <div class="tc-field-cont field-cont">
-                  <span class="field-label">CBAM Representive Employee Email</span>
+                  <span class="field-label">Email</span>
                   <div class="field tc-field">{{doc.cbam_representive_employee_email or ""}}</div>
                 </div>
                 
                 <div class="tc-field-cont field-cont">
-                  <span class="field-label">CBAM Representive Employee First Name</span>
+                  <span class="field-label">First Name</span>
                   <div class="field tc-field">{{doc.cbam_representive_employee_first_name or ""}}</div>
                 </div>
                 
                 <div class="tc-field-cont field-cont">
-                  <span class="field-label">CBAM Representive Employee Phone Number</span>
+                  <span class="field-label">Phone Number</span>
                   <div class="field tc-field">{{doc.cbam_representive_employee_phone_number or ""}}</div>
                 </div>
                 
                 <div class="tc-field-cont field-cont">
-                  <span class="field-label">CBAM Representive Employee Position</span>
+                  <span class="field-label">Position</span>
                   <div class="field tc-field">{{doc.cbam_representive_employee_position or ""}}</div>
+                </div>
+
+                <div class="tc-field-cont field-cont btn-div cbam-btn-container hidden">
+                  <button class="btn btn-primary btn-sm primary-action">
+                    <span> 
+                      <span><a href = "#" class="ex-pay-link add-newemission" id="cbam_rep">Update CBAM Representive Details</a></span>
+                    </span>
+                  </button>
                 </div>
               </div>
 
@@ -163,10 +179,10 @@
               </div> -->
             </div>
           </div>
+          {%else%}
+          <h2>You do not have any Operating Company Assigned</h2>
+          {% endif %}
         </div>
-        {%else%}
-        <h2>You do not have any Operating Company Assigned</h2>
-        {% endif %}
       {% endif %}
     <!-- {% else %}
       <div class="page-card">

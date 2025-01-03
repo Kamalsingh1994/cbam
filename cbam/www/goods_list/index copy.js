@@ -1,6 +1,7 @@
-window.addEventListener("DOMContentLoaded", executeJS)
 
-function executeJS() {
+
+
+window.addEventListener("DOMContentLoaded", function() {
     // This condition is to stop the rest of the code from executing if the user is not authorized.
     // frappe.call({
     //     method: "paystack_integration.utils.ex_utils.clear_website_cache",
@@ -37,30 +38,6 @@ function executeJS() {
             hideDropDown()
         }
     })
-
-    const performGoodsAction = function(fn, params, d) {
-        if(!Array.isArray(params.goods)){
-            params.goods = [params.goods]
-        }
-        console.log(params);
-        frappe.call({
-            method: `cbam.utils.goods.${fn}`,
-            args: params,
-            callback: function(r) {
-                frappe.call({
-                    method: "cbam.www.goods_list.index.get_goods_partial_html",
-                    callback: function(r) {
-                        contentContainer.forEach(container => {
-                            container.remove();
-                        });
-                        document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
-                        executeJS();
-                    }
-                })
-                d.hide();
-            }
-        })
-    }
 
     bulkassign.addEventListener("click", function(e){
         e.preventDefault();
@@ -131,7 +108,7 @@ function executeJS() {
                     fieldname: "supplier",
                     fieldtype: "Autocomplete",
                     default: "",
-                    options: await cbam.utils.get_links("Operating Company", {}, ["supplier_name as label", "name as value"]),
+                    options: await cbam.utils.get_links("Operating Company", ["supplier_name as label", "name as value"]),
                     //depends_on: "eval:doc.forward_to_party == 'Sub Supplier'"
                 },
                 
@@ -143,8 +120,7 @@ function executeJS() {
                 if(!Array.isArray(goods)){
                     goods = [goods]
                 }
-                // cbam.goods.forward_goods(goods, values.supplier)
-                performGoodsAction("forward_goods", {goods: goods, supplier: values.supplier}, d);
+                cbam.goods.forward_goods(values.supplier, goods)
                 d.hide()
             }
         });
@@ -171,8 +147,8 @@ function executeJS() {
             primary_action_label: 'Reject Goods',
             //secondary_action_label: '',
             primary_action(values) {
-                // cbam.goods.reject_goods(goods, values.reason)
-                performGoodsAction("reject_goods", {goods: goods, reason: values.reason}, d)
+                cbam.goods.reject_goods(goods, values.reason)
+                d.hide();
             },
             secondary_action(values) {
                 
@@ -189,7 +165,61 @@ function executeJS() {
 
     
 
-    const split_fields = function(no){
+    const  split_fields =  function(no){
+        
+        return [
+            {
+                label: __("Source"),
+                fieldname: `source_${no}`,
+                fieldtype: "Select",
+                default: "",
+                options: "Supplier\nInstallation",
+                change: async () =>{
+                   console.log("AAAA")
+                    cur_dialog.fields_dict[`source_name_${no}`].df.options = await cbam.utils.get_links("Operating Company", ["supplier_name as label", "name as value"])
+                    cur_dialog.fields_dict[`source_name_${no}`].refresh()
+                },
+                in_list_view: 1
+                
+            },
+            {
+               
+                fieldname: "cb1",
+                fieldtype: "Column Break",
+            },
+            {
+                label: __("Source Name"),
+                fieldname: `source_name_${no}`,
+                fieldtype: "Select",
+                //default: "",
+                //options: "Supplier",
+                //depends_on: `eval:doc.forward_to_party_${no} == 'Sub Supplier'`,
+                in_list_view: 1
+            },
+            // {
+            //     label: __("Installation"),
+            //     fieldname: `installation_${no}`,
+            //     fieldtype: "Link",
+            //     default: "",
+            //     //options: "Installation",
+            //     depends_on: `eval:doc.forward_to_party_${no} == 'Installation'`,
+            //     in_list_view: 1
+            // },
+            {
+              
+                fieldname: "cb1",
+                fieldtype: "Column Break",
+            },
+            {
+                label: __("Qty to Split"),
+                fieldname: `qty_${no}`,
+                fieldtype: "Float",
+                //depends_on: `eval:doc.forward_to_party_${no}`,
+                in_list_view: 1
+            },
+            
+            
+        ]
         return [
             {
                 label: __("Split with"),
@@ -233,98 +263,38 @@ function executeJS() {
             
             
         ]
-        return [
-            {
-                label: __("Split with"),
-                fieldname: `forward_to_party_${no}`,
-                fieldtype: "Select",
-                default: "",
-                options: "\nSub Supplier\nInstallation",
-                change: () =>{
-                   
-                    cur_dialog.refresh()
-                },
-                in_list_view: 1
-                
-            },
-            {
-               
-                fieldname: "cb1",
-                fieldtype: "Column Break",
-            },
-            {
-                label: __("Supplier"),
-                fieldname: `supplier_${no}`,
-                fieldtype: "Link",
-                default: "",
-                //options: "Supplier",
-                depends_on: `eval:doc.forward_to_party_${no} == 'Sub Supplier'`,
-                in_list_view: 1
-            },
-            {
-                label: __("Installation"),
-                fieldname: `installation_${no}`,
-                fieldtype: "Link",
-                default: "",
-                //options: "Installation",
-                depends_on: `eval:doc.forward_to_party_${no} == 'Installation'`,
-                in_list_view: 1
-            },
-            {
-              
-                fieldname: "cb1",
-                fieldtype: "Column Break",
-            },
-            {
-                label: __("Qty to Split"),
-                fieldname: `qty_${no}`,
-                fieldtype: "Float",
-                depends_on: `eval:doc.forward_to_party_${no}`,
-                in_list_view: 1
-            },
-            
-            
-        ]
     }
+    
 
-   const CreateEmissionDialog = async function(good, installation, emission){
-    const read_only = 1;
+
+
+   const CreateEmissionDialog = async function(good){
     let d = new frappe.ui.Dialog({
         title: `Assigning Emission Data`,
         fields: [
             {
-                label: __("Installation"),
-                fieldname: "installation",
-                fieldtype: "Select",
-                default: `${installation || ""}`,
-                options: await cbam.utils.get_links("CBAM Installation"),
-                change: async () => {
-                    d.set_value("emission_data", null);
-                    if(d.get_value("installation")) {
-                        d.set_df_property("emission_data", "read_only", 0);
-                        let emissionOptions = await cbam.utils.get_links("CBAM Emission Data", filters={"cbam_installation": d.get_value("installation")});
-                        d.fields_dict.emission_data.df.options =  emissionOptions;
-                        d.fields_dict.emission_data.refresh()
-                    } else {
-                        d.set_df_property("emission_data", "read_only", 1);
-                    }
-                }
-                //options: "\nSub Supplier\nCollegue"
-            },
-            {
                 label: __("Emission"),
                 fieldname: "emission_data",
-                fieldtype: "Select",
-                default: `${emission || ""}`,
+                fieldtype: "Autocomplete",
+                default: "",
                 options: await cbam.utils.get_links("CBAM Emission Data"),
-                read_only: 0,
                 change: async () =>{
-                    // let installation =  await cbam.utils.get_installation(d.get_value("emission_data"));
-                    // console.log(installation)
-                    // d.set_value("installation", installation)
+                    let installation =  await cbam.utils.get_installation(d.get_value("emission_data"));
+                    console.log(installation)
+                    d.set_value("installation", installation)
                  }
                 //options: "\nSub Supplier\nCollegue"
             },
+            {
+                label: __("Installation"),
+                fieldname: "installation",
+                fieldtype: "Data",
+                default: "",
+                read_only: 1
+                //options: "\nSub Supplier\nCollegue"
+            },
+
+
         ],
         size: 'large', // small, large, extra-large 
         primary_action_label: 'Assign Emission Data',
@@ -334,9 +304,9 @@ function executeJS() {
             if(!Array.isArray(good)){
                 good = [good]
             }
-            // cbam.goods.assign_emission(good, values.emission_data)
-            performGoodsAction("assign_emission", {goods: good, emission: values.emission_data}, d);
+            cbam.goods.assign_emission(values.emission_data, good)
         }
+        
     });
 
                
@@ -347,126 +317,72 @@ function executeJS() {
 
 
 
-    const CreateSplitDialog = async function(docName, rawMass){
+    const CreateSplitDialog = function(docName){
         let fields = split_fields(1);
         let no = 1;
         let d = new frappe.ui.Dialog({
             title: `Spliting Goods`,
-            fields: [
-                {
-                    fieldtype: "Table",
-                    fieldname: "table1",
-                    editable_grid: 0,
-                    fields: [
-                        {
-                            label: __("Source"),
-                            fieldname: `source`,
-                            fieldtype: "Select",
-                            default: "",
-                            reqd:1,
-                            options: "Supplier\nInstallation",
-                            onchange: async (event) => {
-								if (event) {
-									let name = $(event.currentTarget).closest(".grid-row").attr("data-name");
-                                    let row = d.fields_dict.table1.grid.grid_rows_by_docname[name];
-									if(row.doc.source == "Supplier"){
-                                        row.columns.source_name.df.options= await cbam.utils.get_links("Operating Company", {}, ["supplier_name as label", "name as value"]);
-                                    }
-                                    else{
-                                        row.columns.source_name.df.options= await cbam.utils.get_links("CBAM Installation");
-                                    }
+            fields: fields, 
+            //[
+            //     {
+            //         fieldtype: "Table",
+            //         fieldname: "table1",
+            //         editable_grid: 0,
+            //         fields: [
+            //             {
+            //                 label: __("Split with"),
+            //                 fieldname: `split_with`,
+            //                 fieldtype: "Select",
+            //                 default: "Supplier",
+            //                 options: "\nSupplier\nInstallation",
+            //                 onchange: (event) => {
+			// 					if (event) {
+			// 						let name = $(event.currentTarget).closest(".grid-row").attr("data-name");
+			// 						let item_row =
+			// 							d.fields_dict.table1.grid.grid_rows_by_docname[name].columns.split_with_name.df.options=["AAA"];
 
 									
-									d.fields_dict.table1.grid.refresh();
-								}
-							},
-                            in_list_view: 1
+			// 						d.fields_dict.table1.grid.refresh();
+			// 					}
+			// 				},
+            //                 in_list_view: 1
                             
-                        },
-                        {
+            //             },
+            //             {
                            
-                            fieldname: "cb1",
-                            fieldtype: "Column Break",
-                        },
-                        {
-                            label: __("Source_name"),
-                            fieldname: `source_name`,
-                            fieldtype: "Select",
-                            //read_only_depends_on: "eval:!doc.source",
-                            //options: await cbam.utils.get_links("Operating Company", ["supplier_name as label", "name as value"]),
+            //                 fieldname: "cb1",
+            //                 fieldtype: "Column Break",
+            //             },
+            //             {
+            //                 label: __("Split with Name"),
+            //                 fieldname: `split_with_name`,
+            //                 fieldtype: "Autocomplete",
+            //                 default: "",
+            //                 options: ["BB"],
                             
-                            
-                            reqd: 1,  
-                            in_list_view: 1
-                        },
-                        {
+            //                 reqd: 1,  
+            //                 in_list_view: 1
+            //             },
+            //             {
                           
-                            fieldname: "cb1",
-                            fieldtype: "Column Break",
-                        },
-                        {
-                            label: __("Qty to Split"),
-                            fieldname: `qty`,
-                            fieldtype: "Float",
-                            in_list_view: 1,
-                            onchange: (event) => {
-                                let total_raw_mass = 0;
-                                let table = d.get_value("table1");
-                                for(var i in table){
-                                    total_raw_mass += table[i].qty;
-                                }
-                                d.set_value("total_raw_mass", total_raw_mass)
-                            }
-                        },
-                    ],
-                    
-                },
-                {
-                    fieldtype: 'Section Break'
-                },
-                {
-                    fieldtype: "Float",
-                    fieldname: "raw_mass",
-                    label: "Total Qty",
-                    default: rawMass,
-                    read_only: 1
-
-                },
-                {
-                          
-                    fieldname: "cb1",
-                    fieldtype: "Column Break",
-                },
-                {
-                    fieldtype: "Float",
-                    fieldname: "total_raw_mass",
-                    label: "Total Qty to Split",
-                    read_only: 1
-                }
-            ],
+            //                 fieldname: "cb1",
+            //                 fieldtype: "Column Break",
+            //             },
+            //             {
+            //                 label: __("Qty to Split"),
+            //                 fieldname: `qty`,
+            //                 fieldtype: "Float",
+            //                 in_list_view: 1
+            //             },
+            //         ]
+            //     }
+            // ],
             size: 'extra-large', // small, large, extra-large 
             primary_action_label: 'Split Goods',
-            secondary_action_label: '',
+            secondary_action_label: 'Add More',
             primary_action(values) {
-                let validation_flag = true
-                if(values.raw_mass != values.total_raw_mass){
-                    msgprint("Total Qty to Split must be equal to Total Qty.")
-                    validation_flag = false
-                }
-                else {
-                    for(var i in values.table1){
-                        if(!values.table1[i].source_name){
-                            msgprint(`Please setup Source Name in row# ${Number(i)+1}`)
-                            validation_flag = false
-                        }
-                    }
-                }
-                if (validation_flag){
-                    // cbam.goods.split_goods(docName, values.table1)
-                    performGoodsAction("split_goods", {good: docName, values: values.table1}, d);
-                }
-
-                
+                console.log(values);
+                d.hide();
             },
             secondary_action(values) {
                 
@@ -494,18 +410,13 @@ function executeJS() {
 
     contentContainer.forEach(container => {
         const absBtn = container.querySelectorAll(".abs-option-btn");
-        const invEl = container.querySelector(".inv-name");
-        const installation = invEl.dataset.installation;
-        const emission = invEl.dataset.emission;
 
         absBtn.forEach(btn => {
             btn.addEventListener("click", function() {
                 const docName = container.querySelector(".inv-name").dataset.name;
-                const rawMass = container.querySelector(".inv-rawmass").dataset.rawmass;
                 const action = btn.dataset.action;
                 if(action == "Split"){
-                   
-                    CreateSplitDialog(docName, rawMass)
+                    CreateSplitDialog(docName)
                 }
                 else if(action == "Forward"){
                     CreateForwardDialog(docName)
@@ -514,7 +425,7 @@ function executeJS() {
                     CreateRejectDialog(docName)
                 }
                 else if(action == "Add Emission Data"){
-                    CreateEmissionDialog(docName, installation, emission)
+                    CreateEmissionDialog(docName)
                 }
                 else if(action == "Submit Emission Data"){
                     CreateEmissionSubmissionDialog(docName)
@@ -682,9 +593,8 @@ function executeJS() {
             primary_action_label: 'Submit',
             size: 'large', // small, large, extra-large 
             primary_action(values) {
-                // cbam.goods.submit_goods(goods)
-                // d.hide();
-                performGoodsAction("submit_goods", {goods: goods}, d);
+                cbam.goods.submit_goods(goods)
+                d.hide();
             }
            
         });
@@ -839,4 +749,4 @@ function executeJS() {
         });
     }
         
-}
+})

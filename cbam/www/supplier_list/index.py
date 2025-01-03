@@ -16,5 +16,21 @@ def get_context(context):
     #     )
     # else:
     #     context.goods_list = []
+    context = get_suppliers(context)
     return
     context.supplier_list = frappe.db.get_all("Supplier")
+    
+@frappe.whitelist()
+def get_supplier_partial_html():
+    context = {}
+    context = get_suppliers(context, re_render=True)
+    return frappe.render_template("cbam/templates/supplier_partial.html", context)
+
+def get_suppliers(context, re_render=False):
+    supplier_list = frappe.get_list("Operating Company")
+    if re_render:
+        context["supplier_list"] = supplier_list
+    else:
+        context.supplier_list = supplier_list
+    
+    return context

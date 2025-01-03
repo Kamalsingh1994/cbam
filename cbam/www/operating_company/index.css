@@ -43,6 +43,7 @@ body {
 .container {
     margin-left: 2.5rem;
     margin-right: 2.5rem;
+    max-width: 95% !important;
 }
 
 .heading-primary {
@@ -140,6 +141,9 @@ body {
 }
 
 .content-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
     width: 100%;
     border-radius: var(--border-radius-md);
     background-color: var(--subtle-fg);
@@ -472,6 +476,14 @@ input.list-row-checkbox {
 
 .main {
     height: auto;
+}
+
+.btn-div {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin-left: 1rem;
+    margin-top: 8.5%;
 }
 
 @media (min-width: 74.375em) {

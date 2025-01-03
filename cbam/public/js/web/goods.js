@@ -59,5 +59,20 @@ $.extend(cbam.goods, {
             }
 
         })
+    },
+    split_goods(good, values){
+        frappe.call({
+            method: "cbam.utils.goods.split_goods",
+            args:{
+                good: good,
+                values: values
+            },
+            freeze: true,
+            freeze_message: `Splitting Goods, please wait....`,
+            callback(){
+                msgprint("Goods Split successfully.")
+            }
+
+        })
     }
 })

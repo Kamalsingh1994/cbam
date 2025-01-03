@@ -1,0 +1,27 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "creation": "2024-12-18 10:42:51.341297",
+ "days_in_advance": 0,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Declarent",
+ "enabled": 1,
+ "event": "Custom",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "<p>Supplier Good Rejection Notification Template</p>\n\nfollowing goods have been rejected.\n<br>\n\n{{doc.goods}}",
+ "modified": "2025-01-03 14:46:25.680470",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "Supplier Good Rejection Notification Template",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_document_field": "email"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "subject": "Supplier Good Rejection Notification Template"
+}

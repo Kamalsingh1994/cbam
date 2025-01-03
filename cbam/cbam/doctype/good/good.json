@@ -44,6 +44,8 @@
   "rejection_details_section",
   "rejected_from_supplier",
   "rejection_reason",
+  "split_details_section",
+  "split_details",
   "requested_data_section",
   "installation",
   "emission_data",
@@ -70,8 +72,7 @@
    "fieldname": "parent_good",
    "fieldtype": "Link",
    "label": "Parent Good",
-   "options": "Good",
-   "read_only": 1
+   "options": "Good"
   },
   {
    "fieldname": "column_break_fkff",
@@ -265,8 +266,9 @@
   },
   {
    "fieldname": "declarent",
-   "fieldtype": "Data",
-   "label": "Declarent"
+   "fieldtype": "Link",
+   "label": "Declarent",
+   "options": "Declarent"
   },
   {
    "default": "G-",
@@ -314,11 +316,22 @@
    "label": "Rejected from Supplier",
    "options": "Operating Company",
    "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")"
+  },
+  {
+   "fieldname": "split_details_section",
+   "fieldtype": "Section Break",
+   "label": "Split Details"
+  },
+  {
+   "fieldname": "split_details",
+   "fieldtype": "Table",
+   "label": "Split Details",
+   "options": "Good Split Detail"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-24 08:23:05.356598",
+ "modified": "2025-01-02 12:34:27.206697",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",

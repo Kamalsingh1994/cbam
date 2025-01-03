@@ -6,7 +6,8 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "declarent"
+  "declarent",
+  "email"
  ],
  "fields": [
   {
@@ -14,11 +15,17 @@
    "fieldtype": "Data",
    "label": "Declarent",
    "unique": 1
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-16 09:52:15.887102",
+ "modified": "2025-01-03 14:22:00.692717",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Declarent",

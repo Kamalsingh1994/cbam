@@ -271,32 +271,32 @@ fixtures = [
     ]
     },
     {"dt": "Role Profile", "filters": [
-    [
-        "name", "in", [
-            "00 Reporting Declarant",
-            "00 Supplier"
-        ]
-    ]
-]
-},
-    {"dt": "Custom DocPerm", "filters": [
         [
-            "role", "in", [
-                "Supplier",
-                "Reporting Declarant",
+            "name", "in", [
+                "Commercial Contact",
+                "Declarent",
+                "CBAM Representative"
             ]
         ]
     ]},
-     {"dt": "Notification", "filters": [
-        [
-            "name", "in", [
-                "Tier n+1 Unregistered Supplier Template",
-                "Tier n+1 Registered Supplier Template",
-                "Tier 1 Unregistered Employee Template",
-                "Tier 1 Registered Employee Template",
-                "Supplier Good Rejection Notification Template"
-            ]
-        ]
-    ]
-    },
+    # {"dt": "Custom DocPerm", "filters": [
+    #     [
+    #         "role", "in", [
+    #             "Supplier",
+    #             "Reporting Declarant",
+    #         ]
+    #     ]
+    # ]},
+    #  {"dt": "Notification", "filters": [
+    #     [
+    #         "name", "in", [
+    #             "Tier n+1 Unregistered Supplier Template",
+    #             "Tier n+1 Registered Supplier Template",
+    #             "Tier 1 Unregistered Employee Template",
+    #             "Tier 1 Registered Employee Template",
+    #             "Supplier Good Rejection Notification Template"
+    #         ]
+    #     ]
+    # ]
+    # },
 ]
