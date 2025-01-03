@@ -13,4 +13,4 @@ Thank you for your prompt attention to this matter.
 <p><br><br>
 Best regards,<br>
 {{frappe.db.get_value("User", frappe.session.user, 'full_name')}}<br>
-{{doc.declarent}}</p></p>
+{{doc.declarent if not doc.parent_operating_company else frappe.db.get_value("Operating Company", doc.parent_operating_company, "supplier_name")}}</p></p>

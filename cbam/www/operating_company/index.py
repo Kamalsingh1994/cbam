@@ -15,4 +15,23 @@ def get_context(context):
     #         ]
     #     )
     
-    context.emission_datas = []
+    # context.emission_datas = []
+    context = get_operating_company(context)
+    
+@frappe.whitelist()
+def get_operating_company_partial_html():
+    context = {}
+    context = get_operating_company(context, re_render=True)
+    return frappe.render_template("cbam/templates/operating_company_partial.html", context)
+
+def get_operating_company(context, re_render=False):
+    if frappe.db.exists("Operating Company", {"commercial_contact_user": frappe.session.user}):
+        doc = frappe.get_doc("Operating Company", {"commercial_contact_user": frappe.session.user})
+        if re_render:
+            context["doc"] = doc
+        else:
+            context.doc = doc
+        return context
+    else:
+        return False
+    

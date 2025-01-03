@@ -1,4 +1,5 @@
-window.addEventListener("DOMContentLoaded", function() {
+window.addEventListener("DOMContentLoaded", executeJS);
+function executeJS() {
     // This condition is to stop the rest of the code from executing if the user is not authorized.
     // frappe.call({
     //     method: "paystack_integration.utils.ex_utils.clear_website_cache",
@@ -21,6 +22,34 @@ window.addEventListener("DOMContentLoaded", function() {
 
     selectedEl.textContent = selected;
     
+    const createSupplier = function(values, d) {
+        console.log(values);
+        frappe.call({
+            method: "cbam.utils.create_new_doc",
+            args: {
+                doc: values
+            },
+            callback: function(r) {
+                console.log(r.message);
+                if(r.message) {
+                    frappe.call({
+                        method: "cbam.www.supplier_list.index.get_supplier_partial_html",
+                        callback: function(r) {
+                            if(r.message) {
+                                contentContainer.forEach(container => {
+                                    container.remove();
+                                });
+                                document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
+                                executeJS();
+                            }
+                        }
+                    })
+                    d.hide();
+                }
+            }
+        })
+    }
+
     const hideDropDown = function() {
         dropDownCont.forEach(dropDownEl => dropDownEl.classList.add("hidden"));
     }
@@ -141,24 +170,16 @@ window.addEventListener("DOMContentLoaded", function() {
             primary_action(values) {
                 values.doctype = "Operating Company"
                 values.create_commercial_contact_user = 1
-                cbam.utils.new_doc(values)
-                d.hide();
+                createSupplier(values, d);
+                // cbam.utils.new_doc(values)
+                // d.hide();
             },
             secondary_action(values) {
-                
-                
-                
                 no+=1
-                
             }
         });
-
-                    
         d.show();
     }
-
-    
- 
 
     contentContainer.forEach(container => {
         const absBtn = container.querySelectorAll(".abs-option-btn");
@@ -359,4 +380,4 @@ window.addEventListener("DOMContentLoaded", function() {
             })
         })
     }
-});
+}

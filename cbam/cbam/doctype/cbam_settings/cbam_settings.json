@@ -15,11 +15,11 @@
   "emission_data_submission_details_section",
   "tier_n1_unregistered_template",
   "tier_n1_registered_template",
-  "supplier_good_rejection_notification_template",
+  "signup_template",
   "column_break_tiem",
-  "tier_1_unregistered_employee_template",
-  "tier_1_registered_employee_template",
-  "data_request_template"
+  "supplier_good_rejection_notification_template",
+  "data_request_template",
+  "goods_forwarding_template"
  ],
  "fields": [
   {
@@ -39,25 +39,9 @@
    "options": "Notification"
   },
   {
-   "default": "Tier 1 Unregistered Employee Template",
-   "description": "This Email Template will be used to Request Signup and Submission of Emission Data from Tier 1 Supplier's Main Contact.",
-   "fieldname": "tier_1_unregistered_employee_template",
-   "fieldtype": "Link",
-   "label": "Tier 1 Unregistered Employee Template",
-   "options": "Notification"
-  },
-  {
-   "default": "Tier 1 Registered Employee Template",
-   "description": "This Email Template will be used to Request Submission of Emission Data from Tier 1 Supplier's Main Contact",
-   "fieldname": "tier_1_registered_employee_template",
-   "fieldtype": "Link",
-   "label": "Tier 1 Registered Employee Template",
-   "options": "Notification"
-  },
-  {
    "fieldname": "emission_data_submission_details_section",
    "fieldtype": "Section Break",
-   "label": "Emission Data Submission Details"
+   "label": "Email Templates"
   },
   {
    "fieldname": "column_break_tiem",
@@ -79,7 +63,7 @@
    "description": "This Email Template will be used to notify the owner of good in case a good is rejected by the supplier. ",
    "fieldname": "supplier_good_rejection_notification_template",
    "fieldtype": "Link",
-   "label": "Supplier Good Rejection Notification Template",
+   "label": "Supplier Good Rejection Template",
    "options": "Notification"
   },
   {
@@ -116,12 +100,24 @@
    "fieldtype": "Link",
    "label": "Data Request Template",
    "options": "Notification"
+  },
+  {
+   "fieldname": "goods_forwarding_template",
+   "fieldtype": "Link",
+   "label": "Goods Forwarding Template",
+   "options": "Notification"
+  },
+  {
+   "fieldname": "signup_template",
+   "fieldtype": "Link",
+   "label": "Signup Template",
+   "options": "Notification"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-12-17 14:46:29.099206",
+ "modified": "2025-01-02 07:36:09.642951",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Settings",

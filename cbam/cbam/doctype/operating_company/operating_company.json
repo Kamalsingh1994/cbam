@@ -296,8 +296,9 @@
   },
   {
    "fieldname": "declarent",
-   "fieldtype": "Data",
-   "label": "Declarent"
+   "fieldtype": "Link",
+   "label": "Declarent",
+   "options": "Declarent"
   },
   {
    "fieldname": "parent_operating_company",
@@ -308,7 +309,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-24 09:46:45.012412",
+ "modified": "2025-01-02 12:34:44.672453",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Operating Company",

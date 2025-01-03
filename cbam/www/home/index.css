@@ -149,6 +149,9 @@ body {
 }
 
 .content-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
     width: 100%;
     padding: 2rem;
     border-radius: var(--border-radius-md);

@@ -80,7 +80,6 @@
             <div class="level-right "><span class="space-hidden">0</span></span>
             </div>
           </div>
-          {% set supplier_list = frappe.get_list("Operating Company") %}
           {% for i in supplier_list %}
           {% set doc = frappe.get_doc("Operating Company", i.name) %}
           <div class="content-container">

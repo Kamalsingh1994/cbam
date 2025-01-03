@@ -1,4 +1,6 @@
-window.addEventListener("DOMContentLoaded", function() {
+window.addEventListener("DOMContentLoaded", executeJS);
+
+function executeJS() {
     // This condition is to stop the rest of the code from executing if the user is not authorized.
     // frappe.call({
     //     method: "paystack_integration.utils.ex_utils.clear_website_cache",
@@ -24,15 +26,40 @@ window.addEventListener("DOMContentLoaded", function() {
     const hideDropDown = function() {
         dropDownCont.forEach(dropDownEl => dropDownEl.classList.add("hidden"));
     }
+
+    const createEmission = function(values, d) {
+        console.log(values);
+        frappe.call({
+            method: "cbam.utils.create_new_doc",
+            args: {
+                doc: values
+            },
+            callback: function(r) {
+                console.log(r.message);
+                if(r.message) {
+                    frappe.call({
+                        method: "cbam.www.installation_list.index.get_installation_partial_html",
+                        callback: function(r) {
+                            if(r.message) {
+                                contentContainer.forEach(container => {
+                                    container.remove();
+                                });
+                                document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
+                                executeJS();
+                            }
+                        }
+                    })
+                    d.hide();
+                }
+            }
+        })
+    }
+
     window.addEventListener('click', function(e){
         if(!e.target.classList.contains("action-btn")) {
             hideDropDown()
         }
     })
-
-
-    
-    
     
     const CreateInstallationDialog = async function(docName){
         let d = new frappe.ui.Dialog({
@@ -73,12 +100,7 @@ window.addEventListener("DOMContentLoaded", function() {
                     fieldtype: "Autocomplete",
                     options: await cbam.utils.get_links("Country Code"),
                     reqd:1
-                    
-                },
-              
-
-
-               
+                },               
                 {
                     label: __("Contact Person Details"),
                     fieldname: "cb1",
@@ -89,16 +111,12 @@ window.addEventListener("DOMContentLoaded", function() {
                     label: __("First Name"),
                     fieldname: "first_name",
                     fieldtype: "Data",
-                   
-                    
                 },
                 
                 {
                     label: __("Last Name"),
                     fieldname: "last_name",
                     fieldtype: "Data",
-                   
-                    
                 },
                 {
                     label: __(""),
@@ -109,18 +127,13 @@ window.addEventListener("DOMContentLoaded", function() {
                     label: __("Email"),
                     fieldname: "email",
                     fieldtype: "Data",
-                    options: "Email"
-                   
-                    
+                    options: "Email",
                 },
                 {
                     label: __("Phone No"),
                     fieldname: "phone_number",
                     fieldtype: "Data",
-                   
-                    
                 },
-
                 {
                     label: __(""),
                     fieldname: "cb1",
@@ -172,15 +185,12 @@ window.addEventListener("DOMContentLoaded", function() {
             //secondary_action_label: '',
             primary_action(values) {
                 values.doctype = "CBAM Installation"
-                cbam.utils.new_doc(values);
-                d.hide();
+                // cbam.utils.new_doc(values);
+                // d.hide();
+                createEmission(values, d);
             },
             secondary_action(values) {
-                
-                
-                
                 no+=1
-                
             }
         });
 
@@ -197,20 +207,10 @@ window.addEventListener("DOMContentLoaded", function() {
             fields: [
                 
                 {
-                    label: __("Type of applicable reporting methodology"),
-                    fieldname: "type_of_applicable_reporting_methodology",
-                    fieldtype: "Select",
-                    options: "Commissions rules\nOther",
-                    default: "Commissions rules"
-                   
-                    
-                },
-                {
-                    label: __("Other"),
-                    fieldname: "other",
+                    label: __("Label"),
+                    fieldname: "label",
                     fieldtype: "Data",
-                    depends_on: "eval:doc.type_of_applicable_reporting_methodology =='Other'",
-                    mandatory_depends_on:"eval:doc.type_of_applicable_reporting_methodology =='Other'",
+                    reqd:1
                    
                     
                 },
@@ -251,7 +251,7 @@ window.addEventListener("DOMContentLoaded", function() {
                     fieldtype: "Column Break",
                 },
                 {
-                    label: __("First NaElectricity consumed [MWh/t]"),
+                    label: __("Electricity consumed [MWh/t]"),
                     fieldname: "electricity_consumed",
                     fieldtype: "Data",
                    
@@ -263,22 +263,15 @@ window.addEventListener("DOMContentLoaded", function() {
                     fieldtype: "Data",
                     default: docName,
                     hidden: 1
-                   
-                    
                 }
-
-               
-               
-
             ],
             size: 'extra-large', // small, large, extra-large 
             primary_action_label: 'Create Emission',
             //secondary_action_label: '',
             primary_action(values) {
                 values.doctype = "CBAM Emission Data"
-                console.log(values);
-                cbam.utils.new_doc(values)
-                d.hide();
+                // cbam.utils.new_doc(values)
+                createEmission(values, d);                
             },
             secondary_action(values) {
                 
@@ -497,4 +490,4 @@ window.addEventListener("DOMContentLoaded", function() {
             })
         })
     }
-});
+}

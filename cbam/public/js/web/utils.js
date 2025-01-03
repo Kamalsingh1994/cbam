@@ -14,12 +14,13 @@ $.extend(cbam.utils, {
         })
     },
 
-    _get_links(doctype, fields){
+    _get_links(doctype, filters, fields){
        return new Promise(function(reslove, reject) {
             frappe.call({
                 method: "cbam.utils.links.get_links",
                 args:{
                     doctype: doctype,
+                    filters: filters,
                     fields: fields
                 },
                 callback(r){
@@ -33,8 +34,8 @@ $.extend(cbam.utils, {
         });
     
     },
-    async get_links(doctype, fields){
-        return await cbam.utils._get_links(doctype, fields);
+    async get_links(doctype, filters, fields){
+        return await cbam.utils._get_links(doctype, filters, fields);
     },
     _get_installation(emission){
         return new Promise(function(reslove, reject) {
