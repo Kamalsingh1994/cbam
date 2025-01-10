@@ -168,7 +168,7 @@
    "fieldname": "country_of_origin",
    "fieldtype": "Link",
    "label": "Country of Origin",
-   "options": "Country Code",
+   "options": "Country",
    "read_only_depends_on": "eval:doc.manufacture==\"I am NOT the manufacturer of the whole amount of the product\"",
    "reqd": 1
   },
@@ -176,7 +176,7 @@
    "fieldname": "shipping_country",
    "fieldtype": "Link",
    "label": "Shipping Country",
-   "options": "Country Code",
+   "options": "Country",
    "read_only_depends_on": "eval:doc.manufacture==\"I am NOT the manufacturer of the whole amount of the product\""
   },
   {
@@ -331,7 +331,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-02 12:34:27.206697",
+ "modified": "2025-01-09 20:47:55.351384",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
@@ -352,17 +352,21 @@
   },
   {
    "create": 1,
+   "delete": 1,
    "email": 1,
    "export": 1,
    "if_owner": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "Declarent",
+   "select": 1,
    "share": 1,
    "write": 1
   },
   {
+   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -374,12 +378,14 @@
    "write": 1
   },
   {
+   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "CBAM Representative",
+   "select": 1,
    "share": 1,
    "write": 1
   }

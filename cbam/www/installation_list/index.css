@@ -182,10 +182,6 @@ body {
     margin-left: 1.2rem;
 }
 
-.inv-name {
-    margin-left: .2rem;
-    margin-right: 3.3rem;
-}
 
 .list-row-head {
     padding: 1.5rem 1.5rem 1.5rem 0;
@@ -458,22 +454,20 @@ input.list-row-checkbox {
 .list-head-grid,
 .list-body-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: 1.5fr repeat(3, 1fr);
     align-content: center;
     justify-content: start;
 }
 
-.list-body-grid {
-    gap: 5rem;
+.hidden-el {
+    width: 4.8%;
 }
+
 
 .content-container .checkbox {
     margin-left: -.3rem;
 }
 
-.status-title {
-    margin-left: .8rem;
-}
 
 .parts-cont {
     margin-left: 0.48rem;

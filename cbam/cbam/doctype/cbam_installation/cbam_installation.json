@@ -14,8 +14,8 @@
   "name_of_the_installation",
   "column_break_ktcv",
   "city",
+  "country",
   "country_code",
-  "country_of_the_installation",
   "section_break_bseo",
   "contact_person",
   "contact_person_same_section",
@@ -47,19 +47,10 @@
    "label": "Base information of installation"
   },
   {
-   "fetch_from": "country_code.country_full_name",
-   "fieldname": "country_of_the_installation",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Country of the installation",
-   "read_only": 1
-  },
-  {
+   "fetch_from": "country.code",
    "fieldname": "country_code",
-   "fieldtype": "Link",
-   "label": "Country Code",
-   "options": "Country Code",
-   "reqd": 1
+   "fieldtype": "Data",
+   "label": "Country Code"
   },
   {
    "fieldname": "first_name",
@@ -181,7 +172,6 @@
    "in_list_view": 1,
    "label": "Operating Company",
    "options": "Operating Company",
-   "permlevel": 1,
    "reqd": 1
   },
   {
@@ -238,11 +228,19 @@
    "fieldname": "city",
    "fieldtype": "Data",
    "label": "City"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Country",
+   "options": "Country",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-18 16:55:33.124304",
+ "modified": "2025-01-10 14:54:58.922624",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Installation",
@@ -283,6 +281,17 @@
    "role": "Declarent",
    "select": 1,
    "share": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "CBAM Representative",
+   "share": 1,
+   "write": 1
   }
  ],
  "sort_field": "modified",

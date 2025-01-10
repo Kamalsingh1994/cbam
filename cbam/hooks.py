@@ -5,7 +5,7 @@ app_description = "Handling The EU\'s Carbon Border Adjustment Mechanism (CBABAM
 app_email = "wolfram.schmidt@phamos.eu"
 app_license = "mit"
 
-
+after_install = "cbam.utils.after_install.after_install"
 app_logo_url = 'assets/cbam/images/gallehr_partner_logo.png'
 
 #update boot context
@@ -77,9 +77,9 @@ web_include_js = [
 # home_page = "login"
 
 # website user home page (by Role)
-role_home_page = {
-	"Commercial Contact": "home"
-}
+# role_home_page = {
+# 	"Commercial Contact": "home"
+# }
 
 # Generators
 # ----------
@@ -270,15 +270,15 @@ fixtures = [
         ]
     ]
     },
-    {"dt": "Role Profile", "filters": [
-        [
-            "name", "in", [
-                "Commercial Contact",
-                "Declarent",
-                "CBAM Representative"
-            ]
-        ]
-    ]},
+    # {"dt": "Role Profile", "filters": [
+    #     [
+    #         "name", "in", [
+    #             "Commercial Contact",
+    #             "Declarent",
+    #             "CBAM Representative"
+    #         ]
+    #     ]
+    # ]},
     # {"dt": "Custom DocPerm", "filters": [
     #     [
     #         "role", "in", [

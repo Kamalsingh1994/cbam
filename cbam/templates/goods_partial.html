@@ -20,7 +20,7 @@
         </span>
     </div>
     <div class="list-row-col list-subject level tc-container gd">
-        <span><span class="currency"></span><span class="inv-tax" >{{doc.good_description}}</span></span>
+        <span class="text-cut"><span class="inv-tax" >{{doc.good_description}}</span></span>
         </div>
     
     <div class="list-row-col list-subject level tc-container rm">
@@ -107,14 +107,14 @@
         </div>
 
         <div class="tc-field-cont field-cont">
-            <span class="field-label">Invoice number</span>
-            <div class="field tc-field">{{doc.invoice_number}}</div>
-        </div>
+            <span class="field-label">Good Description</span>
+            <div class="field tc-field">{{doc.good_description}}</div>
+          </div>
 
-        <div class="tc-field-cont field-cont">
-            <span class="field-label">Hand over date</span>
+          <div class="tc-field-cont field-cont">
+            <span class="field-label">Imported into EU on</span>
             <div class="field tc-field">{{doc.hand_over_date}}</div>
-        </div>
+          </div>
 
         <div class="tc-field-cont field-cont">
             <span class="field-label">Customs Tariff Number</span>

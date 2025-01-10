@@ -23,7 +23,6 @@
  ],
  "fields": [
   {
-   "default": "Tier n+1 Unregistered Supplier Template",
    "description": "This Email Template will be used to Request Signup and Submission of Emission Data from Tier n+1 Supplier's Main Contact.",
    "fieldname": "tier_n1_unregistered_template",
    "fieldtype": "Link",
@@ -31,7 +30,6 @@
    "options": "Notification"
   },
   {
-   "default": "Tier n+1 Registered Supplier Template",
    "description": "This Email Template will be used to Request Submission of Emission Data from Tier n+1 Supplier's Main Contact.",
    "fieldname": "tier_n1_registered_template",
    "fieldtype": "Link",
@@ -59,7 +57,6 @@
    "options": "Role"
   },
   {
-   "default": "Supplier Good Rejection Notification Template",
    "description": "This Email Template will be used to notify the owner of good in case a good is rejected by the supplier. ",
    "fieldname": "supplier_good_rejection_notification_template",
    "fieldtype": "Link",
@@ -67,7 +64,6 @@
    "options": "Notification"
   },
   {
-   "default": "Declarent",
    "fieldname": "declarent_user_role",
    "fieldtype": "Link",
    "label": "Declarent User Role",
@@ -78,7 +74,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "Commercial Contact",
    "fieldname": "commercial_contact_user_role",
    "fieldtype": "Link",
    "label": "Commercial Contact User Role",
@@ -89,7 +84,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "CBAM Representative",
    "fieldname": "cbam_representative_user_role",
    "fieldtype": "Link",
    "label": "CBAM Representative User Role",
@@ -117,7 +111,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-01-02 07:36:09.642951",
+ "modified": "2025-01-09 20:49:08.607547",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Settings",
@@ -132,6 +126,27 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Declarent",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Commercial Contact",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "CBAM Representative",
+   "share": 1
   }
  ],
  "sort_field": "modified",

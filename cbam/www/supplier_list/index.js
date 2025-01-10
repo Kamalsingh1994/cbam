@@ -65,7 +65,7 @@ function executeJS() {
     })
     
 
-    const CreateSupplierDialog = function(){
+    const CreateSupplierDialog = async function(){
         let d = new frappe.ui.Dialog({
             title: `Add New Supplier`,
             fields: [
@@ -102,7 +102,8 @@ function executeJS() {
                 {
                     label: __("Country"),
                     fieldname: "country",
-                    fieldtype: "Data",
+                    fieldtype: "Autocomplete",
+                    options: await cbam.utils.get_links("Country")
                    
                     
                 },

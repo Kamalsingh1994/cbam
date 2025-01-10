@@ -73,14 +73,7 @@ function executeJS() {
                    
                     
                 },
-                {
-                    label: __("Contact Person"),
-                    fieldname: "contact_person",
-                    fieldtype: "Select",
-                    options: "Same contact person as Operating Company\nDifferent contact person\nNo contact person for this Installation"
-                   
-                    
-                },
+               
                 {
                     label: __(""),
                     fieldname: "cb1",
@@ -93,12 +86,16 @@ function executeJS() {
                    
                     
                 },
-                
+                {
+                    label: __(""),
+                    fieldname: "cb1",
+                    fieldtype: "Column Break",
+                },
                 {
                     label: __("Country Code"),
-                    fieldname: "country_code",
+                    fieldname: "country",
                     fieldtype: "Autocomplete",
-                    options: await cbam.utils.get_links("Country Code"),
+                    options: await cbam.utils.get_links("Country", {}, ["Upper(code) as label", 'name as value']),
                     reqd:1
                 },               
                 {

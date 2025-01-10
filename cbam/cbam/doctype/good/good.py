@@ -9,8 +9,6 @@ from frappe.model.naming import getseries
 
 
 class Good(Document):
-
-
 	def autoname(self):
 		if self.parent_good:
 			prefix = self.parent_good
@@ -18,8 +16,12 @@ class Good(Document):
 
 
 	def validate(self):
-		self.operating_company = frappe.db.get_value("Operating Company", {"supplier_number": self.supplier_number, "declarent":self.declarent}, "name")
-
+		if self.supplier_number and self.supplier_name:
+			operating_company = frappe.db.get_value("Operating Company", {"supplier_number": self.supplier_number, "declarent":self.declarent}, "name")
+			if operating_company:
+				self.operating_company = operating_company
+		if self.operating_company:
+			self.supplier_number, self.supplier_name = frappe.db.get_values("Operating Company", self.operating_company, ['supplier_number', 'supplier_name'])[0]
 
 	def _before_save(self):
 		self.delete_old_employee_if_supplier_changed()

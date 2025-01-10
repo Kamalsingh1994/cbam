@@ -163,6 +163,14 @@ body {
     margin: 0;
 }
 
+.text-cut {
+    display: inline-block;
+    width: 14rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .status-filter {
     font-size: 1.4rem;
 }
@@ -472,7 +480,7 @@ input.list-row-checkbox {
 }
 
 .status-title {
-    margin-left: .8rem;
+    margin-left: 3.2rem;
 }
 
 .parts-cont {
