@@ -74,7 +74,7 @@
               </div> -->
               
             </div>
-            <div class="level-right "><span class="space-hidden">0</span></span>
+            <div class="level-right hidden-el"><span class="space-hidden">0</span></span>
             </div>
           </div>
           
@@ -89,8 +89,7 @@
                         type="checkbox"
                         data-doctype="DocType"
                         data-name="Sales Invoice"
-                        data-status=""
-                        
+                        data-status=""                        
                         />
                       </span>
                     <span class="level-item bold ">
@@ -106,13 +105,13 @@
                 
                 <div class="list-row-col list-subject level gt-container">
                   
-                  <span><span class="inv-amount" data-gt=grand_total>{{doc.country_of_the_installation}}</span></span>
+                  <span><span class="inv-amount" data-gt=grand_total>{{doc.country}}</span></span>
                 </div>
                 <div class="list-row-col list-subject level ">
                     <span
-                      class="indicator-pill green filterable no-indicator-dot "
+                      class="city"
                       title="Sales Invoices">
-                      <span data-status="{{doc.status}}" class="inv-name">{{doc.city}}</span>
+                      <span class="inv-name">{{doc.city}}</span>
                     </span>
                   </div>
                

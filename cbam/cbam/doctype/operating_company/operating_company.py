@@ -2,17 +2,14 @@
 # For license information, please see license.txt
 
 import frappe
+import json
 from frappe.model.document import Document
 
 
 class OperatingCompany(Document):
 	def validate(self):
 		self.create_commercial_contact()
-		self.create_cbam_user()
-
-
-	
-		
+		self.create_cbam_user()	
 
 	def create_commercial_contact(self):
 		username = ""
@@ -36,9 +33,6 @@ class OperatingCompany(Document):
 		if not self.is_new():
 			self.flags.new_flag = False
 			self.create_permissions(username)
-		
-	
-
 
 	def create_cbam_user(self):
 		username = ""
@@ -65,8 +59,6 @@ class OperatingCompany(Document):
 		if not self.is_new():
 			self.flags.new_flag = False
 			self.create_permissions(username)
-		
-
 
 	def after_insert(self):
 		if self.flags.new_flag:
@@ -81,6 +73,9 @@ class OperatingCompany(Document):
 		#self.declarent = self.declarent if not self.parent_operating_company else frappe.db.get_value("Operating Company", self.parent_operating_company, "supplier_name")
 		
 		email.send(self)
+		self.status = "Pending Verification"
+		self.save(ignore_permissions=True)
+
 
 	def create_permissions(self, user=None):
 		if self.commercial_contact_user and self.create_commercial_contact_user:
@@ -97,3 +92,11 @@ class OperatingCompany(Document):
 				aus_pem.allow = "Declarent"
 				aus_pem.for_value = self.declarent
 				aus_pem.save(ignore_permissions=True)
+    
+@frappe.whitelist()
+def send_bulk_signup_request(operating_companys):
+	operating_companys = json.loads(operating_companys)
+	if len(operating_companys) > 0:
+		for company in operating_companys:
+			operating_company = frappe.get_doc("Operating Company", company.get("name"))
+			operating_company.send_signup_request()

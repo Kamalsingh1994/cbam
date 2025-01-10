@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"PlDXw0rUoK\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">CBAM</span>\",\"col\":12}},{\"id\":\"FV8ATpCgKk\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Operating Company\",\"col\":3}},{\"id\":\"Px4vhZvF0m\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Goods List\",\"col\":3}},{\"id\":\"Zrn94khC9Y\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Custom Import\",\"col\":3}},{\"id\":\"f1FCEKXOuF\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"NEW Data Import\",\"col\":3}},{\"id\":\"MH1A8M-rWg\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"CBAM Installations\",\"col\":3}},{\"id\":\"lLQ6OMEDON\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"CBAM Emission Data\",\"col\":3}}]",
+ "content": "[{\"id\":\"PlDXw0rUoK\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">CBAM</span>\",\"col\":12}},{\"id\":\"FV8ATpCgKk\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Operating Company\",\"col\":3}},{\"id\":\"Px4vhZvF0m\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Goods List\",\"col\":3}},{\"id\":\"Zrn94khC9Y\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Custom Import\",\"col\":3}},{\"id\":\"MH1A8M-rWg\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"CBAM Installations\",\"col\":3}},{\"id\":\"lLQ6OMEDON\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"CBAM Emission Data\",\"col\":3}},{\"id\":\"SXMdnEbuaz\",\"type\":\"paragraph\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Data Import</span>\",\"col\":12}},{\"id\":\"f1FCEKXOuF\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"NEW Good Import\",\"col\":3}},{\"id\":\"FH_fnq6did\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"New Operating Company Import\",\"col\":3}}]",
  "creation": "2024-08-26 18:20:30.498993",
  "custom_blocks": [],
  "docstatus": 0,
@@ -12,19 +12,8 @@
  "indicator_color": "",
  "is_hidden": 0,
  "label": "CBAM",
- "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Test",
-   "link_count": 0,
-   "link_to": "Supplier",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  }
- ],
- "modified": "2024-12-13 12:45:19.804302",
+ "links": [],
+ "modified": "2025-01-10 15:00:41.655651",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM",
@@ -38,7 +27,7 @@
    "role": "System Manager"
   },
   {
-   "role": "Reporting Declarant"
+   "role": "Declarent"
   }
  ],
  "sequence_id": 1.0,
@@ -52,17 +41,25 @@
   },
   {
    "color": "Grey",
-   "doc_view": "List",
-   "label": "Operating Company",
-   "link_to": "Operating Company",
-   "stats_filter": "[]",
+   "doc_view": "New",
+   "label": "New Operating Company Import",
+   "link_to": "Data Import",
+   "stats_filter": "[[\"Data Import\",\"reference_doctype\",\"=\",\"Operating Company\",false]]",
    "type": "DocType"
   },
   {
    "color": "Grey",
-   "doc_view": "New",
-   "label": "NEW Data Import",
+   "doc_view": "List",
+   "label": "NEW Good Import",
    "link_to": "Data Import",
+   "stats_filter": "[[\"Data Import\",\"reference_doctype\",\"=\",\"Good\",false]]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Operating Company",
+   "link_to": "Operating Company",
    "stats_filter": "[]",
    "type": "DocType"
   },
