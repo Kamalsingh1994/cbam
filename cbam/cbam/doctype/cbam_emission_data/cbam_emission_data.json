@@ -68,7 +68,7 @@
   {
    "description": "Example: 1.67 tCO2/t (t = tonnes of product)",
    "fieldname": "specific_direct_embedded_emissions",
-   "fieldtype": "Data",
+   "fieldtype": "Float",
    "label": "Specific (direct) embedded emissions [tCO2/t]"
   },
   {
@@ -85,7 +85,7 @@
   {
    "description": "Example: 3.1 MWh/t (t = tonnes of product)",
    "fieldname": "electricity_consumed",
-   "fieldtype": "Data",
+   "fieldtype": "Float",
    "label": "Electricity consumed [MWh/t]"
   },
   {
@@ -141,7 +141,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-19 12:52:05.565250",
+ "modified": "2025-01-11 11:14:39.945433",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Emission Data",

@@ -10,6 +10,10 @@ class OperatingCompany(Document):
 	def validate(self):
 		self.create_commercial_contact()
 		self.create_cbam_user()	
+		self.set_title()
+
+	def set_title(self):
+		self.title = f"{self.supplier_name}-{self.supplier_number}"
 
 	def create_commercial_contact(self):
 		username = ""

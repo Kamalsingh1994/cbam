@@ -29,7 +29,9 @@
   "customs_value",
   "column_break_jevc",
   "country_of_origin",
+  "country_of_origin_code",
   "shipping_country",
+  "shipping_country_code",
   "supplier_section",
   "operating_company",
   "declarent",
@@ -111,7 +113,7 @@
   {
    "fieldname": "hand_over_date",
    "fieldtype": "Date",
-   "label": "Handover Date"
+   "label": "Imported into EU on"
   },
   {
    "fieldname": "internal_customs_import_number",
@@ -150,8 +152,7 @@
    "fieldtype": "Currency",
    "label": "Customs Value in Euro",
    "non_negative": 1,
-   "options": "currency",
-   "read_only": 1
+   "options": "currency"
   },
   {
    "default": "EUR",
@@ -167,15 +168,14 @@
   {
    "fieldname": "country_of_origin",
    "fieldtype": "Link",
-   "label": "Country of Origin",
+   "label": "Country of Origin Name",
    "options": "Country",
-   "read_only_depends_on": "eval:doc.manufacture==\"I am NOT the manufacturer of the whole amount of the product\"",
-   "reqd": 1
+   "read_only_depends_on": "eval:doc.manufacture==\"I am NOT the manufacturer of the whole amount of the product\""
   },
   {
    "fieldname": "shipping_country",
    "fieldtype": "Link",
-   "label": "Shipping Country",
+   "label": "Shipping Country Name",
    "options": "Country",
    "read_only_depends_on": "eval:doc.manufacture==\"I am NOT the manufacturer of the whole amount of the product\""
   },
@@ -198,12 +198,14 @@
    "fetch_from": "emission_data.cbam_installation",
    "fieldname": "installation",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Installation",
    "options": "CBAM Installation"
   },
   {
    "fieldname": "emission_data",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Emission Data",
    "options": "CBAM Emission Data"
   },
@@ -327,11 +329,21 @@
    "fieldtype": "Table",
    "label": "Split Details",
    "options": "Good Split Detail"
+  },
+  {
+   "fieldname": "country_of_origin_code",
+   "fieldtype": "Data",
+   "label": "Country of Origin"
+  },
+  {
+   "fieldname": "shipping_country_code",
+   "fieldtype": "Data",
+   "label": "Shipping Country"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-09 20:47:55.351384",
+ "modified": "2025-01-11 12:45:31.774616",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",

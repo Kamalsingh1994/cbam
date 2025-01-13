@@ -1,4 +1,12 @@
-window.addEventListener("DOMContentLoaded", executeJS);
+let CreateInstallationDialog;
+
+window.addEventListener("DOMContentLoaded", () => {
+    executeJS();
+
+    document.querySelector('.add-new').addEventListener('click', function(e){
+        CreateInstallationDialog()
+    })
+});
 
 function executeJS() {
     // This condition is to stop the rest of the code from executing if the user is not authorized.
@@ -28,7 +36,6 @@ function executeJS() {
     }
 
     const createEmission = function(values, d) {
-        console.log(values);
         frappe.call({
             method: "cbam.utils.create_new_doc",
             args: {
@@ -61,7 +68,7 @@ function executeJS() {
         }
     })
     
-    const CreateInstallationDialog = async function(docName){
+    CreateInstallationDialog = async function(docName){
         let d = new frappe.ui.Dialog({
             title: `Add New Installation`,
             fields: [
@@ -195,9 +202,6 @@ function executeJS() {
         d.show();
     }
 
-
-
-
     const CreateEmissionDialog = function(docName){
         let d = new frappe.ui.Dialog({
             title: `Add New Emission`,
@@ -219,7 +223,7 @@ function executeJS() {
                 {
                     label: __("Specific (direct) embedded emissions [tCO2/t]"),
                     fieldname: "specific_direct_embedded_emissions",
-                    fieldtype: "Data",
+                    fieldtype: "Float",
                     description: "Example: 1.67 tCO2/t (t = tonnes of product)"
                    
                     
@@ -250,7 +254,7 @@ function executeJS() {
                 {
                     label: __("Electricity consumed [MWh/t]"),
                     fieldname: "electricity_consumed",
-                    fieldtype: "Data",
+                    fieldtype: "Float",
                    
                     
                 },
@@ -283,10 +287,6 @@ function executeJS() {
         d.show();
     }
 
-
-    document.querySelector('.add-new').addEventListener('click', function(e){
-        CreateInstallationDialog()
-    })
     document.querySelector('.add-newemission').addEventListener('click', function(e){
         
     })
@@ -299,8 +299,6 @@ function executeJS() {
                 const docName = container.querySelector(".inv-name").dataset.name;
                 console.log(docName)
                 CreateEmissionDialog(docName)
-                
-                    
                 
             })
         })

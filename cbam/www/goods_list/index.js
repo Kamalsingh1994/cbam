@@ -1,66 +1,17 @@
-window.addEventListener("DOMContentLoaded", executeJS)
+let CreateEmissionDialog;
+let CreateRejectDialog;
+let CreateForwardDialog;
+let CreateEmissionSubmissionDialog;
+let contentContainer;
 
-function executeJS() {
-    // This condition is to stop the rest of the code from executing if the user is not authorized.
-    // frappe.call({
-    //     method: "paystack_integration.utils.ex_utils.clear_website_cache",
-    //     callback: function(r) {
-    //     }
-    // });
-    
-    const contentContainer = document.querySelectorAll(".content-container");
-    const infoContainer = document.querySelectorAll(".info-container");
-    const arrowEl = document.querySelectorAll(".arrow");
-    const totalCheckbox = document.querySelector(".total-checkbox");
-    const checkboxes = document.querySelectorAll(".checkbox");
-    const selectedEl = document.querySelector(".selected-no");
-    const statusFilter = document.querySelector(".status-filter");
-    const dropDownCont = document.querySelectorAll(".options-abs");
-    const dataBtnEl = document.querySelectorAll(".data-btn");
+window.addEventListener("DOMContentLoaded", () => {
     const bulkassign = document.querySelector("#bulkassign-data");
     const bulksubmit = document.querySelector("#bulksubmit-data");
     const bulkforward = document.querySelector("#bulkforward-data");
     const bulkreject = document.querySelector("#bulkreject-data");
 
-    
-    let boxesLen = 0;
-    let selected = 0;
-    let amount = 0;
+    executeJS();
 
-    selectedEl.textContent = selected;
-    
-    const hideDropDown = function() {
-        dropDownCont.forEach(dropDownEl => dropDownEl.classList.add("hidden"));
-    }
-    window.addEventListener('click', function(e){
-        if(!e.target.classList.contains("action-btn")) {
-            hideDropDown()
-        }
-    })
-
-    const performGoodsAction = function(fn, params, d) {
-        if(!Array.isArray(params.goods)){
-            params.goods = [params.goods]
-        }
-        console.log(params);
-        frappe.call({
-            method: `cbam.utils.goods.${fn}`,
-            args: params,
-            callback: function(r) {
-                frappe.call({
-                    method: "cbam.www.goods_list.index.get_goods_partial_html",
-                    callback: function(r) {
-                        contentContainer.forEach(container => {
-                            container.remove();
-                        });
-                        document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
-                        executeJS();
-                    }
-                })
-                d.hide();
-            }
-        })
-    }
 
     bulkassign.addEventListener("click", function(e){
         e.preventDefault();
@@ -100,7 +51,6 @@ function executeJS() {
                 doc_list.push(index.querySelector('#doc-name').dataset.name)
             }
         })
-        console.log(doc_list)
         CreateForwardDialog(doc_list)
     })
 
@@ -118,11 +68,67 @@ function executeJS() {
         
         CreateEmissionSubmissionDialog(doc_list)
     })
+});
+
+function executeJS() {
+    // This condition is to stop the rest of the code from executing if the user is not authorized.
+    // frappe.call({
+    //     method: "paystack_integration.utils.ex_utils.clear_website_cache",
+    //     callback: function(r) {
+    //     }
+    // });
     
+    contentContainer = document.querySelectorAll(".content-container");
+    const infoContainer = document.querySelectorAll(".info-container");
+    const arrowEl = document.querySelectorAll(".arrow");
+    const totalCheckbox = document.querySelector(".total-checkbox");
+    const checkboxes = document.querySelectorAll(".checkbox");
+    const selectedEl = document.querySelector(".selected-no");
+    const statusFilter = document.querySelector(".status-filter");
+    const dropDownCont = document.querySelectorAll(".options-abs");
+    const dataBtnEl = document.querySelectorAll(".data-btn");
+    const notAllowed = ["Split", "Data Submitted"];
+    
+    let boxesLen = 0;
+    let selected = 0;
+    let amount = 0;
 
+    selectedEl.textContent = selected;
+    
+    const hideDropDown = function() {
+        dropDownCont.forEach(dropDownEl => dropDownEl.classList.add("hidden"));
+    }
+    window.addEventListener('click', function(e){
+        if(!e.target.classList.contains("action-btn")) {
+            hideDropDown()
+        }
+    })
 
+    const performGoodsAction = function(fn, params, d) {
+        if(!Array.isArray(params.goods)){
+            params.goods = [params.goods]
+        }
 
-    const CreateForwardDialog = async function(goods){
+        frappe.call({
+            method: `cbam.utils.goods.${fn}`,
+            args: params,
+            callback: function(r) {
+                frappe.call({
+                    method: "cbam.www.goods_list.index.get_goods_partial_html",
+                    callback: function(r) {
+                        contentContainer.forEach(container => {
+                            container.remove();
+                        });
+                        document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
+                        executeJS();
+                    }
+                })
+                d.hide();
+            }
+        })
+    }
+
+    CreateForwardDialog = async function(goods){
         let d = new frappe.ui.Dialog({
             title: `Forwarding Request`,
             fields: [
@@ -131,7 +137,7 @@ function executeJS() {
                     fieldname: "supplier",
                     fieldtype: "Autocomplete",
                     default: "",
-                    options: await cbam.utils.get_links("Operating Company", {}, ["supplier_name as label", "name as value"]),
+                    options: await cbam.utils.get_links("Operating Company", {}, ["title as label", "name as value"]),
                     //depends_on: "eval:doc.forward_to_party == 'Sub Supplier'"
                 },
                 
@@ -154,7 +160,7 @@ function executeJS() {
         d.$wrapper.find('.modal-dialog').css("height", "350px");
     }
 
-    const CreateRejectDialog = function(goods){
+    CreateRejectDialog = function(goods){
         let d = new frappe.ui.Dialog({
             title: `Rejecting Request`,
             fields: [
@@ -175,19 +181,11 @@ function executeJS() {
                 performGoodsAction("reject_goods", {goods: goods, reason: values.reason}, d)
             },
             secondary_action(values) {
-                
-               
-                
-                
-                
             }
         });
 
-                   
         d.show();
     }
-
-    
 
     const split_fields = function(no){
         return [
@@ -198,8 +196,6 @@ function executeJS() {
                 default: "Supplier",
                 options: "\nSupplier\nInstallation",
                 change: () =>{
-                   
-                   console.log()
                     cur_dialog.refresh()
                 },
                 in_list_view: 1
@@ -287,7 +283,7 @@ function executeJS() {
         ]
     }
 
-   const CreateEmissionDialog = async function(good, installation, emission){
+    CreateEmissionDialog = async function(good, installation, emission){
     const read_only = 1;
     let d = new frappe.ui.Dialog({
         title: `Assigning Emission Data`,
@@ -320,7 +316,6 @@ function executeJS() {
                 read_only: 0,
                 change: async () =>{
                     // let installation =  await cbam.utils.get_installation(d.get_value("emission_data"));
-                    // console.log(installation)
                     // d.set_value("installation", installation)
                  }
                 //options: "\nSub Supplier\nCollegue"
@@ -370,7 +365,7 @@ function executeJS() {
 									let name = $(event.currentTarget).closest(".grid-row").attr("data-name");
                                     let row = d.fields_dict.table1.grid.grid_rows_by_docname[name];
 									if(row.doc.source == "Supplier"){
-                                        row.columns.source_name.df.options= await cbam.utils.get_links("Operating Company", {}, ["supplier_name as label", "name as value"]);
+                                        row.columns.source_name.df.options= await cbam.utils.get_links("Operating Company", {}, ["title as label", "name as value"]);
                                     }
                                     else{
                                         row.columns.source_name.df.options= await cbam.utils.get_links("CBAM Installation");
@@ -415,7 +410,7 @@ function executeJS() {
                                 for(var i in table){
                                     total_raw_mass += table[i].qty;
                                 }
-                                d.set_value("total_raw_mass", total_raw_mass)
+                                d.set_value("total_raw_mass", `${Number(total_raw_mass).toFixed(2)}`)
                             }
                         },
                     ],
@@ -425,11 +420,11 @@ function executeJS() {
                     fieldtype: 'Section Break'
                 },
                 {
-                    fieldtype: "Float",
+                    fieldtype: "Data",
                     fieldname: "raw_mass",
                     label: "Total Qty",
                     default: rawMass,
-                    read_only: 1
+                    read_only: 1,
 
                 },
                 {
@@ -438,10 +433,11 @@ function executeJS() {
                     fieldtype: "Column Break",
                 },
                 {
-                    fieldtype: "Float",
+                    fieldtype: "Data",
                     fieldname: "total_raw_mass",
                     label: "Total Qty to Split",
-                    read_only: 1
+                    read_only: 1,
+                    default: "0.00"
                 }
             ],
             size: 'extra-large', // small, large, extra-large 
@@ -449,7 +445,7 @@ function executeJS() {
             secondary_action_label: '',
             primary_action(values) {
                 let validation_flag = true
-                if(values.raw_mass != values.total_raw_mass){
+                if(Number(values.raw_mass).toFixed(2) != Number(values.total_raw_mass).toFixed(2)){
                     msgprint("Total Qty to Split must be equal to Total Qty.")
                     validation_flag = false
                 }
@@ -488,9 +484,6 @@ function executeJS() {
             dataBtnEl.forEach(btn => btn.classList.remove("hidden"));
         }
     }
- 
-
-    
 
     contentContainer.forEach(container => {
         const absBtn = container.querySelectorAll(".abs-option-btn");
@@ -586,7 +579,7 @@ function executeJS() {
         boxesLen = 0;
         contentContainer.forEach(container => {
             const status = container.querySelector(".status").dataset.status;
-            if(!container.classList.contains("hidden") && status.toLowerCase() != "verifying payment") {
+            if(!container.classList.contains("hidden") && !notAllowed.includes(status)) {
                 boxesLen++;
             }
         })
@@ -600,7 +593,7 @@ function executeJS() {
             selectedEl.textContent = selected;
             contentContainer.forEach(container => {
                 const status = container.querySelector(".status").dataset.status;
-                if(!container.classList.contains("hidden")) {
+                if(!container.classList.contains("hidden") && !notAllowed.includes(status)) {
                     const box = container.querySelector(".checkbox");
                     box.checked = true;
                 }
@@ -622,6 +615,8 @@ function executeJS() {
         
         const box = container.querySelector(".checkbox");
         box.addEventListener("click", function() {
+            if(notAllowed.includes(box.dataset.status.toLowerCase())) return;
+
             if(box.checked) {
                 selected++;
             } else {
@@ -635,19 +630,17 @@ function executeJS() {
             }
 
             selectedEl.textContent = selected;
-            
-
             if(selected === boxesLen) {
                 setTotalCheckBoxes(true);
             }
             
             checkboxes.forEach(b => {
+                if(notAllowed.includes(b.dataset.status)) return;
                 if(!b.checked) {
                     setTotalCheckBoxes(false);
                     return;
                 }
             })
-
         })
 
         // container.addEventListener("click", function(e) {
@@ -693,7 +686,7 @@ function executeJS() {
     }
 
 
-    const CreateEmissionSubmissionDialog = async function(goods){
+    CreateEmissionSubmissionDialog = async function(goods){
         let supplier_details = await cbam.supplier.get_supplier();
         if (supplier_details.status!="Company Verified"){
             let d = new frappe.ui.Dialog({
@@ -748,8 +741,8 @@ function executeJS() {
                         label: __("Zip code"),
                         fieldname: "zip_code",
                         fieldtype: "Data",
-                        default: supplier_details.zip_code
-                        
+                        default: supplier_details.zip_code,
+                        reqd: 1
                     },
                     {
                         label: __(""),
@@ -762,18 +755,64 @@ function executeJS() {
                         label: __("City"),
                         fieldname: "city",
                         fieldtype: "Data",
-                        default: supplier_details.city
-                        
+                        default: supplier_details.city,
+                        reqd: 1
                     },
                     {
                         label: __("Country"),
                         fieldname: "country",
                         fieldtype: "Data",
-                        default: supplier_details.country
+                        default: supplier_details.country,
+                        reqd: 1
+                    },
+                    {
+                        label: __("<strong>CBAM Representive Details</strong>"),
+                        fieldname: "sb1",
+                        fieldtype: "Section Break",                        
+                    },
+                    {
+                        label: __("CBAM Representative Last Name"),
+                        fieldname: "cbam_representive_last_name",
+                        fieldtype: "Data",
+                        default: supplier_details.cbam_representive_last_name,
+                        reqd: 1
+                    },
+                    {
+                        label: __("CBAM Representative Email"),
+                        fieldname: "cbam_representive_employee_email",
+                        fieldtype: "Data",
+                        default: supplier_details.cbam_representive_employee_email,
+                        reqd: 1
+                    },
+                    {
+                        label: __("CBAM Representative Position"),
+                        fieldname: "cbam_representive_employee_position",
+                        fieldtype: "Data",
+                        default: supplier_details.cbam_representive_employee_position
                         
-                    }
+                    },
+                    {
+                        label: __(""),
+                        fieldname: "cb2",
+                        fieldtype: "Column Break",
+                        
+                        
+                    },
+                    {
+                        label: __("CBAM Representative First Name"),
+                        fieldname: "cbam_representive_employee_first_name",
+                        fieldtype: "Data",
+                        default: supplier_details.cbam_representive_employee_first_name,
+                        reqd: 1
+                    },
+                    {
+                        label: __("CBAM Representative Phone Number"),
+                        fieldname: "cbam_representive_employee_phone_number",
+                        fieldtype: "Data",
+                        default: supplier_details.cbam_representive_employee_phone_number,
+                        reqd: 1
+                    },
                     
-    
                 ],
                 size: 'extra-large', // small, large, extra-large 
                 primary_action_label: 'Confirm Details',

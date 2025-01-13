@@ -25,7 +25,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-03 14:22:00.692717",
+ "modified": "2025-01-10 18:03:29.838947",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Declarent",
@@ -43,6 +43,28 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Declarent",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Commercial Contact",
+   "select": 1,
+   "share": 1
   }
  ],
  "sort_field": "modified",

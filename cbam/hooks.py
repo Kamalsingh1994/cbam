@@ -260,25 +260,26 @@ web_include_js = [
 # }
 
 fixtures = [
-    {"dt": "Country Code"},
+    
     {"dt": "Role", "filters": [
         [
             "name", "in", [
-                "Reporting Declarant",
-                "Supplier"
+                "Declarant",
+                "Commercial Contact",
+                "CBAM Representative"
             ]
         ]
     ]
     },
-    # {"dt": "Role Profile", "filters": [
-    #     [
-    #         "name", "in", [
-    #             "Commercial Contact",
-    #             "Declarent",
-    #             "CBAM Representative"
-    #         ]
-    #     ]
-    # ]},
+    {"dt": "Module Profile", "filters": [
+        [
+            "name", "in", [
+                
+                "Declarant"
+                
+            ]
+        ]
+    ]},
     # {"dt": "Custom DocPerm", "filters": [
     #     [
     #         "role", "in", [
