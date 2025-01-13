@@ -13,7 +13,8 @@
   "installation_name",
   "column_break_pwkc",
   "uuid_operator_company",
-  "operator_name",
+  "operating_company",
+  "declarant",
   "emission_data_of_the_installation_section",
   "type_of_applicable_reporting_methodology",
   "applicable_reporting_methodology",
@@ -37,14 +38,6 @@
    "fieldname": "uuid_installation",
    "fieldtype": "Data",
    "label": "UUID Installation",
-   "read_only": 1
-  },
-  {
-   "fetch_from": "cbam_installation.operating_company",
-   "fieldname": "operator_name",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Operator Name",
    "read_only": 1
   },
   {
@@ -137,11 +130,27 @@
    "fieldname": "label",
    "fieldtype": "Data",
    "label": "Label"
+  },
+  {
+   "fetch_from": "cbam_installation.operating_company",
+   "fieldname": "operating_company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Operating Company",
+   "options": "Operating Company",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "operating_company.declarant",
+   "fieldname": "declarant",
+   "fieldtype": "Link",
+   "label": "Declarant",
+   "options": "Declarant"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-11 11:14:39.945433",
+ "modified": "2025-01-13 13:59:58.357220",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Emission Data",
@@ -178,7 +187,7 @@
    "export": 1,
    "print": 1,
    "report": 1,
-   "role": "Declarent",
+   "role": "Declarant",
    "select": 1,
    "share": 1
   }

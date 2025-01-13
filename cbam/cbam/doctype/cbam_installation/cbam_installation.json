@@ -6,33 +6,24 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "uuid_operating_company",
+  "name_of_the_installation",
+  "uuid_installation",
   "column_break_ounr",
   "operating_company",
+  "uuid_operating_company",
+  "column_break_bsqx",
+  "declarant",
   "base_information_of_installation_section",
-  "uuid_installation",
-  "name_of_the_installation",
-  "column_break_ktcv",
   "city",
+  "column_break_ktcv",
+  "zip_code",
+  "column_break_qwoz",
   "country",
   "country_code",
-  "section_break_bseo",
-  "contact_person",
-  "contact_person_same_section",
-  "first_name_same",
-  "last_name_same",
-  "column_break_osbo",
-  "email_same",
-  "phone_number_same",
-  "contact_person_section",
-  "first_name",
-  "last_name",
-  "column_break_rjxu",
-  "email",
-  "phone_number",
   "emissions_data_tracking_of_the_installation_section",
   "is_the_installation_tracking_emissions_data",
   "define_how_emissions_get_monitored_reported_and_verified",
+  "column_break_mlfz",
   "is_the_installation_subject_to_an_emission_trading_system",
   "which_emission_trading_system_link_to_legal_act",
   "goods_covered_by_this_emissions_calculation_section",
@@ -53,75 +44,7 @@
    "label": "Country Code"
   },
   {
-   "fieldname": "first_name",
-   "fieldtype": "Data",
-   "label": "First Name"
-  },
-  {
-   "fieldname": "last_name",
-   "fieldtype": "Data",
-   "label": "Last Name"
-  },
-  {
-   "fieldname": "email",
-   "fieldtype": "Data",
-   "label": "Email",
-   "options": "Email"
-  },
-  {
-   "fieldname": "phone_number",
-   "fieldtype": "Phone",
-   "label": "Phone Number"
-  },
-  {
-   "depends_on": "eval:doc.contact_person=='Different contact person'",
-   "fieldname": "contact_person_section",
-   "fieldtype": "Section Break",
-   "label": "Contact Person"
-  },
-  {
-   "fieldname": "column_break_osbo",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "column_break_ktcv",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "contact_person_same_section",
-   "fieldtype": "Section Break",
-   "label": "Contact Person (same linke Operating Company)"
-  },
-  {
-   "fetch_from": "supplier_employee.first_name",
-   "fieldname": "first_name_same",
-   "fieldtype": "Data",
-   "label": "First Name",
-   "read_only": 1
-  },
-  {
-   "fetch_from": "supplier_employee.last_name",
-   "fieldname": "last_name_same",
-   "fieldtype": "Data",
-   "label": "Last Name",
-   "read_only": 1
-  },
-  {
-   "fetch_from": "supplier_employee.email",
-   "fieldname": "email_same",
-   "fieldtype": "Data",
-   "label": "Email",
-   "read_only": 1
-  },
-  {
-   "fetch_from": "supplier_employee.phone_number",
-   "fieldname": "phone_number_same",
-   "fieldtype": "Phone",
-   "label": "Phone Number",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_rjxu",
    "fieldtype": "Column Break"
   },
   {
@@ -130,10 +53,6 @@
    "in_list_view": 1,
    "label": "Is the installation tracking emissions data?",
    "options": "Yes\nNo"
-  },
-  {
-   "fieldname": "section_break_bseo",
-   "fieldtype": "Section Break"
   },
   {
    "depends_on": "eval:doc.is_the_installation_tracking_emissions_data==\"Yes\"",
@@ -182,13 +101,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "contact_person",
-   "fieldtype": "Select",
-   "label": "Contact Person",
-   "options": "Same contact person as Operating Company\nDifferent contact person\nNo contact person for this Installation",
-   "permlevel": 2
-  },
-  {
    "fieldname": "uuid_installation",
    "fieldtype": "Data",
    "label": "UUID Installation",
@@ -227,7 +139,8 @@
   {
    "fieldname": "city",
    "fieldtype": "Data",
-   "label": "City"
+   "label": "City",
+   "reqd": 1
   },
   {
    "fieldname": "country",
@@ -236,11 +149,36 @@
    "label": "Country",
    "options": "Country",
    "reqd": 1
+  },
+  {
+   "fieldname": "zip_code",
+   "fieldtype": "Data",
+   "label": "ZIP Code",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_bsqx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_qwoz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_mlfz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "operating_company.declarent",
+   "fieldname": "declarant",
+   "fieldtype": "Link",
+   "label": "Declarant",
+   "options": "Declarant"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-10 14:54:58.922624",
+ "modified": "2025-01-13 13:58:20.407429",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Installation",
@@ -278,7 +216,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Declarent",
+   "role": "Declarant",
    "select": 1,
    "share": 1
   },

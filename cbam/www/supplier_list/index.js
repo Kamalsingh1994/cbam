@@ -75,9 +75,7 @@ function executeJS() {
                 {
                     label: __("Supplier Number"),
                     fieldname: "supplier_number",
-                    fieldtype: "Data",
-                    reqd:1
-                   
+                    fieldtype: "Data"
                     
                 },
                 {

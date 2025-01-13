@@ -34,7 +34,7 @@
   "shipping_country_code",
   "supplier_section",
   "operating_company",
-  "declarent",
+  "declarant",
   "column_break_lqxr",
   "supplier_name",
   "supplier_number",
@@ -267,12 +267,6 @@
    "label": "Supplier Number"
   },
   {
-   "fieldname": "declarent",
-   "fieldtype": "Link",
-   "label": "Declarent",
-   "options": "Declarent"
-  },
-  {
    "default": "G-",
    "fieldname": "naming_series",
    "fieldtype": "Select",
@@ -339,11 +333,17 @@
    "fieldname": "shipping_country_code",
    "fieldtype": "Data",
    "label": "Shipping Country"
+  },
+  {
+   "fieldname": "declarant",
+   "fieldtype": "Link",
+   "label": "Declarant",
+   "options": "Declarant"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-11 12:45:31.774616",
+ "modified": "2025-01-13 13:59:25.166492",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
@@ -372,7 +372,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Declarent",
+   "role": "Declarant",
    "select": 1,
    "share": 1,
    "write": 1

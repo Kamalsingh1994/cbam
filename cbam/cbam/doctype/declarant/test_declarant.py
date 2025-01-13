@@ -1,9 +1,9 @@
-# Copyright (c) 2024, phamos GmbH and Contributors
+# Copyright (c) 2025, phamos GmbH and Contributors
 # See license.txt
 
 # import frappe
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestDeclarent(FrappeTestCase):
+class TestDeclarant(FrappeTestCase):
 	pass
