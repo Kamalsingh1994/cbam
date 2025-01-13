@@ -16,12 +16,18 @@ class Good(Document):
 
 
 	def validate(self):
+		self.set_countries()
 		if self.supplier_number and self.supplier_name:
 			operating_company = frappe.db.get_value("Operating Company", {"supplier_number": self.supplier_number, "declarent":self.declarent}, "name")
 			if operating_company:
 				self.operating_company = operating_company
 		if self.operating_company:
 			self.supplier_number, self.supplier_name = frappe.db.get_values("Operating Company", self.operating_company, ['supplier_number', 'supplier_name'])[0]
+
+	def set_countries(self):
+		self.country_of_origin = frappe.db.get_value("Country", {"code": self.country_of_origin_code}, "name")
+		self.shipping_country = frappe.db.get_value("Country", {"code": self.shipping_country_code}, "name")
+
 
 	def _before_save(self):
 		self.delete_old_employee_if_supplier_changed()

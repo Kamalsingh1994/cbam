@@ -385,12 +385,28 @@ input.list-row-checkbox {
     background: var(--indicator-dot-red);
 }
 
+.imp-text {
+    margin-left: 1.3rem;
+}
+
 .indicator:before {
     content: "";
     height: 8px;
     width: 8px;
     border-radius: var(--border-radius);
     margin: 0 8px 0 0;
+}
+
+.indicator-pill.grey {
+    background: #c2c2c2 !important;
+}
+
+.m-left-sm {
+    margin-left: 1.1rem;
+}
+
+.m-left {
+    margin-left: 2.4rem;
 }
 
 .page-card p {

@@ -81,22 +81,20 @@
             
             <tr>
                 <td width=""><strong>Sr.</strong></td>
-                
+                <td><strong>Label</strong></td>
                 <td><strong>Specific (direct) embedded emissions [tCO2/t]</strong></td>
                 <td width=""><strong>Source of electricity</strong></td>
                 <td><strong>Electricity consumed [MWh/t]</strong>                      </td>
-                
             </tr>
             
-            
+             
             {%for i in doc.emission_datas%}
             <tr>
                 <td>{{loop.index}}</td>
-                
+                <td>{{i.label}}</td>
                 <td>{{i.specific_direct_embedded_emissions}}</td>
                 <td>{{i.source_of_electricity}}</td>
                 <td>{{i.electricity_consumed}}</td>
-                
             </tr>
             
             {%endfor%}

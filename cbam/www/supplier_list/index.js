@@ -1,4 +1,12 @@
-window.addEventListener("DOMContentLoaded", executeJS);
+let CreateSupplierDialog;
+
+window.addEventListener("DOMContentLoaded", () => {
+    executeJS();
+    
+    document.querySelector('.add-new').addEventListener('click', function(e){
+        CreateSupplierDialog()
+    })
+});
 function executeJS() {
     // This condition is to stop the rest of the code from executing if the user is not authorized.
     // frappe.call({
@@ -58,14 +66,9 @@ function executeJS() {
             hideDropDown()
         }
     })
-
-
-    document.querySelector('.add-new').addEventListener('click', function(e){
-        CreateSupplierDialog()
-    })
     
 
-    const CreateSupplierDialog = async function(){
+    CreateSupplierDialog = async function(){
         let d = new frappe.ui.Dialog({
             title: `Add New Supplier`,
             fields: [
