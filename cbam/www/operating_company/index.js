@@ -164,7 +164,7 @@ function executeJS() {
                 title: `Please Confrim your Commercial Contact Details`,
                 fields: [
                     {
-                        label: __("Operating Company Name"),
+                        label: __("Operating Company"),
                         fieldname: "supplier_name",
                         fieldtype: "Data",
                         
@@ -178,31 +178,14 @@ function executeJS() {
                         fieldtype: "Section Break",
                     },
                     {
-                        label: __("Commercial Contact Last Name"),
+                        label: __("Last Name"),
                         fieldname: "main_contact_employee_last_name",
                         fieldtype: "Data",
-                        default: supplier_details.main_contact_employee_last_name
+                        default: supplier_details.main_contact_employee_last_name,
+                        read_only: 1
                     },
                     {
-                        label: __("Commercial Contact First Name"),
-                        fieldname: "main_contact_employee_first_name",
-                        fieldtype: "Data",
-                        default: supplier_details.main_contact_employee_first_name
-                    },
-                    {
-                        label: __(""),
-                        fieldname: "cb1",
-                        fieldtype: "Column Break",
-                    },
-                    {
-                        label: __("Commercial Contact Email"),
-                        fieldname: "main_contact_employee_email",
-                        fieldtype: "Data",
-                        default: supplier_details.main_contact_employee_email,
-                        options: "Email"
-                    },
-                    {
-                        label: __("Commercial Contact Position"),
+                        label: __("Position"),
                         fieldname: "main_contact_employee_position",
                         fieldtype: "Data",
                         default: supplier_details.main_contact_employee_position
@@ -213,17 +196,31 @@ function executeJS() {
                         fieldtype: "Column Break",
                     },
                     {
-                        label: __("Commercial Contact Phone Number"),
+                        label: __("First Name"),
+                        fieldname: "main_contact_employee_first_name",
+                        fieldtype: "Data",
+                        default: supplier_details.main_contact_employee_first_name,
+                        read_only: 1
+                    },
+                    {
+                        label: __("Phone Number"),
                         fieldname: "main_contact_employee_phone_number",
                         fieldtype: "Data",
                         default: supplier_details.main_contact_employee_phone_number
                     },
                     {
-                        label: __("Commercial Contact User"),
-                        fieldname: "commercial_contact_user",
+                        label: __(""),
+                        fieldname: "cb1",
+                        fieldtype: "Column Break",
+                    },
+                    {
+                        label: __("Email"),
+                        fieldname: "main_contact_employee_email",
                         fieldtype: "Data",
-                        default: supplier_details.commercial_contact_user
-                    }    
+                        default: supplier_details.main_contact_employee_email,
+                        options: "Email",
+                        read_only: 1
+                    },
                 ],
                 size: 'extra-large', // small, large, extra-large 
                 primary_action_label: 'Confirm Details',
@@ -240,10 +237,10 @@ function executeJS() {
 
     const UpdateRepresentativeDetails = async function(){
         let d = new frappe.ui.Dialog({
-            title: `Please Confrim your Commercial Contact Details`,
+            title: `Please Confirm your Commercial Contact Details`,
             fields: [
                 {
-                    label: __("Operating Company Name"),
+                    label: __("Operating Company"),
                     fieldname: "supplier_name",
                     fieldtype: "Data",
                     default: supplier_details.supplier_name,
@@ -256,16 +253,16 @@ function executeJS() {
                     fieldtype: "Section Break",
                 },
                 {
-                    label: __("CBAM Representative Last Name"),
+                    label: __("Last Name"),
                     fieldname: "cbam_representive_last_name",
                     fieldtype: "Data",
-                    default: supplier_details.cbam_representive_last_name
+                    default: supplier_details.cbam_representive_last_name,
                 },
                 {
-                    label: __("CBAM Representative First Name"),
+                    label: __("First Name"),
                     fieldname: "cbam_representive_employee_first_name",
                     fieldtype: "Data",
-                    default: supplier_details.cbam_representive_employee_first_name
+                    default: supplier_details.cbam_representive_employee_first_name,
                 },
                 {
                     label: __(""),
@@ -273,16 +270,16 @@ function executeJS() {
                     fieldtype: "Column Break",
                 },
                 {
-                    label: __("CBAM Representative Email"),
+                    label: __("Email"),
                     fieldname: "cbam_representive_employee_email",
                     fieldtype: "Data",
                     default: supplier_details.cbam_representive_employee_email,
-                    options: "Email"
+                    options: "Email",
                 },
                 {
-                    label: __("CBAM Representative Phone Number"),
+                    label: __("Phone Number"),
                     fieldname: "cbam_representive_employee_phone_number",
-                    fieldtype: "Phone",
+                    fieldtype: "Data",
                     default: supplier_details.cbam_representive_employee_phone_number,
                 },
                 {
@@ -291,7 +288,7 @@ function executeJS() {
                     fieldtype: "Column Break",
                 },
                 {
-                    label: __("CBAM Representative Position"),
+                    label: __("Position"),
                     fieldname: "cbam_representive_employee_position",
                     fieldtype: "Data",
                     default: supplier_details.cbam_representive_employee_position

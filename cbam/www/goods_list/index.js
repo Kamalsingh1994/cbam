@@ -690,7 +690,7 @@ function executeJS() {
         let supplier_details = await cbam.supplier.get_supplier();
         if (supplier_details.status!="Company Verified"){
             let d = new frappe.ui.Dialog({
-                title: `Please Confrim your Operating Company Details`,
+                title: `Please Confirm your Operating Company Details`,
                 fields: [
                     {
                         label: __("Operating Company Name"),

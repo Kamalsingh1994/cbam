@@ -12,7 +12,7 @@
   "supplier_number",
   "column_break_xlzx",
   "status",
-  "declarent",
+  "declarant",
   "create_commercial_contact_user",
   "column_break_muwl",
   "parent_operating_company",
@@ -114,8 +114,7 @@
    "fieldname": "supplier_number",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Supplier Number",
-   "reqd": 1
+   "label": "Supplier Number"
   },
   {
    "fieldname": "supplier_name",
@@ -297,12 +296,6 @@
    "read_only_depends_on": "eval:doc.commercial_contact_user"
   },
   {
-   "fieldname": "declarent",
-   "fieldtype": "Link",
-   "label": "Declarent",
-   "options": "Declarent"
-  },
-  {
    "fieldname": "parent_operating_company",
    "fieldtype": "Link",
    "label": "Parent Operating Company",
@@ -316,11 +309,17 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Title"
+  },
+  {
+   "fieldname": "declarant",
+   "fieldtype": "Link",
+   "label": "Declarant",
+   "options": "Declarant"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-11 13:44:57.040249",
+ "modified": "2025-01-13 14:21:20.986891",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Operating Company",

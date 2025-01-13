@@ -90,7 +90,19 @@ function executeJS() {
                     label: __("City"),
                     fieldname: "city",
                     fieldtype: "Data",
-                   
+                    reqd: 1
+                    
+                },
+                {
+                    label: __(""),
+                    fieldname: "cb1",
+                    fieldtype: "Column Break",
+                },
+                {
+                    label: __("Zipcode"),
+                    fieldname: "zip_code",
+                    fieldtype: "Data",
+                    reqd: 1
                     
                 },
                 {
@@ -224,7 +236,8 @@ function executeJS() {
                     label: __("Specific (direct) embedded emissions [tCO2/t]"),
                     fieldname: "specific_direct_embedded_emissions",
                     fieldtype: "Float",
-                    description: "Example: 1.67 tCO2/t (t = tonnes of product)"
+                    description: "Example: 1.67 tCO2/t (t = tonnes of product)",
+                    reqd: 1
                    
                     
                 },
@@ -237,7 +250,8 @@ function executeJS() {
                     label: __("Source of electricity"),
                     fieldname: "source_of_electricity",
                     fieldtype: "Select",
-                    options: 'Direct technical link to electricity generator\n(Bilateral) power purchase agreement\nReceived from the grid'
+                    options: 'Direct technical link to electricity generator\n(Bilateral) power purchase agreement\nReceived from the grid',
+                    reqd: 1
                    
                     
                 },
@@ -255,6 +269,7 @@ function executeJS() {
                     label: __("Electricity consumed [MWh/t]"),
                     fieldname: "electricity_consumed",
                     fieldtype: "Float",
+                    reqd: 1
                    
                     
                 },
