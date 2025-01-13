@@ -1,8 +1,8 @@
 import frappe
 def after_install():
     frappe.db.set_value("System Settings", "System Settings", "apply_strict_permissions", 1)
-    frappe.db.set_values("Website Settings", "Website Settings", {"app_name": "CBAM-Myconet", "disable_signup":1})
-    frappe.db.set_values("CBAM Settings", "CBAM Settings", {
+    frappe.db.set_value("Website Settings", "Website Settings", {"app_name": "CBAM-Myconet", "disable_signup":1})
+    frappe.db.set_value("CBAM Settings", "CBAM Settings", {
         "admin_role": "System Manager",
         "commercial_contact_user_role": "Commercial Contact",
         "cbam_representative_user_role": "CBAM Representative",
