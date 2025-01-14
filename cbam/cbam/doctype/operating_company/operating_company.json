@@ -295,12 +295,7 @@
    "label": "Create Commercial Contact User",
    "read_only_depends_on": "eval:doc.commercial_contact_user"
   },
-  {
-   "fieldname": "parent_operating_company",
-   "fieldtype": "Link",
-   "label": "Parent Operating Company",
-   "options": "Operating Company"
-  },
+ 
   {
    "fieldname": "title",
    "fieldtype": "Data",
@@ -319,12 +314,12 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-13 14:21:20.986891",
+ "modified": "2025-01-14 13:35:00.802395",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Operating Company",
  "naming_rule": "By \"Naming Series\" field",
- "nsm_parent_field": "parent_operating_company",
+
  "owner": "Administrator",
  "permissions": [
   {
@@ -345,7 +340,6 @@
    "delete": 1,
    "email": 1,
    "export": 1,
-   "if_owner": 1,
    "import": 1,
    "print": 1,
    "read": 1,
