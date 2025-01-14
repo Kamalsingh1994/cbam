@@ -1,6 +1,6 @@
 <p>Dear Mr./Mrs. {{doc.main_contact_employee_last_name}},<br><br></p>
 
-<p>here is {{frappe.db.get_value("User", frappe.session.user, 'full_name')}} from  {{doc.declarent if not doc.parent_operating_company else frappe.db.get_value("Operating Company", doc.parent_operating_company, "supplier_name")}}. 
+<p>here is {{frappe.db.get_value("User", frappe.session.user, 'full_name')}} from  {{doc.declarant if not doc.parent_operating_company else frappe.db.get_value("Operating Company", doc.parent_operating_company, "supplier_name")}}. 
 <br><br></p>
 
 <p>We import goods from you that are affected by the new European regulation Carbon Border Adjustment Mechanism (CBAM). We are legally required to provide detailed reports on the embedded CO2 emissions of CBAM goods we import from non-EU countries. To meet these reporting requirements, we need your assistance in collecting data. 
@@ -26,4 +26,4 @@ You will receive a separate mail from me with the data request for the active qu
 
 <p>Best regards,<br>
 {{frappe.db.get_value("User", frappe.session.user, 'full_name')}}<br>
- {{doc.declarent if not doc.parent_operating_company else frappe.db.get_value("Operating Company", doc.parent_operating_company, "supplier_name")}}</p>
+ {{doc.declarant if not doc.parent_operating_company else frappe.db.get_value("Operating Company", doc.parent_operating_company, "supplier_name")}}</p>

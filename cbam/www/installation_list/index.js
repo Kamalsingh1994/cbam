@@ -302,10 +302,7 @@ function executeJS() {
         d.show();
     }
 
-    document.querySelector('.add-newemission').addEventListener('click', function(e){
-        
-    })
-
+    
     contentContainer.forEach(container => {
         const absBtn = container.querySelectorAll(".add-newemission");
 

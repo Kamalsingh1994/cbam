@@ -13,7 +13,7 @@
  "is_hidden": 0,
  "label": "CBAM",
  "links": [],
- "modified": "2025-01-14 13:12:42.923551",
+ "modified": "2025-01-14 13:51:44.659904",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM",
@@ -35,16 +35,16 @@
   {
    "color": "Grey",
    "doc_view": "List",
-   "label": "Custom Import",
-   "link_to": "Customs Import",
+   "label": "New Operating Company Import",
+   "link_to": "Data Import",
+   "stats_filter": "[[\"Data Import\",\"reference_doctype\",\"=\",\"Operating Company\",false]]",
    "type": "DocType"
   },
   {
    "color": "Grey",
-   "doc_view": "New",
-   "label": "New Operating Company Import",
-   "link_to": "Data Import",
-   "stats_filter": "[[\"Data Import\",\"reference_doctype\",\"=\",\"Operating Company\",false]]",
+   "doc_view": "List",
+   "label": "Custom Import",
+   "link_to": "Customs Import",
    "type": "DocType"
   },
   {
