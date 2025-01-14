@@ -18,7 +18,7 @@ class Good(Document):
 	def validate(self):
 		self.set_countries()
 		if self.supplier_number and self.supplier_name:
-			operating_company = frappe.db.get_value("Operating Company", {"supplier_number": self.supplier_number, "declarent":self.declarent}, "name")
+			operating_company = frappe.db.get_value("Operating Company", {"supplier_number": self.supplier_number, "declarant":self.declarant}, "name")
 			if operating_company:
 				self.operating_company = operating_company
 		if self.operating_company:
@@ -245,7 +245,7 @@ class Good(Document):
 		if not email:
 			frappe.throw("Please setup Data Request Notification Template in CBAM Settings")
 		opp = frappe.get_doc("Operating Company", self.operating_company)
-		opp.declarent = opp.declarent
+		opp.declarant = opp.declarant
 		email.send(opp)
 		self.status = "Data Requested"
 		self.save()
@@ -294,7 +294,7 @@ def send_data_request(goods):
 		
 	for s in supp:
 		op = frappe.get_doc("Operating Company", s)
-		op.declarent = op.declarent
+		op.declarant = op.declarant
 		email.send(op)
 	for g in goods:
 		frappe.db.set_value("Good", g.get("name"), "status", "Data Requested")
