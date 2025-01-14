@@ -13,7 +13,7 @@
  "is_hidden": 0,
  "label": "CBAM",
  "links": [],
- "modified": "2025-01-10 15:00:41.655651",
+ "modified": "2025-01-14 13:12:42.923551",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM",
@@ -27,7 +27,7 @@
    "role": "System Manager"
   },
   {
-   "role": "Declarent"
+   "role": "Declarant"
   }
  ],
  "sequence_id": 1.0,
