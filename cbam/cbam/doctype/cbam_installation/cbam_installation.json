@@ -169,7 +169,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "operating_company.declarent",
+   "fetch_from": "operating_company.declarant",
    "fieldname": "declarant",
    "fieldtype": "Link",
    "label": "Declarant",
@@ -178,7 +178,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-13 13:58:20.407429",
+ "modified": "2025-01-14 18:58:00.659177",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Installation",

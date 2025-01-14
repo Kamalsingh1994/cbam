@@ -115,9 +115,17 @@
                   
                   <span><span class="inv-amount" data-gt=grand_total>{{doc.country}}</span></span>
                 </div>
+                {% set color = "" %}
+                {% if doc.status == "Verification Needed"%}
+                  {% set color = "orange"%}
+                {% elif doc.status == "Pending Verification" %}
+                  {% set color = "yellow"%}
+                {% elif doc.status == "Company Verified" %}
+                  {% set color = "green"%}
+                {% endif %}
                 <div class="list-row-col list-subject level ">
                     <span
-                      class="indicator-pill green filterable no-indicator-dot "
+                      class="indicator-pill {{color}} filterable no-indicator-dot "
                       title="Sales Invoices">
                       <span data-status="{{doc.status}}" class="status">{{doc.status}}</span>
                     </span>
