@@ -25,7 +25,7 @@ def get_goods_partial_html():
     return frappe.render_template("cbam/templates/goods_partial.html", context)
 
 def get_goods_list(context, re_render=False):
-    goods_list = frappe.get_list("Good", filters={"status": ["!=", "Draft"]})
+    goods_list = frappe.db.get_list("Good", filters={"status": ["!=", "Draft"]})
     if re_render:
         context["goods_list"] = goods_list
     else:

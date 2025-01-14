@@ -1,6 +1,6 @@
 import frappe
 no_cache = 1
-
+from cbam.utils import get_supplier
 
 def get_context(context):
     # context.user = frappe.session.user
@@ -25,8 +25,9 @@ def get_operating_company_partial_html():
     return frappe.render_template("cbam/templates/operating_company_partial.html", context)
 
 def get_operating_company(context, re_render=False):
-    if frappe.db.exists("Operating Company", {"commercial_contact_user": frappe.session.user}):
-        doc = frappe.get_doc("Operating Company", {"commercial_contact_user": frappe.session.user})
+    supplier = get_supplier()
+    if supplier:
+        doc = frappe.get_doc("Operating Company", supplier)
         if re_render:
             context["doc"] = doc
         else:

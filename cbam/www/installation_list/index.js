@@ -99,7 +99,7 @@ function executeJS() {
                     fieldtype: "Column Break",
                 },
                 {
-                    label: __("Zipcode"),
+                    label: __("Zip Code"),
                     fieldname: "zip_code",
                     fieldtype: "Data",
                     reqd: 1

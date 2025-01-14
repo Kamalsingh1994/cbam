@@ -43,12 +43,6 @@
   "column_break_gupg",
   "cbam_representive_employee_position",
   "cbam_representative_user",
-  "section_break_tjym",
-  "original_parent_supplier_number",
-  "confirmation_web_form",
-  "is_data_confirmed",
-  "direct_parent_supplier",
-  "sub_supplier_level",
   "goods_list_section",
   "goods",
   "title"
@@ -68,42 +62,8 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Number of levels below the direct Supplier. E.g. Level 2 is the Sub-Sub-Supplier. ",
-   "fieldname": "sub_supplier_level",
-   "fieldtype": "Int",
-   "label": "Sub Supplier Level",
-   "read_only": 1
-  },
-  {
-   "description": "Supplier Level 0 / Direct Supplier of Reporting Declarant",
-   "fieldname": "original_parent_supplier_number",
-   "fieldtype": "Data",
-   "label": "Original Parent Supplier Number",
-   "read_only": 1
-  },
-  {
-   "fieldname": "direct_parent_supplier",
-   "fieldtype": "Data",
-   "label": "Direct Parent Supplier",
-   "read_only": 1
-  },
-  {
    "fieldname": "column_break_muwl",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "description": "Only the Supplier Employee (Main Contact) can check this checkbox.",
-   "fieldname": "is_data_confirmed",
-   "fieldtype": "Check",
-   "label": "Contact details confirmed by supplier",
-   "permlevel": 1
-  },
-  {
-   "fieldname": "confirmation_web_form",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "confirmation web form"
   },
   {
    "fieldname": "contact_details_section",
@@ -272,11 +232,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "section_break_tjym",
-   "fieldtype": "Section Break",
-   "hidden": 1
-  },
-  {
    "fieldname": "commercial_contact_user",
    "fieldtype": "Link",
    "label": "Commercial Contact User",
@@ -295,7 +250,6 @@
    "label": "Create Commercial Contact User",
    "read_only_depends_on": "eval:doc.commercial_contact_user"
   },
- 
   {
    "fieldname": "title",
    "fieldtype": "Data",
@@ -314,12 +268,12 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-14 13:35:00.802395",
+ "modified": "2025-01-14 17:12:47.954720",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Operating Company",
  "naming_rule": "By \"Naming Series\" field",
-
+ "nsm_parent_field": "parent_operating_company",
  "owner": "Administrator",
  "permissions": [
   {
@@ -370,6 +324,7 @@
    "read": 1,
    "report": 1,
    "role": "CBAM Representative",
+   "select": 1,
    "share": 1,
    "write": 1
   }

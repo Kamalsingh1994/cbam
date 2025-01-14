@@ -58,6 +58,29 @@ $.extend(cbam.utils, {
      async get_installation(emission){
         return await cbam.utils._get_installation(emission);
     },
+    set_local_storage(){
+        
+        frappe.call({
+            method: "cbam.utils.get_supplier",
+            args:{
+                
+            },
+            callback(r){
+                if(r.message){
+                    localStorage.setItem("parent_supplier", r.message)
+                }
+            }
+        })
+    },
+    get_parent_supplier(){
+        
+        if (!localStorage.getItem("parent_supplier")){
+            cbam.utils.set_local_storage()  
+        }
+        return localStorage.getItem("parent_supplier")
 
+    },
     
+            
+        
 })

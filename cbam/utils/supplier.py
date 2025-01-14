@@ -11,5 +11,6 @@ def confirm_details(values):
     values = json.loads(values)
     doc = frappe.get_doc("Operating Company", frappe.db.get_value("User Permission", {"user": frappe.session.user, "allow": "Operating Company"}, "for_value"))
     doc.update(values)
-    doc.status = "Company Verified"
+    if values.get('verify'):
+        doc.status = "Company Verified"
     doc.save(ignore_permissions=True)
