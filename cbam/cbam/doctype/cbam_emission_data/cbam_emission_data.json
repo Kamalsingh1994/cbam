@@ -150,7 +150,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-13 13:59:58.357220",
+ "modified": "2025-01-14 19:07:20.066449",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Emission Data",
@@ -173,7 +173,6 @@
    "create": 1,
    "email": 1,
    "export": 1,
-   "if_owner": 1,
    "print": 1,
    "read": 1,
    "report": 1,
@@ -190,6 +189,18 @@
    "role": "Declarant",
    "select": 1,
    "share": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "CBAM Representative",
+   "share": 1,
+   "write": 1
   }
  ],
  "sort_field": "modified",
