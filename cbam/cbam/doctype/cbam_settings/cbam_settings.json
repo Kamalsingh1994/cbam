@@ -111,7 +111,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-01-09 20:49:08.607547",
+ "modified": "2025-01-14 12:19:51.164089",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Settings",
@@ -131,7 +131,7 @@
    "email": 1,
    "print": 1,
    "read": 1,
-   "role": "Declarent",
+   "role": "Declarant",
    "share": 1
   },
   {
