@@ -65,8 +65,12 @@
               <div class="list-row-col list-subject level gt-container ">
                 <span class="gt-text">Country</span>
               </div>
-              <div class="list-row-col list-subject level status-title">
+              <div class="list-row-col list-subject level status-title city-title">
                 <span class="gt-text">City</span>
+              </div>
+
+              <div class="list-row-col list-subject level status-title">
+                <span class="gt-text">ZIP Code</span>
               </div>
              
               <!-- <div class="list-row-col list-subject level prt-container">
@@ -104,14 +108,22 @@
                 
                 
                 <div class="list-row-col list-subject level gt-container">
-                  
                   <span><span class="inv-amount" data-gt=grand_total>{{doc.country}}</span></span>
                 </div>
+
                 <div class="list-row-col list-subject level ">
                     <span
                       class="city"
                       title="Sales Invoices">
                       <span class="inv-name">{{doc.city}}</span>
+                    </span>
+                  </div>
+
+                <div class="list-row-col list-subject level ">
+                    <span
+                      class="zipcode"
+                      title="Sales Invoices">
+                      <span class="inv-name">{{doc.zip_code}}</span>
                     </span>
                   </div>
                

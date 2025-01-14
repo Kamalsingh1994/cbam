@@ -818,6 +818,7 @@ function executeJS() {
                 primary_action_label: 'Confirm Details',
                 //secondary_action_label: '',
                 primary_action(values) {
+                    values.varify = true
                     cbam.supplier.confirm_details(values)
                     d.hide();
                     SubmissionDialog(goods)

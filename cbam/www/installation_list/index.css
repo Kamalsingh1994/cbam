@@ -454,9 +454,17 @@ input.list-row-checkbox {
 .list-head-grid,
 .list-body-grid {
     display: grid;
-    grid-template-columns: 1.5fr repeat(3, 1fr);
+    grid-template-columns: 1.5fr repeat(4, 1fr);
     align-content: center;
     justify-content: start;
+}
+
+.city-title {
+    margin-left: 0.6rem;
+}
+
+.zipcode {
+    margin-left: 1.6rem;
 }
 
 .hidden-el {

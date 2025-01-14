@@ -31,6 +31,7 @@ function executeJS() {
     selectedEl.textContent = selected;
     
     const createSupplier = function(values, d) {
+        values.parent_operating_company = cbam.utils.get_parent_supplier()
         console.log(values);
         frappe.call({
             method: "cbam.utils.create_new_doc",

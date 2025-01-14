@@ -16,9 +16,9 @@ class OperatingCompany(Document):
 		self.title = f"{self.supplier_name}-{self.supplier_number}"
 
 	def create_commercial_contact(self):
-		username = ""
+		username = self.commercial_contact_user
 		self.flags.new_flag = True
-		if self.create_commercial_contact_user and not self.commercial_contact_user:
+		if self.create_commercial_contact_user and not username:
 			username = frappe.db.get_value("User", self.main_contact_employee_email, "name")
 			if not username:
 				user = frappe.new_doc("User")
@@ -39,9 +39,9 @@ class OperatingCompany(Document):
 			self.create_permissions(username)
 
 	def create_cbam_user(self):
-		username = ""
+		username = self.cbam_representative_user
 		self.flags.new_flag = True
-		if self.cbam_representive_employee_email and not self.cbam_representative_user:
+		if self.cbam_representive_employee_email and not username:
 			username = frappe.db.get_value("User", self.cbam_representive_employee_email, "name")
 			if not username:
 				user = frappe.new_doc("User")
@@ -66,7 +66,10 @@ class OperatingCompany(Document):
 
 	def after_insert(self):
 		if self.flags.new_flag:
-			self.create_permissions()
+			if self.commercial_contact_user:
+				self.create_permissions(self.commercial_contact_user)
+			if self.cbam_representative_user:
+				self.create_permissions(self.cbam_representative_user)
 		if self.parent_operating_company:
 			self.send_signup_request()
 
@@ -81,21 +84,24 @@ class OperatingCompany(Document):
 		self.save(ignore_permissions=True)
 
 
-	def create_permissions(self, user=None):
-		if self.commercial_contact_user and self.create_commercial_contact_user:
-			if not frappe.db.exists("User Permission", {"user": self.commercial_contact_user, "for_value":self.name}):
-				us_pem = frappe.new_doc("User Permission")
-				us_pem.user = user or self.commercial_contact_user
-				us_pem.allow = "Operating Company"
-				us_pem.for_value = self.name
-				us_pem.save(ignore_permissions=True)
+	def create_permissions(self, user):
+		if not user:
+			return
+		if not frappe.db.exists("User Permission", {"user": user, "for_value":self.name}):
+			us_pem = frappe.new_doc("User Permission")
+			us_pem.user = user 
+			us_pem.allow = "Operating Company"
+			us_pem.for_value = self.name
+			us_pem.is_default = 1
+			us_pem.save(ignore_permissions=True)
 
-			if not frappe.db.exists("User Permission", {"user": self.commercial_contact_user, "for_value":self.declarant}):
-				aus_pem = frappe.new_doc("User Permission")
-				aus_pem.user = user or self.commercial_contact_user
-				aus_pem.allow = "Declarant"
-				aus_pem.for_value = self.declarant
-				aus_pem.save(ignore_permissions=True)
+		if not frappe.db.exists("User Permission", {"user":user, "for_value":self.declarant}):
+			aus_pem = frappe.new_doc("User Permission")
+			aus_pem.user = user
+			aus_pem.allow = "Declarant"
+			aus_pem.for_value = self.declarant
+			aus_pem.is_default = 1
+			aus_pem.save(ignore_permissions=True)
     
 @frappe.whitelist()
 def send_bulk_signup_request(operating_companys):

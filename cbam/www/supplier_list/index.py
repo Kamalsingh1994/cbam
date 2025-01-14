@@ -27,7 +27,10 @@ def get_supplier_partial_html():
     return frappe.render_template("cbam/templates/supplier_partial.html", context)
 
 def get_suppliers(context, re_render=False):
-    supplier_list = frappe.get_list("Operating Company", filters={"name": ["!=", frappe.db.get_value("User Permission", {"allow":"Operating Company", "user": frappe.session.user}, "for_value")]})
+    filters = {"commercial_contact_user": frappe.session.user}
+    if "CBAM Representative" in frappe.get_roles():
+        filters = {"cbam_representative_user": frappe.session.user}
+    supplier_list = frappe.db.get_all("Operating Company", {"parent_operating_company": frappe.db.get_value("Operating Company", filters, "name")})
     if re_render:
         context["supplier_list"] = supplier_list
     else:
