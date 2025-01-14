@@ -343,7 +343,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-14 13:34:25.139212",
+ "modified": "2025-01-14 17:58:59.062441",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
@@ -406,23 +406,23 @@
  "states": [
   {
    "color": "Gray",
-   "title": "Raw Data"
+   "title": "Draft"
   },
   {
    "color": "Yellow",
-   "title": "Sent for completing"
+   "title": "Data Requested"
   },
   {
-   "color": "Purple",
+   "color": "Gray",
    "title": "Split"
   },
   {
-   "color": "Green",
-   "title": "Done"
+   "color": "Blue",
+   "title": "Data Assigned"
   },
   {
-   "color": "Red",
-   "title": "Rejected"
+   "color": "Green",
+   "title": "Data Submitted"
   }
  ]
 }
