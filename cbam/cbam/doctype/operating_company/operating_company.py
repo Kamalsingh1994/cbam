@@ -90,11 +90,11 @@ class OperatingCompany(Document):
 				us_pem.for_value = self.name
 				us_pem.save(ignore_permissions=True)
 
-			if not frappe.db.exists("User Permission", {"user": self.commercial_contact_user, "for_value":self.declarent}):
+			if not frappe.db.exists("User Permission", {"user": self.commercial_contact_user, "for_value":self.declarant}):
 				aus_pem = frappe.new_doc("User Permission")
 				aus_pem.user = user or self.commercial_contact_user
-				aus_pem.allow = "Declarent"
-				aus_pem.for_value = self.declarent
+				aus_pem.allow = "Declarant"
+				aus_pem.for_value = self.declarant
 				aus_pem.save(ignore_permissions=True)
     
 @frappe.whitelist()
