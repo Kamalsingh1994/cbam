@@ -1,6 +1,6 @@
 <p>Supplier Good Rejection Notification Template</p>
 
-following goods have been rejected.
-<br>
+<p>following goods have been rejected.
+<br></p>
 
-{{doc.goods}}
+<p>{{doc.goods}}</p>
