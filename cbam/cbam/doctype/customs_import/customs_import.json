@@ -39,7 +39,7 @@
    "link_fieldname": "internal_customs_import_number"
   }
  ],
- "modified": "2025-01-09 20:46:08.521513",
+ "modified": "2025-01-14 12:20:05.845393",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Customs Import",
@@ -67,7 +67,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Declarent",
+   "role": "Declarant",
    "select": 1,
    "share": 1,
    "write": 1
