@@ -410,7 +410,7 @@ function executeJS() {
                                 for(var i in table){
                                     total_raw_mass += table[i].qty;
                                 }
-                                d.set_value("total_raw_mass", `${Number(total_raw_mass).toFixed(2)}`)
+                                d.set_value("total_raw_mass", total_raw_mass)
                             }
                         },
                     ],
@@ -420,7 +420,7 @@ function executeJS() {
                     fieldtype: 'Section Break'
                 },
                 {
-                    fieldtype: "Data",
+                    fieldtype: "Float",
                     fieldname: "raw_mass",
                     label: "Total Qty",
                     default: rawMass,
@@ -433,7 +433,7 @@ function executeJS() {
                     fieldtype: "Column Break",
                 },
                 {
-                    fieldtype: "Data",
+                    fieldtype: "Float",
                     fieldname: "total_raw_mass",
                     label: "Total Qty to Split",
                     read_only: 1,
@@ -445,7 +445,7 @@ function executeJS() {
             secondary_action_label: '',
             primary_action(values) {
                 let validation_flag = true
-                if(Number(values.raw_mass).toFixed(2) != Number(values.total_raw_mass).toFixed(2)){
+                if(values.raw_mass != values.total_raw_mass){
                     msgprint("Total Qty to Split must be equal to Total Qty.")
                     validation_flag = false
                 }
