@@ -144,7 +144,7 @@
                 </div>
                 
                 <div class="list-row-col list-subject level tc-container rm">
-                  <span><span class="currency"></span> <span class="inv-tax inv-rawmass" data-rawmass = "{{doc.raw_mass}}">{{doc.raw_mass}}</span></span>
+                  <span><span class="currency"></span> <span class="inv-tax inv-rawmass" data-rawmass = "{{doc.raw_mass}}">{{frappe.format_value(doc.raw_mass, {"fieldtype": "Float"})}}</span></span>
                 </div>
                 
                 
