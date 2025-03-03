@@ -52,7 +52,6 @@ function executeJS() {
 
     cbamSection.querySelectorAll(".tc-field").forEach(field => {
         if(!field.textContent) {
-            console.log("Entered");
             cbamHasFieldVals = false;
         }
     })
