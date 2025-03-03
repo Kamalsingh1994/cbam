@@ -42,7 +42,6 @@ function executeJS() {
                 doc: values
             },
             callback: function(r) {
-                console.log(r.message);
                 if(r.message) {
                     frappe.call({
                         method: "cbam.www.installation_list.index.get_installation_partial_html",
@@ -309,7 +308,6 @@ function executeJS() {
         absBtn.forEach(btn => {
             btn.addEventListener("click", function() {
                 const docName = container.querySelector(".inv-name").dataset.name;
-                console.log(docName)
                 CreateEmissionDialog(docName)
                 
             })

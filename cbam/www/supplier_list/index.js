@@ -3,7 +3,7 @@ let CreateSupplierDialog;
 window.addEventListener("DOMContentLoaded", () => {
     executeJS();
     
-    document.querySelector('.add-new').addEventListener('click', function(e){
+    document.querySelector('.add-new').addEventListener('click', async function(e){
         CreateSupplierDialog()
     })
 });
@@ -30,16 +30,14 @@ function executeJS() {
 
     selectedEl.textContent = selected;
     
-    const createSupplier = function(values, d) {
-        values.parent_operating_company = cbam.utils.get_parent_supplier()
-        console.log(values);
+    const createSupplier = async function(values, d) {
+        values.parent_operating_company = await cbam.supplier.get_supplier()
         frappe.call({
             method: "cbam.utils.create_new_doc",
             args: {
                 doc: values
             },
             callback: function(r) {
-                console.log(r.message);
                 if(r.message) {
                     frappe.call({
                         method: "cbam.www.supplier_list.index.get_supplier_partial_html",
@@ -163,8 +161,13 @@ function executeJS() {
                    
                     
                 },
-
-               
+                {
+                    label: __("Parent Operating Company"),
+                    fieldname: "parent_operating_company",
+                    fieldtype: "Data",
+                    read_only: 1,
+                    default: await cbam.supplier.get_supplier()
+                }
 
             ],
             size: 'extra-large', // small, large, extra-large 
