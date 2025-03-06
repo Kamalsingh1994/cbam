@@ -85,7 +85,6 @@ function executeJS() {
                         fieldtype: "Data",
                         
                         default: supplier_details.supplier_name,
-                        read_only:1
                         //options: "\nSub Supplier\nCollegue"
                     },
                     {
@@ -116,14 +115,12 @@ function executeJS() {
                         fieldname: "street_and_number",
                         fieldtype: "Data",
                         default: supplier_details.street_and_number,
-                        read_only: 1
                     },
                     {
                         label: __("Zip code"),
                         fieldname: "zip_code",
                         fieldtype: "Data",
                         default: supplier_details.zip_code,
-                        read_only: 1
                     },
                     {
                         label: __(""),
@@ -135,14 +132,12 @@ function executeJS() {
                         fieldname: "city",
                         fieldtype: "Data",
                         default: supplier_details.city,
-                        read_only: 1
                     },
                     {
                         label: __("Country"),
                         fieldname: "country",
                         fieldtype: "Data",
                         default: supplier_details.country,
-                        read_only: 1
                     }    
                 ],
                 size: 'extra-large', // small, large, extra-large 
@@ -181,7 +176,6 @@ function executeJS() {
                         fieldname: "main_contact_employee_last_name",
                         fieldtype: "Data",
                         default: supplier_details.main_contact_employee_last_name,
-                        read_only: 1
                     },
                     {
                         label: __("Position"),
@@ -199,7 +193,6 @@ function executeJS() {
                         fieldname: "main_contact_employee_first_name",
                         fieldtype: "Data",
                         default: supplier_details.main_contact_employee_first_name,
-                        read_only: 1
                     },
                     {
                         label: __("Phone Number"),
@@ -274,6 +267,7 @@ function executeJS() {
                     fieldtype: "Data",
                     default: supplier_details.cbam_representive_employee_email,
                     options: "Email",
+                    read_only: 1
                 },
                 {
                     label: __("Phone Number"),

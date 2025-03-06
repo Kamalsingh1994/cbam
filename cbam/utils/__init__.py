@@ -6,6 +6,16 @@ def create_new_doc(doc):
     doc = json.loads(doc)
     return frappe.get_doc(doc).insert(ignore_permissions=True)
 
+@frappe.whitelist()
+def update_doc(doc):
+    doc = json.loads(doc)
+    if not frappe.db.exists(doc.get("doctype"), doc.get("name")):
+        frappe.throw("Document doesn't exist")
+    
+    existing_doc = frappe.get_doc(doc.get("doctype"), doc.get("name"))
+    existing_doc.update(doc)
+    existing_doc.save(ignore_permissions=True)
+    return existing_doc
 
 @frappe.whitelist()
 def get_supplier():
