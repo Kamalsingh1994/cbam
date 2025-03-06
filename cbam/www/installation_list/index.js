@@ -35,27 +35,54 @@ function executeJS() {
         dropDownCont.forEach(dropDownEl => dropDownEl.classList.add("hidden"));
     }
 
+    const refreshElements = function (frappe) {
+        return new Promise((resolve, reject) => {
+            frappe.call({
+                method: "cbam.www.installation_list.index.get_installation_partial_html",
+                callback: function(r) {
+                    if(r.message) {
+                        contentContainer.forEach(container => {
+                            container.remove();
+                        });
+                        document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
+                        executeJS();
+                        resolve(true);
+                    }
+                }
+            })
+        })
+    }
+
     const createEmission = function(values, d) {
         frappe.call({
             method: "cbam.utils.create_new_doc",
             args: {
                 doc: values
             },
-            callback: function(r) {
+            callback: async function(r) {
                 if(r.message) {
-                    frappe.call({
-                        method: "cbam.www.installation_list.index.get_installation_partial_html",
-                        callback: function(r) {
-                            if(r.message) {
-                                contentContainer.forEach(container => {
-                                    container.remove();
-                                });
-                                document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
-                                executeJS();
-                            }
-                        }
-                    })
-                    d.hide();
+                    const refreshed = await refreshElements(frappe)
+                    if(refreshed) {
+                        d.hide();
+                    }
+                }
+            }
+        })
+    }
+
+    const updateInstallation = function(values, d) {
+        frappe.call({
+            method: "cbam.utils.update_doc",
+            args: {
+                doc: values
+            },
+            callback: async function(r) {
+                if(r.message) {
+                    const refreshed = await refreshElements(frappe);
+                    console.log(r.message);
+                    if(refreshed) {
+                        d.hide();
+                    }
                 }
             }
         })
@@ -67,16 +94,16 @@ function executeJS() {
         }
     })
     
-    CreateInstallationDialog = async function(docName){
+    CreateInstallationDialog = async function(docName, docData=false, update=false){
         let d = new frappe.ui.Dialog({
-            title: `Add New Installation`,
+            title: `${update ? "Update" : "Add New"} Installation`,
             fields: [
                 {
                     label: __("Name of Installation"),
                     fieldname: "name_of_the_installation",
                     fieldtype: "Data",
-                    reqd:1
-                   
+                    reqd: update? 0 : 1,
+                    default: docData ? docData.name_of_the_installation : ""
                     
                 },
                
@@ -89,8 +116,8 @@ function executeJS() {
                     label: __("City"),
                     fieldname: "city",
                     fieldtype: "Data",
-                    reqd: 1
-                    
+                    reqd: update? 0 : 1,
+                    default: docData ? docData.city : ""
                 },
                 {
                     label: __(""),
@@ -101,8 +128,8 @@ function executeJS() {
                     label: __("Zip Code"),
                     fieldname: "zip_code",
                     fieldtype: "Data",
-                    reqd: 1
-                    
+                    reqd: update? 0 : 1,
+                    default: docData ? docData.zip_code : ""
                 },
                 {
                     label: __(""),
@@ -114,24 +141,28 @@ function executeJS() {
                     fieldname: "country",
                     fieldtype: "Autocomplete",
                     options: await cbam.utils.get_links("Country", {}, ["Upper(code) as label", 'name as value']),
-                    reqd:1
+                    reqd: update? 0 : 1,
+                    default: docData ? docData.country : ""
                 },               
                 {
                     label: __("Contact Person Details"),
                     fieldname: "cb1",
                     fieldtype: "Section Break",
-                    depends_on: "eval:doc.contact_person == 'Different contact person'"
+                    depends_on: "eval:doc.contact_person == 'Different contact person'",
+                    hidden: update ? 1 : 0
                 },
                 {
                     label: __("First Name"),
                     fieldname: "first_name",
                     fieldtype: "Data",
+                    hidden: update ? 1 : 0
                 },
                 
                 {
                     label: __("Last Name"),
                     fieldname: "last_name",
                     fieldtype: "Data",
+                    hidden: update ? 1 : 0
                 },
                 {
                     label: __(""),
@@ -143,46 +174,53 @@ function executeJS() {
                     fieldname: "email",
                     fieldtype: "Data",
                     options: "Email",
+                    hidden: update ? 1 : 0
                 },
                 {
                     label: __("Phone No"),
                     fieldname: "phone_number",
                     fieldtype: "Data",
+                    hidden: update ? 1 : 0
                 },
                 {
                     label: __(""),
                     fieldname: "cb1",
                     fieldtype: "Section Break",
+                    hidden: update ? 1 : 0
                 },
                 {
                     label: __("Is the installation tracking emissions data?"),
                     fieldname: "is_the_installation_tracking_emissions_data",
                     fieldtype: "Select",
-                    options: "\nYes\nNo"
+                    options: "\nYes\nNo",
+                    hidden: update ? 1 : 0
                 },
                 {
                     label: __(""),
                     fieldname: "cb1",
                     fieldtype: "Column Break",
+                    hidden: update ? 1 : 0
                 },
                 {
                     label: __("Is the installation subject to an emission trading system?"),
                     fieldname: "is_the_installation_subject_to_an_emission_trading_system",
-                    
                     fieldtype: "Select",
-                    options: "\nYes\nNo"
+                    options: "\nYes\nNo",
+                    hidden: update ? 1 : 0
                 },
                 
                 {
                     label: __("Which emission trading system (link to legal act)?"),
                     fieldname: "which_emission_trading_system_link_to_legal_act",
                     fieldtype: "Data",
-                    depends_on: "eval:doc.is_the_installation_subject_to_an_emission_trading_system == 'Yes'"
+                    depends_on: "eval:doc.is_the_installation_subject_to_an_emission_trading_system == 'Yes'",
+                    hidden: update ? 1 : 0
                 },
                 {
                     label: __(""),
                     fieldname: "cb1",
                     fieldtype: "Section Break",
+                    hidden: update ? 1 : 0
                 },
                 {
                     
@@ -190,19 +228,25 @@ function executeJS() {
                     fieldname: "reason",
                     fieldtype: "Small Text",
                     default: "",
-                    depends_on: "eval:doc.is_the_installation_tracking_emissions_data == 'Yes'"
+                    depends_on: "eval:doc.is_the_installation_tracking_emissions_data == 'Yes'",
+                    hidden: update ? 1 : 0
                     //options: "\nSub Supplier\nCollegue"
                 }
 
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: 'Create Installation',
+            primary_action_label: `${update ? "Update" : "Create"} Installation`,
             //secondary_action_label: '',
             primary_action(values) {
                 values.doctype = "CBAM Installation"
-                // cbam.utils.new_doc(values);
-                // d.hide();
-                createEmission(values, d);
+                if (update) {
+                    values.name = docName
+                    updateInstallation(values, d);
+                } else {
+                    // cbam.utils.new_doc(values);
+                    // d.hide();
+                    createEmission(values, d);
+                }
             },
             secondary_action(values) {
                 no+=1
@@ -304,6 +348,7 @@ function executeJS() {
     
     contentContainer.forEach(container => {
         const absBtn = container.querySelectorAll(".add-newemission");
+        const editBtn = container.querySelectorAll(".edit-btn");
 
         absBtn.forEach(btn => {
             btn.addEventListener("click", function() {
@@ -330,6 +375,23 @@ function executeJS() {
                 if(curDropDown.classList.contains("hidden")) {
                     curDropDown.classList.remove("hidden");
                 }
+            }
+
+            if(e.target.classList.contains("edit-btn")) {
+                const docName = container.querySelector(".inv-name").dataset.name;
+                frappe.call({
+                    method: "frappe.client.get",
+                    args: {
+                        doctype: "CBAM Installation",
+                        name: docName  // Replace with the actual document name
+                    },
+                    callback: function(response) {
+                        if (response.message) {
+                            console.log(response.message);
+                            CreateInstallationDialog(docName, response.message, true);
+                        }
+                    }
+                });
             }
         })
     })
