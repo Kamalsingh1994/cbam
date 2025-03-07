@@ -253,10 +253,10 @@ function executeJS() {
             if(e.target.classList.contains("edit-btn")) {
                 const docName = container.querySelector(".inv-name").dataset.name;
                 frappe.call({
-                    method: "frappe.client.get",
+                    method: "cbam.utils.supplier.get_supplier_details",
                     args: {
-                        doctype: "Operating Company",
-                        name: docName
+                        
+                        sup: docName
                     },
                     callback: function(response) {
                         if (response.message) {
