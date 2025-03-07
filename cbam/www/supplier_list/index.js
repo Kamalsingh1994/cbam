@@ -29,6 +29,25 @@ function executeJS() {
     let amount = 0;
 
     selectedEl.textContent = selected;
+
+    const refreshElements = function (frappe) {
+        return new Promise((resolve, reject) => {
+            frappe.call({
+                method: "cbam.www.supplier_list.index.get_supplier_partial_html",
+                callback: function(r) {
+                    if(r.message) {
+                        contentContainer.forEach(container => {
+                            container.remove();
+                        });
+                        document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
+                        executeJS();
+                        resolve(true);
+                    }
+                }
+            })
+        })
+    }
+
     
     const createSupplier = async function(values, d) {
         values.parent_operating_company = await cbam.supplier.get_supplier()
@@ -37,21 +56,29 @@ function executeJS() {
             args: {
                 doc: values
             },
-            callback: function(r) {
+            callback: async function(r) {
                 if(r.message) {
-                    frappe.call({
-                        method: "cbam.www.supplier_list.index.get_supplier_partial_html",
-                        callback: function(r) {
-                            if(r.message) {
-                                contentContainer.forEach(container => {
-                                    container.remove();
-                                });
-                                document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
-                                executeJS();
-                            }
-                        }
-                    })
-                    d.hide();
+                    const refreshed = await refreshElements(frappe);
+                    if(refreshed) {
+                        d.hide();
+                    }
+                }
+            }
+        })
+    }
+    
+    const updateSupplier = function(values, d) {
+        frappe.call({
+            method: "cbam.utils.update_doc",
+            args: {
+                doc: values
+            },
+            callback: async function(r) {
+                if(r.message) {
+                    const refreshed = await refreshElements(frappe);
+                    if(refreshed) {
+                        d.hide();
+                    }
                 }
             }
         })
@@ -60,6 +87,7 @@ function executeJS() {
     const hideDropDown = function() {
         dropDownCont.forEach(dropDownEl => dropDownEl.classList.add("hidden"));
     }
+    
     window.addEventListener('click', function(e){
         if(!e.target.classList.contains("action-btn")) {
             hideDropDown()
@@ -67,23 +95,23 @@ function executeJS() {
     })
     
 
-    CreateSupplierDialog = async function(){
+    CreateSupplierDialog = async function(docName="", docData=false, update=false){
         let d = new frappe.ui.Dialog({
-            title: `Add New Supplier`,
+            title: `${update ? "Update" : "Add New"} Supplier`,
             fields: [
                 {
                     label: __("Supplier Number"),
                     fieldname: "supplier_number",
-                    fieldtype: "Data"
-                    
+                    fieldtype: "Data",
+                    default: docData ? docData.supplier_number : ""
                 },
                 {
                     label: __("Supplier Name"),
                     fieldname: "supplier_name",
                     fieldtype: "Data",
-                    reqd:1
+                    reqd: update ? 0 : 1,
                     //options: "Same contact person as Operating Company\nDifferent contact person\nNo contact person for this Installation"
-                   
+                    default: docData ? docData.supplier_name : ""
                     
                 },
                 {
@@ -95,7 +123,8 @@ function executeJS() {
                     label: __("City"),
                     fieldname: "city",
                     fieldtype: "Data",
-                   
+                    default: docData ? docData.city : ""
+                    
                     
                 },
                 
@@ -103,14 +132,9 @@ function executeJS() {
                     label: __("Country"),
                     fieldname: "country",
                     fieldtype: "Autocomplete",
-                    options: await cbam.utils.get_links("Country")
-                   
-                    
+                    options: await cbam.utils.get_links("Country"),
+                    default: docData ? docData.country : ""
                 },
-              
-
-
-               
                 {
                     label: __("Main Contact"),
                     fieldname: "cb1",
@@ -121,24 +145,21 @@ function executeJS() {
                     label: __("First Name"),
                     fieldname: "main_contact_employee_first_name",
                     fieldtype: "Data",
-                   
-                    
+                    default: docData ? docData.main_contact_employee_first_name : ""
                 },
                 
                 {
                     label: __("Last Name"),
                     fieldname: "main_contact_employee_last_name",
                     fieldtype: "Data",
-                    reqd:1
-                   
-                    
+                    reqd: update ? 0 : 1,
+                    default: docData ? docData.main_contact_employee_last_name : ""
                 },
                 {
                     label: __("Main Contact Employee Position"),
                     fieldname: "main_contact_employee_position",
                     fieldtype: "Data",
-                   
-                    
+                    default: docData ? docData.main_contact_employee_position : ""
                 },
                 {
                     label: __(""),
@@ -149,16 +170,18 @@ function executeJS() {
                     label: __("Email"),
                     fieldname: "main_contact_employee_email",
                     fieldtype: "Data",
-                    reqd:1
-                   
+                    reqd: update ? 0 : 1,
+                    default: docData ? docData.main_contact_employee_email : ""
+                    
                     
                 },
-               
+                
                 {
                     label: __("Phone No"),
-                    fieldname: "reason",
+                    fieldname: "company_phone_number",
                     fieldtype: "Data",
-                   
+                    default: docData ? docData.company_phone_number : ""
+                    
                     
                 },
                 {
@@ -171,12 +194,17 @@ function executeJS() {
 
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: 'Create Supplier',
+            primary_action_label: `${update ? "Update" : "Create"} Supplier`,
             //secondary_action_label: '',
             primary_action(values) {
                 values.doctype = "Operating Company"
-                values.create_commercial_contact_user = 1
-                createSupplier(values, d);
+                if (update) {
+                    values.name = docName
+                    updateSupplier(values, d);
+                } else {
+                    values.create_commercial_contact_user = 1
+                    createSupplier(values, d);
+                }
                 // cbam.utils.new_doc(values)
                 // d.hide();
             },
@@ -192,7 +220,7 @@ function executeJS() {
 
         absBtn.forEach(btn => {
             btn.addEventListener("click", function() {
-                const docName = container.querySelector(".inv-name").dataset.name;
+                const docName = container.querySelector(".inv-name").dataset.number;
                 const action = btn.dataset.action;
                 if(action == "Split"){
                     CreateSplitDialog(docName)
@@ -205,22 +233,37 @@ function executeJS() {
         })
 
         container.addEventListener("click", function(e) {
-            if(e.target.classList.contains("action-btn")) {
-                // Hide all the visible drop downs
-                const curDropDown = container.querySelector(".options-abs");
+            // if(e.target.classList.contains("action-btn")) {
+            //     // Hide all the visible drop downs
+            //     const curDropDown = container.querySelector(".options-abs");
 
-                if(!curDropDown.classList.contains("hidden")) {
-                    curDropDown.classList.add("hidden");
-                    return;
-                }
+            //     if(!curDropDown.classList.contains("hidden")) {
+            //         curDropDown.classList.add("hidden");
+            //         return;
+            //     }
 
-                hideDropDown();
+            //     hideDropDown();
 
-                // Show only the drop down which is clicked
+            //     // Show only the drop down which is clicked
 
-                if(curDropDown.classList.contains("hidden")) {
-                    curDropDown.classList.remove("hidden");
-                }
+            //     if(curDropDown.classList.contains("hidden")) {
+            //         curDropDown.classList.remove("hidden");
+            //     }
+            // }
+            if(e.target.classList.contains("edit-btn")) {
+                const docName = container.querySelector(".inv-name").dataset.name;
+                frappe.call({
+                    method: "frappe.client.get",
+                    args: {
+                        doctype: "Operating Company",
+                        name: docName
+                    },
+                    callback: function(response) {
+                        if (response.message) {
+                            CreateSupplierDialog(docName, response.message, true);
+                        }
+                    }
+                });
             }
         })
     })

@@ -79,7 +79,6 @@ function executeJS() {
             callback: async function(r) {
                 if(r.message) {
                     const refreshed = await refreshElements(frappe);
-                    console.log(r.message);
                     if(refreshed) {
                         d.hide();
                     }
@@ -148,21 +147,18 @@ function executeJS() {
                     label: __("Contact Person Details"),
                     fieldname: "cb1",
                     fieldtype: "Section Break",
-                    depends_on: "eval:doc.contact_person == 'Different contact person'",
-                    hidden: update ? 1 : 0
+                    depends_on: "eval:doc.contact_person == 'Different contact person'"
                 },
                 {
                     label: __("First Name"),
                     fieldname: "first_name",
-                    fieldtype: "Data",
-                    hidden: update ? 1 : 0
+                    fieldtype: "Data"
                 },
                 
                 {
                     label: __("Last Name"),
                     fieldname: "last_name",
-                    fieldtype: "Data",
-                    hidden: update ? 1 : 0
+                    fieldtype: "Data"
                 },
                 {
                     label: __(""),
@@ -173,63 +169,56 @@ function executeJS() {
                     label: __("Email"),
                     fieldname: "email",
                     fieldtype: "Data",
-                    options: "Email",
-                    hidden: update ? 1 : 0
+                    options: "Email"
                 },
                 {
                     label: __("Phone No"),
                     fieldname: "phone_number",
-                    fieldtype: "Data",
-                    hidden: update ? 1 : 0
+                    fieldtype: "Data"
                 },
                 {
                     label: __(""),
                     fieldname: "cb1",
-                    fieldtype: "Section Break",
-                    hidden: update ? 1 : 0
+                    fieldtype: "Section Break"
                 },
                 {
                     label: __("Is the installation tracking emissions data?"),
                     fieldname: "is_the_installation_tracking_emissions_data",
                     fieldtype: "Select",
                     options: "\nYes\nNo",
-                    hidden: update ? 1 : 0
+                    default: docData ? docData.is_the_installation_tracking_emissions_data : ""
                 },
                 {
                     label: __(""),
                     fieldname: "cb1",
-                    fieldtype: "Column Break",
-                    hidden: update ? 1 : 0
+                    fieldtype: "Column Break"
                 },
                 {
                     label: __("Is the installation subject to an emission trading system?"),
                     fieldname: "is_the_installation_subject_to_an_emission_trading_system",
                     fieldtype: "Select",
                     options: "\nYes\nNo",
-                    hidden: update ? 1 : 0
+                    default: docData ? docData.is_the_installation_subject_to_an_emission_trading_system : ""
                 },
-                
                 {
                     label: __("Which emission trading system (link to legal act)?"),
                     fieldname: "which_emission_trading_system_link_to_legal_act",
                     fieldtype: "Data",
                     depends_on: "eval:doc.is_the_installation_subject_to_an_emission_trading_system == 'Yes'",
-                    hidden: update ? 1 : 0
+                    default: docData ? docData.which_emission_trading_system_link_to_legal_act : ""
                 },
                 {
                     label: __(""),
                     fieldname: "cb1",
-                    fieldtype: "Section Break",
-                    hidden: update ? 1 : 0
+                    fieldtype: "Section Break"
                 },
                 {
                     
                     label: __("Define how emissions get monitored, reported and verified:"),
-                    fieldname: "reason",
+                    fieldname: "define_how_emissions_get_monitored_reported_and_verified",
                     fieldtype: "Small Text",
-                    default: "",
-                    depends_on: "eval:doc.is_the_installation_tracking_emissions_data == 'Yes'",
-                    hidden: update ? 1 : 0
+                    default: docData ? docData.define_how_emissions_get_monitored_reported_and_verified : "",
+                    depends_on: "eval:doc.is_the_installation_tracking_emissions_data == 'Yes'"
                     //options: "\nSub Supplier\nCollegue"
                 }
 
@@ -387,7 +376,6 @@ function executeJS() {
                     },
                     callback: function(response) {
                         if (response.message) {
-                            console.log(response.message);
                             CreateInstallationDialog(docName, response.message, true);
                         }
                     }
