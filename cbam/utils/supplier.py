@@ -14,3 +14,10 @@ def confirm_details(values):
     if values.get('verify'):
         doc.status = "Company Verified"
     doc.save(ignore_permissions=True)
+
+
+
+@frappe.whitelist()
+def get_supplier_details(sup):
+    if frappe.db.exists("Operating Company", sup):
+        return frappe.get_doc("Operating Company", sup).as_dict()

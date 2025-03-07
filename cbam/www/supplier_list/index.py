@@ -30,7 +30,8 @@ def get_suppliers(context, re_render=False):
     filters = {"commercial_contact_user": frappe.session.user}
     if "CBAM Representative" in frappe.get_roles():
         filters = {"cbam_representative_user": frappe.session.user}
-    supplier_list = frappe.db.get_all("Operating Company", {"parent_operating_company": frappe.db.get_value("Operating Company", filters, "name")})
+    parent_company = frappe.db.get_value("Operating Company", filters, "name")
+    supplier_list = frappe.db.get_all("Operating Company", {"parent_operating_company": parent_company})
     if re_render:
         context["supplier_list"] = supplier_list
     else:
