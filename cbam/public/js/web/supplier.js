@@ -117,6 +117,23 @@ $.extend(cbam.supplier, {
             
         });
     },
+    get_child_suppliers(){
+        return new Promise(function(resolve, reject) {
+            frappe.call({
+                method: "cbam.utils.supplier.get_child_suppliers",
+                args:{
+                    
+                },
+                callback(r){
+                    if(r.message){
+                        resolve(r.message)
+                    }
+                }
+            })
+            
+            
+        });
+    },
     get_parent_supplier(){
         return new Promise(function(resolve, reject) {
             frappe.call({

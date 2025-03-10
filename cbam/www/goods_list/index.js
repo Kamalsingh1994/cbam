@@ -137,7 +137,7 @@ function executeJS() {
                     fieldname: "supplier",
                     fieldtype: "Autocomplete",
                     default: "",
-                    options: await cbam.utils.get_links("Operating Company", {}, ["title as label", "name as value"]),
+                    options: await cbam.supplier.get_child_suppliers(),
                     //depends_on: "eval:doc.forward_to_party == 'Sub Supplier'"
                 },
                 
@@ -157,7 +157,7 @@ function executeJS() {
 
                    
         d.show();
-        d.$wrapper.find('.modal-dialog').css("height", "350px");
+        d.$wrapper.find('.modal-dialog').css("height", "450px");
     }
 
     CreateRejectDialog = function(goods){
@@ -365,7 +365,7 @@ function executeJS() {
 									let name = $(event.currentTarget).closest(".grid-row").attr("data-name");
                                     let row = d.fields_dict.table1.grid.grid_rows_by_docname[name];
 									if(row.doc.source == "Supplier"){
-                                        row.columns.source_name.df.options= await cbam.utils.get_links("Operating Company", {}, ["title as label", "name as value"]);
+                                        row.columns.source_name.df.options= await cbam.supplier.get_child_suppliers();
                                     }
                                     else{
                                         row.columns.source_name.df.options= await cbam.utils.get_links("CBAM Installation");
