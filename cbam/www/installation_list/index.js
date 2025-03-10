@@ -220,6 +220,18 @@ function executeJS() {
                     default: docData ? docData.define_how_emissions_get_monitored_reported_and_verified : "",
                     depends_on: "eval:doc.is_the_installation_tracking_emissions_data == 'Yes'"
                     //options: "\nSub Supplier\nCollegue"
+                },
+                {
+                    label: __(""),
+                    fieldname: "cb1",
+                    fieldtype: "Section Break"
+                },
+                {
+                    label: __("Parent Operating Company"),
+                    fieldname: "parent_operating_company",
+                    fieldtype: "Data",
+                    read_only: 1,
+                    default: await cbam.supplier.get_supplier()
                 }
 
             ],

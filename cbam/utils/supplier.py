@@ -4,7 +4,10 @@ import json
 
 @frappe.whitelist()
 def get_supplier():
-    return frappe.db.get_value("Operating Company", {"commercial_contact_user": frappe.session.user}, "name")
+    filters = {"commercial_contact_user": frappe.session.user}
+    if "CBAM Representative" in frappe.get_roles() and not "Commercial Contact" in frappe.get_roles():
+        filters = {"cbam_representative_user": frappe.session.user}
+    return frappe.db.get_value("Operating Company", filters, "name")
 
 @frappe.whitelist()
 def confirm_details(values):

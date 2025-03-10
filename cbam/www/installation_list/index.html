@@ -101,12 +101,9 @@
                   </span>
                 </div>
                 <div class="list-row-col list-subject level tc-container gd">
-                    <span><span class="inv-tax">{{doc.name_of_the_installation}}</span></span>
-                  </div>
-                
-                
-                
-                
+                  <span><span class="inv-tax">{{doc.name_of_the_installation}}</span></span>
+                </div>
+
                 <div class="list-row-col list-subject level gt-container">
                   <span><span class="inv-amount" data-gt=grand_total>{{doc.country}}</span></span>
                 </div>
@@ -166,6 +163,51 @@
               </div>
             </div>
             <div class="container info-container hidden">
+              <h2>Base information of installation</h2>
+              <div class="container responsive-md" style="width: 100%">
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Name of the Installation</span>
+                  <span class="field tc-field">{{doc.name_of_the_installation}}</span>
+                </div>
+
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">City</span>
+                  <span class="field tc-field">{{doc.city}}</span>
+                </div>
+
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">ZIP Code</span>
+                  <span class="field tc-field">{{doc.zip_code}}</span>
+                </div>
+
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Country</span>
+                  <span class="field tc-field">{{doc.country}}</span>
+                </div>
+              </div>
+              <h2>Emissions data tracking of the installation</h2>
+              <div class="container responsive-md" style="width: 100%">
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Is the installation tracking emissions data?</span>
+                  <span class="field tc-field">{{doc.is_the_installation_tracking_emissions_data}}</span>
+                </div>
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Is the installation subject to an emission trading system?</span>
+                  <span class="field tc-field">{{doc.is_the_installation_subject_to_an_emission_trading_system}}</span>
+                </div>
+                {% if doc.is_the_installation_tracking_emissions_data == "Yes" %}
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Define how emissions get monitored, reported and verified:</span>
+                  <span class="field tc-field">{{doc.define_how_emissions_get_monitored_reported_and_verified}}</span>
+                </div>
+                {% endif %}
+                {% if doc.is_the_installation_subject_to_an_emission_trading_system == "Yes" %}
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">Which emission trading system (link to legal act)?</span>
+                  <span class="field tc-field">{{doc.which_emission_trading_system_link_to_legal_act}}</span>
+                </div>
+                {% endif %}
+              </div>
               <h2>Emission Details</h2>
               <div class="table-responsive" style="width: 100%;">
                 <table class="table" style="width: 100%;">
