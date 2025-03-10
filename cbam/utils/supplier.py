@@ -24,3 +24,11 @@ def confirm_details(values):
 def get_supplier_details(sup):
     if frappe.db.exists("Operating Company", sup):
         return frappe.get_doc("Operating Company", sup).as_dict()
+    
+
+
+@frappe.whitelist()
+def get_child_suppliers():
+    parent_company = get_supplier()
+    return frappe.db.get_all("Operating Company", {"parent_operating_company": parent_company}, ["name as value", "supplier_name as label"])
+    
