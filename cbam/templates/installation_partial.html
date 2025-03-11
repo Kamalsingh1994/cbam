@@ -9,7 +9,7 @@
             type="checkbox"
             data-doctype="DocType"
             data-name="Sales Invoice"
-            data-status=""                        
+            data-status=""       
             />
             </span>
         <span class="level-item bold ">
@@ -134,12 +134,12 @@
             <td><strong>Label</strong></td>
             <td><strong>Specific (direct) embedded emissions [tCO2/t]</strong></td>
             <td width=""><strong>Source of electricity</strong></td>
-            <td><strong>Electricity consumed [MWh/t]</strong>                      </td>
-            
+            <td><strong>Electricity consumed [MWh/t]</strong></td>
+            <td><strong>Edit Emission</strong></td>
         </tr>
         
         
-        {%for i in doc.emission_datas%}
+        {%for i in doc.emission_datas %}
         <tr>
             <td>{{loop.index}}</td>
             <td>{{i.label}}</td>
@@ -147,7 +147,11 @@
             <td>{{i.specific_direct_embedded_emissions}}</td>
             <td>{{i.source_of_electricity}}</td>
             <td>{{i.electricity_consumed}}</td>
-            
+            <td style="text-align: center;">
+            <button class="btn btn-secondary btn-sm secondary-action edit-emission" data-emission="{{i.name}}">
+                Edit
+            </button>
+            </td>
         </tr>
         {%endfor%}
     </table>

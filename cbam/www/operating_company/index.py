@@ -1,6 +1,6 @@
 import frappe
 no_cache = 1
-from cbam.utils import get_supplier
+from cbam.utils.supplier import get_supplier
 
 def get_context(context):
     # context.user = frappe.session.user
