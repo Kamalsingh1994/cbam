@@ -761,7 +761,8 @@ function executeJS() {
                     {
                         label: __("Country"),
                         fieldname: "country",
-                        fieldtype: "Data",
+                        fieldtype: "Autocomplete",
+                        options: await cbam.utils.get_links("Country"),
                         default: supplier_details.country,
                         reqd: 1
                     },

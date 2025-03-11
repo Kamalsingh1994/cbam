@@ -70,7 +70,7 @@ function executeJS() {
         })
     }
 
-    const updateInstallation = function(values, d) {
+    const updateDoc = function(values, d) {
         frappe.call({
             method: "cbam.utils.update_doc",
             args: {
@@ -242,7 +242,7 @@ function executeJS() {
                 values.doctype = "CBAM Installation"
                 if (update) {
                     values.name = docName
-                    updateInstallation(values, d);
+                    updateDoc(values, d);
                 } else {
                     // cbam.utils.new_doc(values);
                     // d.hide();
@@ -258,18 +258,16 @@ function executeJS() {
         d.show();
     }
 
-    const CreateEmissionDialog = function(docName){
+    const CreateEmissionDialog = function(docName, docData=false, update=false){
         let d = new frappe.ui.Dialog({
             title: `Add New Emission`,
             fields: [
-                
                 {
                     label: __("Label"),
                     fieldname: "label",
                     fieldtype: "Data",
-                    reqd:1
-                   
-                    
+                    reqd: update ? 0 : 1,
+                    default: docData ? docData.label : ""                  
                 },
                 {
                     label: __(""),
@@ -281,9 +279,9 @@ function executeJS() {
                     fieldname: "specific_direct_embedded_emissions",
                     fieldtype: "Float",
                     description: "Example: 1.67 tCO2/t (t = tonnes of product)",
-                    reqd: 1
+                    reqd: update ? 0 : 1,
+                    default: docData ? docData.specific_direct_embedded_emissions : "" 
                    
-                    
                 },
                 {
                     label: __(""),
@@ -295,9 +293,9 @@ function executeJS() {
                     fieldname: "source_of_electricity",
                     fieldtype: "Select",
                     options: 'Direct technical link to electricity generator\n(Bilateral) power purchase agreement\nReceived from the grid',
-                    reqd: 1
+                    reqd: update ? 0 : 1,
+                    default: docData ? docData.source_of_electricity : ""
                    
-                    
                 },
                 {
                     label: __("Attach"),
@@ -313,8 +311,8 @@ function executeJS() {
                     label: __("Electricity consumed [MWh/t]"),
                     fieldname: "electricity_consumed",
                     fieldtype: "Float",
-                    reqd: 1
-                   
+                    reqd: update ? 0 : 1,
+                    default: docData ? docData.electricity_consumed : ""
                     
                 },
                 {
@@ -322,16 +320,22 @@ function executeJS() {
                     fieldname: "cbam_installation",
                     fieldtype: "Data",
                     default: docName,
-                    hidden: 1
+                    hidden: 1,
+                    default: docData ? docData.cbam_installation : ""
                 }
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: 'Create Emission',
+            primary_action_label: `${update ? "Update" : "Create"} Emission`,
             //secondary_action_label: '',
             primary_action(values) {
                 values.doctype = "CBAM Emission Data"
-                // cbam.utils.new_doc(values)
-                createEmission(values, d);                
+                if (update) {
+                    values.name = docName
+                    updateDoc(values, d);
+                } else {
+                    // cbam.utils.new_doc(values)
+                    createEmission(values, d);
+                }      
             },
             secondary_action(values) {
                 
@@ -392,6 +396,23 @@ function executeJS() {
                         }
                     }
                 });
+            }
+            
+            if(e.target.classList.contains("edit-emission")) {
+                const docName = container.querySelector(".edit-emission").dataset.emission;
+                frappe.call({
+                    method: "frappe.client.get",
+                    args: {
+                        doctype: "CBAM Emission Data",
+                        name: docName  // Replace with the actual document name
+                    },
+                    callback: function(response) {
+                        if (response.message) {
+                            CreateEmissionDialog(docName, response.message, true);
+                        }
+                    }
+                });
+                
             }
         })
     })

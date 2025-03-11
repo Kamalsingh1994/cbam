@@ -106,6 +106,24 @@ function executeJS() {
                     default: docData ? docData.supplier_number : ""
                 },
                 {
+                    label: __("Country"),
+                    fieldname: "country",
+                    fieldtype: "Autocomplete",
+                    options: await cbam.utils.get_links("Country"),
+                    default: docData ? docData.country : ""
+                },
+                {
+                    label: __("Company Email"),
+                    fieldname: "company_email",
+                    fieldtype: "Data",
+                    default: docData ? docData.company_email : ""
+                },
+                {
+                    label: __(""),
+                    fieldname: "cb1",
+                    fieldtype: "Column Break",
+                },
+                {
                     label: __("Supplier Name"),
                     fieldname: "supplier_name",
                     fieldtype: "Data",
@@ -115,29 +133,31 @@ function executeJS() {
                     
                 },
                 {
+                    label: __("Zip Code"),
+                    fieldname: "zip_code",
+                    fieldtype: "Data",
+                    default: docData ? docData.zip_code : ""
+                },
+                {
                     label: __(""),
-                    fieldname: "cb1",
+                    fieldname: "cb2",
                     fieldtype: "Column Break",
                 },
                 {
                     label: __("City"),
                     fieldname: "city",
                     fieldtype: "Data",
-                    default: docData ? docData.city : ""
-                    
-                    
-                },
-                
+                    default: docData ? docData.city : ""   
+                },                
                 {
-                    label: __("Country"),
-                    fieldname: "country",
-                    fieldtype: "Autocomplete",
-                    options: await cbam.utils.get_links("Country"),
-                    default: docData ? docData.country : ""
+                    label: __("Street and Number"),
+                    fieldname: "street_and_number",
+                    fieldtype: "Data",
+                    default: docData ? docData.street_and_number : ""
                 },
                 {
                     label: __("Main Contact"),
-                    fieldname: "cb1",
+                    fieldname: "cb3",
                     fieldtype: "Section Break",
                     depends_on: ""
                 },
