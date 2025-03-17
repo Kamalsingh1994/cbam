@@ -687,7 +687,7 @@ function executeJS() {
 
 
     CreateEmissionSubmissionDialog = async function(goods){
-        let supplier_details = await cbam.supplier.get_supplier();
+        let supplier_details = await cbam.supplier.get_supplier_details();
         if (supplier_details.status!="Company Verified"){
             let d = new frappe.ui.Dialog({
                 title: `Please Confirm your Operating Company Details`,
@@ -783,7 +783,8 @@ function executeJS() {
                         fieldname: "cbam_representive_employee_email",
                         fieldtype: "Data",
                         default: supplier_details.cbam_representive_employee_email,
-                        reqd: 1
+                        reqd: supplier_details.cbam_representative_user ? 0 : 1 ,
+                        read_only: supplier_details.cbam_representative_user ? 1 : 0
                     },
                     {
                         label: __("CBAM Representative Position"),
