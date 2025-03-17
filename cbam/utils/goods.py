@@ -31,7 +31,7 @@ def submit_goods(goods):
         if doc.status == "Data Assigned":
             doc.status = "Data Submitted"
             doc.save(ignore_permissions=True)
-            doc.submit(ignore_permissions=True)
+            doc.submit()
 
 
 @frappe.whitelist()
