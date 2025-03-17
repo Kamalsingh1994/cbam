@@ -12,7 +12,7 @@ def get_supplier():
 @frappe.whitelist()
 def confirm_details(values):
     values = json.loads(values)
-    doc = frappe.get_doc("Operating Company", {"commercial_contact_user": frappe.session.user})
+    doc = frappe.get_doc("Operating Company", get_supplier())
     doc.update(values)
     if values.get('verify'):
         doc.status = "Company Verified"
