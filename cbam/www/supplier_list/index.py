@@ -33,6 +33,6 @@ def get_suppliers(context, re_render=False):
     if re_render:
         context["supplier_list"] = supplier_list
     else:
-        context.supplier_list = supplier_list
+        context["supplier_list"] = supplier_list
     
     return context
