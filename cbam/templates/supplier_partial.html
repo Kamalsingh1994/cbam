@@ -1,5 +1,5 @@
 {% for i in supplier_list %}
-{% set doc = frappe.get_doc("Operating Company", i.name) %}
+{% set doc = frappe.get_doc("Operating Company", i.value) %}
 <div class="content-container">
 <div class="level list-row-head content-head">
     <div class="level-left list-body-grid">
