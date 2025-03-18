@@ -21,8 +21,9 @@ def confirm_details(values):
 
 
 @frappe.whitelist()
-def get_supplier_details():
-    sup = get_supplier()
+def get_supplier_details(sup=None):
+    if not sup:
+        sup = get_supplier()
     if frappe.db.exists("Operating Company", sup):
         return frappe.get_doc("Operating Company", sup).as_dict()
     
