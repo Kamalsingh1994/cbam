@@ -2,18 +2,33 @@ let CreateSupplierDialog;
 
 window.addEventListener("DOMContentLoaded", () => {
     executeJS();
-    
+    refreshElements(frappe)
     document.querySelector('.add-new').addEventListener('click', async function(e){
         CreateSupplierDialog()
     })
 });
+
+const refreshElements = function (frappe) {
+    const contentContainer = document.querySelectorAll(".content-container");
+    return new Promise((resolve, reject) => {
+        frappe.call({
+            method: "cbam.www.supplier_list.index.get_supplier_partial_html",
+            callback: function(r) {
+                if(r.message) {
+                    contentContainer.forEach(container => {
+                        container.remove();
+                    });
+                    document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
+                    executeJS();
+                    resolve(true);
+                }
+            }
+        })
+    })
+}
+
+
 function executeJS() {
-    // This condition is to stop the rest of the code from executing if the user is not authorized.
-    // frappe.call({
-    //     method: "paystack_integration.utils.ex_utils.clear_website_cache",
-    //     callback: function(r) {
-    //     }
-    // });
 
     const contentContainer = document.querySelectorAll(".content-container");
     const infoContainer = document.querySelectorAll(".info-container");
@@ -30,23 +45,7 @@ function executeJS() {
 
     selectedEl.textContent = selected;
 
-    const refreshElements = function (frappe) {
-        return new Promise((resolve, reject) => {
-            frappe.call({
-                method: "cbam.www.supplier_list.index.get_supplier_partial_html",
-                callback: function(r) {
-                    if(r.message) {
-                        contentContainer.forEach(container => {
-                            container.remove();
-                        });
-                        document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
-                        executeJS();
-                        resolve(true);
-                    }
-                }
-            })
-        })
-    }
+    
 
     
     const createSupplier = async function(values, d) {
@@ -253,23 +252,6 @@ function executeJS() {
         })
 
         container.addEventListener("click", function(e) {
-            // if(e.target.classList.contains("action-btn")) {
-            //     // Hide all the visible drop downs
-            //     const curDropDown = container.querySelector(".options-abs");
-
-            //     if(!curDropDown.classList.contains("hidden")) {
-            //         curDropDown.classList.add("hidden");
-            //         return;
-            //     }
-
-            //     hideDropDown();
-
-            //     // Show only the drop down which is clicked
-
-            //     if(curDropDown.classList.contains("hidden")) {
-            //         curDropDown.classList.remove("hidden");
-            //     }
-            // }
             if(e.target.classList.contains("edit-btn")) {
                 const docName = container.querySelector(".inv-name").dataset.name;
                 frappe.call({
@@ -382,23 +364,7 @@ function executeJS() {
 
         })
 
-        // container.addEventListener("click", function(e) {
-        //     if (e.target.classList.contains("arr-icon")) {
-        //         const childInfoCon = container.querySelector(".info-container");
-        //         const isCurrentlyHidden = childInfoCon.classList.contains("hidden");
-                
-        //         infoContainer.forEach(c => c.classList.add("hidden"));
-        //         arrowEl.forEach(arrow => arrow.setAttribute("href", "#es-line-down"));
-                
-        //         if (isCurrentlyHidden) {
-        //             childInfoCon.classList.remove("hidden");
-        //             container.querySelector(".arrow").setAttribute("href", "#es-line-up");
-        //         } else {
-        //             childInfoCon.classList.add("hidden");
-        //             container.querySelector(".arrow").setAttribute("href", "#es-line-down");
-        //         }
-        //     }
-        // });
+       
     })
 
     if(document.querySelector(".list-container")) {
@@ -409,15 +375,6 @@ function executeJS() {
         const currentDomain = window.location.origin;
 
         let exPrintFormat = "";
-
-        // frappe.call({
-        //     method: 'paystack_integration.utils.ex_utils.get_print_format',
-        //     callback: function(r) {
-        //         if(r.message) {
-        //             exPrintFormat = r.message;
-        //         }
-        //     }
-        // });
 
         contentContainer.forEach(parentContainer => {
             parentContainer.addEventListener("click", function(e) {
@@ -439,14 +396,6 @@ function executeJS() {
             });
         });
 
-        contentContainer.forEach(container => {
-            container.addEventListener("click", function(e) {
-                if(e.target.classList.contains("print-btn")) {
-                    const invName = container.querySelector(".inv-name").dataset.name;
-                    window.open(`${currentDomain}/printview?doctype=Sales%20Invoice&name=${invName}&trigger_print=1&format=${exPrintFormat || "Standard"}r&no_letterhead=1&letterhead=No%20Letterhead&settings=%7B%7D&_lang=en`);
-                    // window.open(`${currentDomain}/api/method/frappe.utils.print_format.download_pdf?doctype=Sales%20Invoice&name=${invName}&&format=${exPrintFormat || "Standard"}&no_letterhead=1&letterhead=No%20Letterhead&settings=%7B%7D&_lang=en`, '_blank');
-                }
-            })
-        })
+        
     }
 }
