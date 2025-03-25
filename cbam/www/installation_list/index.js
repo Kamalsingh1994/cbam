@@ -324,8 +324,8 @@ function executeJS() {
                     fieldname: "cbam_installation",
                     fieldtype: "Data",
                     default: docName,
-                    hidden: 1,
-                    default: docData ? docData.cbam_installation : ""
+                    hidden: 0,
+                    read_only: 1
                 }
             ],
             size: 'extra-large', // small, large, extra-large 
@@ -363,6 +363,7 @@ function executeJS() {
             btn.addEventListener("click", function() {
                 const docName = container.querySelector(".inv-name").dataset.name;
                 CreateEmissionDialog(docName)
+                console.log(docName)
                 
             })
         })
