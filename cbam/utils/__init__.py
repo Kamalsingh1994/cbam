@@ -24,3 +24,11 @@ def get_supplier():
         filters = {"cbam_representative_user": frappe.session.user}
     if frappe.db.exists("Operating Company", filters):
         return frappe.db.get_value("Operating Company", filters, "name")
+    
+@frappe.whitelist()
+def get_field_options(doc, fieldname):
+    meta = frappe.get_meta(doc)
+    field = meta.get_field(fieldname)
+    if field and field.options:
+        return field.options.split("\n")
+    return []

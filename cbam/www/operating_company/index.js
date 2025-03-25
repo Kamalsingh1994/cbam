@@ -268,7 +268,7 @@ function executeJS() {
                     fieldtype: "Data",
                     default: supplier_details.cbam_representive_employee_email,
                     options: "Email",
-                    read_only: 1
+                    read_only: supplier_details.cbam_representative_user ? 1 : 0
                 },
                 {
                     label: __("Phone Number"),

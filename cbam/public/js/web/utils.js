@@ -13,9 +13,31 @@ $.extend(cbam.utils, {
             }
         })
     },
+    get_field_options(doc, fieldname, asList=true){
+        return new Promise(function(resolve, reject) {            
+            frappe.call({
+                method: "cbam.utils.get_field_options",
+                args:{
+                    doc: doc, 
+                    fieldname: fieldname
+                },
+                callback(r){
+                    if(r.message && r.message.length > 0) {
+                        let options = r.message
+                        if(!asList) {
+                            options = r.message.join("\n");
+                        }  
+                        resolve(options)
+                    } else {
+                        resolve([])
+                    }
+                }
+            })
+        })
+    },
 
     _get_links(doctype, filters, fields){
-       return new Promise(function(reslove, reject) {
+       return new Promise(function(resolve, reject) {
             frappe.call({
                 method: "cbam.utils.links.get_links",
                 args:{
@@ -25,7 +47,7 @@ $.extend(cbam.utils, {
                 },
                 callback(r){
                     if(r.message){
-                        reslove(r.message)
+                        resolve(r.message)
                     }
                 }
             })
@@ -38,7 +60,7 @@ $.extend(cbam.utils, {
         return await cbam.utils._get_links(doctype, filters, fields);
     },
     _get_installation(emission){
-        return new Promise(function(reslove, reject) {
+        return new Promise(function(resolve, reject) {
              frappe.call({
                  method: "cbam.utils.links.get_installation",
                  args:{
@@ -46,7 +68,7 @@ $.extend(cbam.utils, {
                  },
                  callback(r){
                      if(r.message){
-                         reslove(r.message)
+                         resolve(r.message)
                      }
                  }
              })
