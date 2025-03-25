@@ -9,7 +9,7 @@
             type="checkbox"
             data-doctype="DocType"
             data-name="Sales Invoice"
-            data-status=""       
+            data-status=""                        
             />
             </span>
         <span class="level-item bold ">
@@ -126,7 +126,7 @@
     </div>
     <h2>Emission Details</h2>
     <div class="table-responsive" style="width: 100%;">
-    <table class="table" style="width: 100%;">
+    <table class="table" style="min-width: 134%;">
         
         <tr>
             <td width=""><strong>Sr.</strong></td>
@@ -134,7 +134,11 @@
             <td><strong>Label</strong></td>
             <td><strong>Specific (direct) embedded emissions [tCO2/t]</strong></td>
             <td width=""><strong>Source of electricity</strong></td>
+            <td width=""><strong>Production Method</strong></td>
             <td><strong>Electricity consumed [MWh/t]</strong></td>
+            <td><strong>Indirect Emission Factor</strong></td>
+            <td><strong>Source of Indirect Emission Factor</strong></td>
+            <td><strong>Specific (indirect) embedded emissions [tCO2/t]</strong></td>
             <td><strong>Edit Emission</strong></td>
         </tr>
         
@@ -146,7 +150,11 @@
             
             <td>{{i.specific_direct_embedded_emissions}}</td>
             <td>{{i.source_of_electricity}}</td>
+            <td>{{i.production_method or ""}}</td>
             <td>{{i.electricity_consumed}}</td>
+            <td>{{i.indirect_emission_factor}}</td>
+            <td>{{i.source_of_indirect_emission_factor or ""}}</td>
+            <td>{{i.specific_indirect_embedded_emissions}}</td>
             <td style="text-align: center;">
             <button class="btn btn-secondary btn-sm secondary-action edit-emission" data-emission="{{i.name}}">
                 Edit

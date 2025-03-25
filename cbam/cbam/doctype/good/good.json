@@ -70,11 +70,14 @@
   "section_break_fvtl",
   "emission_data",
   "source_of_electricity",
-  "electricity_consumed",
-  "column_break_mies",
+  "indirect_emission_factor",
   "indirect_emission_data",
+  "amended_from",
+  "column_break_mies",
+  "production_method",
+  "electricity_consumed",
   "direct_emission_data",
-  "amended_from"
+  "source_of_indirect_embedded_emissions"
  ],
  "fields": [
   {
@@ -242,7 +245,7 @@
   },
   {
    "description": "Electricity consumed [MWh/t]",
-   "fetch_from": "emission_data.electricity_consumed",
+   "fetch_from": "emission_data.specific_indirect_embedded_emissions",
    "fieldname": "indirect_emission_data",
    "fieldtype": "Data",
    "label": "Indirect embedded emissions [t CO2/t product]"
@@ -436,7 +439,8 @@
   },
   {
    "fieldname": "section_break_fvtl",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Emission Details"
   },
   {
    "fieldname": "column_break_mies",
@@ -493,12 +497,34 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fetch_from": "emission_data.indirect_emission_factor",
+   "fieldname": "indirect_emission_factor",
+   "fieldtype": "Data",
+   "label": "Indirect Emission Factor",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "emission_data.production_method",
+   "fieldname": "production_method",
+   "fieldtype": "Data",
+   "label": "Production method",
+   "read_only": 1
+  },
+  {
+   "description": "Electricity consumed [MWh/t]",
+   "fetch_from": "emission_data.source_of_indirect_emission_factor",
+   "fieldname": "source_of_indirect_embedded_emissions",
+   "fieldtype": "Data",
+   "label": "Source of indirect embedded emissions"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-12 11:09:24.669517",
+ "modified": "2025-03-20 07:12:54.343305",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",

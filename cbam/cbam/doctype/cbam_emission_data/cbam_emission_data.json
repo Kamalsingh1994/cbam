@@ -22,7 +22,11 @@
   "specific_direct_embedded_emissions",
   "indirect_emissions_section",
   "source_of_electricity",
+  "indirect_emission_factor",
+  "source_of_indirect_emission_factor",
+  "specific_indirect_embedded_emissions",
   "column_break_iywy",
+  "production_method",
   "electricity_consumed",
   "goods_covered_by_this_emissions_calculation_section",
   "cn_codes"
@@ -146,11 +150,33 @@
    "fieldtype": "Link",
    "label": "Declarant",
    "options": "Declarant"
+  },
+  {
+   "fieldname": "indirect_emission_factor",
+   "fieldtype": "Float",
+   "label": "Indirect Emission Factor"
+  },
+  {
+   "fieldname": "specific_indirect_embedded_emissions",
+   "fieldtype": "Float",
+   "label": "Specific (indirect) embedded emissions [tCO2/t]"
+  },
+  {
+   "fieldname": "source_of_indirect_emission_factor",
+   "fieldtype": "Data",
+   "label": "Source of Indirect Emission Factor"
+  },
+  {
+   "fieldname": "production_method",
+   "fieldtype": "Select",
+   "label": "Production Method",
+   "options": "Blast furnace route\nSmelting reduction\nOther production routes\nNickel Pig Iron production\nFerro-nickel (FeNi)\nFerro-chromium (FeCr)\nFerro-manganese (FeMn)\nProduction of Direct reduced Iron (using hydrogen)\nDRI (Direct reduced iron)\nBasic oxigen steel making\nBasic oxigen steel making (incl. Blast furnace)\nBasic oxigen steel making (incl. Melting reduction)\nElectric arc furnace\nElectric arc furnace (alloy steels)\nElectric arc furnace (carbon steel, from direct reduced iron)\nElectric arc furnace (general)\nAluminium products\nIntegrated production with primary smelting\nIntegrated production with secondary melting\nIntegrated with mixed primary and secondary production\nPrimary (electrolytic) smelting\nSecondary melting (recycling)\nMix of primary and secondary production"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-10 11:50:09.420019",
+ "modified": "2025-03-20 10:06:25.652877",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Emission Data",
