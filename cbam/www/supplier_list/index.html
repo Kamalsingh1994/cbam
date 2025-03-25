@@ -9,24 +9,23 @@
           <div class="list-header">
             <div class="sub-header">
               <h1 class="heading-primary">
-                {{title}}
+                {{_(title)}}
               </h1>
               <div class="selected-cta-container">
                 <span class="status-filter-container">
                   <select type="text" class="form-control  status-filter" data-fieldtype="Select" data-fieldname="status" placeholder="">
-                    <option value="">All</option>
-                    <option value="Raw Data">Pending Verification</option>
-                    <option value="Sent for confirmation">Company Verified</option>
-                    
+                    <option value="">{{_('All')}}</option>
+                    <option value="Raw Data">{{_('Pending Verification')}}</option>
+                    <option value="Sent for confirmation">{{_('Company Verified')}}</option>
                   </select>
                 </span>
 
                 <div class="selected-container">
-                  <span>Selected: <span class="selected-no">0</span></span>
+                  <span>{{_('Selected')}}: <span class="selected-no">0</span></span>
                 </div>
 
                 <button class="btn btn-primary btn-sm primary-action ex-pay-link add-new">
-                  Add New Supplier
+                  {{_('Add New Supplier')}}
                 </button>
               </div>
           </div>
@@ -46,24 +45,24 @@
                     />
                   </span>
                 <span class="level-item bold ellipsis">
-                  <span class="invoice-title ellipsis" title="Sales Invoice">Supplier Number</span>
+                  <span class="invoice-title ellipsis" title="Sales Invoice">{{_('Supplier Number')}}</span>
                 </span>
               </div>
               
               <div class="list-row-col list-subject level tc-container">
-                <span class="tc-text">Supplier Name</span>
+                <span class="tc-text">{{_('Supplier Name')}}</span>
               </div>
               <div class="list-row-col list-subject level gt-container ">
-                <span class="gt-text">Phone No.</span>
+                <span class="gt-text">{{_('Phone No.')}}</span>
               </div>
               <div class="list-row-col list-subject level gt-container ">
-                <span class="gt-text">Country</span>
+                <span class="gt-text">{{_('Country')}}</span>
               </div>
               <div class="list-row-col list-subject level status-title">
-                <span class="gt-text">Status</span>
+                <span class="gt-text">{{_('Status')}}</span>
               </div>
               <div class="list-row-col list-subject level gt-container ">
-                <span class="gt-text">Zip code</span>
+                <span class="gt-text">{{_('Zip code')}}</span>
               </div>              
             </div>
             <div class="level-right "><span class="space-hidden">0</span></span>

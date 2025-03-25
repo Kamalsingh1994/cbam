@@ -2,11 +2,31 @@ let CreateInstallationDialog;
 
 window.addEventListener("DOMContentLoaded", () => {
     executeJS();
-
+    refreshElements(frappe)
     document.querySelector('.add-new').addEventListener('click', function(e){
         CreateInstallationDialog()
     })
 });
+
+const refreshElements = function (frappe) {
+    const contentContainer = document.querySelectorAll(".content-container");
+    return new Promise((resolve, reject) => {
+        frappe.call({
+            method: "cbam.www.installation_list.index.get_installation_partial_html",
+            callback: function(r) {
+                if(r.message) {
+                    contentContainer.forEach(container => {
+                        container.remove();
+                    });
+                    document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
+                    executeJS();
+                    resolve(true);
+                }
+            }
+        })
+    })
+}
+
 
 function executeJS() {
     // This condition is to stop the rest of the code from executing if the user is not authorized.
@@ -35,23 +55,7 @@ function executeJS() {
         dropDownCont.forEach(dropDownEl => dropDownEl.classList.add("hidden"));
     }
 
-    const refreshElements = function (frappe) {
-        return new Promise((resolve, reject) => {
-            frappe.call({
-                method: "cbam.www.installation_list.index.get_installation_partial_html",
-                callback: function(r) {
-                    if(r.message) {
-                        contentContainer.forEach(container => {
-                            container.remove();
-                        });
-                        document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
-                        executeJS();
-                        resolve(true);
-                    }
-                }
-            })
-        })
-    }
+    
 
     const createEmission = function(values, d) {
         frappe.call({

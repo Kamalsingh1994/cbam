@@ -92,12 +92,12 @@
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     {%endif%}
     <div class="options-abs hidden">
-        <button class="abs-option-btn" data-action="Split">Split</button>
-        <button class="abs-option-btn" data-action="Forward">Forward</button>
-        <button class="abs-option-btn" data-action="Reject">Reject</button>
+        <button class="abs-option-btn" data-action="Split">{{_('Split')}}</button>
+        <button class="abs-option-btn" data-action="Forward">{{_('Forward')}}</button>
+        <button class="abs-option-btn" data-action="Reject">{{_('Reject')}}</button>
         <!-- <button class="abs-option-btn" data-action="Add Installation">Add Installation</button> -->
-        <button class="abs-option-btn" data-action="Add Emission Data">Add Emission</button>
-        <button class="abs-option-btn" data-action="Submit Emission Data">Submit Emission</button>
+        <button class="abs-option-btn" data-action="Add Emission Data">{{_('Add Emission')}}</button>
+        <button class="abs-option-btn" data-action="Submit Emission Data">{{_('Submit Emission')}}</button>
     </div>
     <span class="ml-2 collapse-indicator mb-1 arr-icon">
         <svg class="es-icon es-line icon-sm arr-icon" aria-hidden="true">
@@ -109,22 +109,22 @@
 <div class="container info-container hidden">
     <div class="container responsive-md" style="width: 100%">
         <div class="tc-field-cont field-cont">
-            <span class="field-label">Country of origin</span>
+            <span class="field-label">{{_('Country of origin')}}</span>
             <div class="field tc-field">{{doc.country_of_origin}}</div>
         </div>
         
         <div class="tc-field-cont field-cont">
-          <span class="field-label">Imported into EU on</span>
+          <span class="field-label">{{_('Imported into EU on')}}</span>
           <div class="field tc-field">{{doc.hand_over_date}}</div>
         </div>
 
         <div class="tc-field-cont field-cont">
-            <span class="field-label">Customs Tariff Number</span>
+            <span class="field-label">{{_('Customs Tariff Number')}}</span>
             <div class="field tc-field">{{doc.customs_tariff_number}}</div>
         </div>
 
         <div class="tc-field-cont field-cont">
-            <span class="field-label">Good Description</span>
+            <span class="field-label">{{_('Good Description')}}</span>
             <div class="field tc-field">{{doc.good_description}}</div>
           </div>
 
@@ -136,7 +136,7 @@
                 <svg class="icon print-btn icon-sm" aria-hidden="true" style="width: 12px; height: 12px;">
                     <use class="print-btn" href="#icon-printer"></use>
                 </svg>
-                <span class="print-btn">Print</span>
+                <span class="print-btn">{{_('Print')}}</span>
                 </span>
             </button>
             </div>
@@ -146,22 +146,22 @@
     <div class="container responsive-md" style="width: 100%">
         <h2>Emission Details</h2>
         <div class="tc-field-cont field-cont">
-            <span class="field-label">Installation</span>
+            <span class="field-label">{{_('Installation')}}</span>
             <div class="field tc-field">{{doc.installation}}</div>
         </div>
         
         <div class="tc-field-cont field-cont">
-            <span class="field-label">Emission Data</span>
+            <span class="field-label">{{_('Emission Data')}}</span>
             <div class="field tc-field">{{doc.emission_data}}</div>
         </div>
 
         <div class="tc-field-cont field-cont">
-            <span class="field-label">Direct embedded emissions</span>
+            <span class="field-label">{{_('Direct embedded emissions')}}</span>
             <div class="field tc-field">{{doc.direct_emission_data}}</div>
         </div>
 
         <div class="tc-field-cont field-cont">
-            <span class="field-label">Indirect embedded emissions</span>
+            <span class="field-label">{{_('Indirect embedded emissions')}}</span>
             <div class="field tc-field">{{doc.indirect_emission_data}}</div>
         </div>
     </div>
