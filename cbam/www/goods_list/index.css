@@ -15,6 +15,11 @@ body {
     max-width: 95% !important
 }
 
+.tc-field {
+    height: 4.2rem;
+}
+
+
 .page_content {
     display: grid;
     grid-template-columns: 1fr 10fr;

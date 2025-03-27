@@ -54,7 +54,6 @@ function executeJS() {
     const hideDropDown = function() {
         dropDownCont.forEach(dropDownEl => dropDownEl.classList.add("hidden"));
     }
-
     
 
     const createEmission = function(values, d) {
@@ -262,7 +261,7 @@ function executeJS() {
         d.show();
     }
 
-    const CreateEmissionDialog = function(docName, docData=false, update=false){
+    const CreateEmissionDialog = async function(docName, docData=false, update=false){
         let d = new frappe.ui.Dialog({
             title: `Add New Emission`,
             fields: [
@@ -296,10 +295,18 @@ function executeJS() {
                     label: __("Source of electricity"),
                     fieldname: "source_of_electricity",
                     fieldtype: "Select",
-                    options: 'Direct technical link to electricity generator\n(Bilateral) power purchase agreement\nReceived from the grid',
+                    options: await cbam.utils.get_field_options("CBAM Emission Data", "source_of_electricity", false),
                     reqd: update ? 0 : 1,
                     default: docData ? docData.source_of_electricity : ""
                    
+                },
+                {
+                    label: __("Electricity consumed [MWh/t]"),
+                    fieldname: "electricity_consumed",
+                    fieldtype: "Float",
+                    reqd: update ? 0 : 1,
+                    default: docData ? docData.electricity_consumed : ""
+                    
                 },
                 {
                     label: __("Attach"),
@@ -312,11 +319,12 @@ function executeJS() {
                     fieldtype: "Column Break",
                 },
                 {
-                    label: __("Electricity consumed [MWh/t]"),
-                    fieldname: "electricity_consumed",
-                    fieldtype: "Float",
+                    label: __("Production Method"),
+                    fieldname: "production_method",
+                    fieldtype: "Select",
+                    options: await cbam.utils.get_field_options("CBAM Emission Data", "production_method", false),
                     reqd: update ? 0 : 1,
-                    default: docData ? docData.electricity_consumed : ""
+                    default: docData ? docData.production_method : ""
                     
                 },
                 {
@@ -326,7 +334,38 @@ function executeJS() {
                     default: docName,
                     hidden: 0,
                     read_only: 1
-                }
+                },
+                {
+                    label: __(""),
+                    fieldname: "cb2",
+                    fieldtype: "Section Break",
+                },
+                {
+                    label: __("Indirect Emission Factor"),
+                    fieldname: "indirect_emission_factor",
+                    fieldtype: "Float",
+                    default: docData ? docData.indirect_emission_factor : "",
+                },
+                {
+                    label: __("Source of Indirect Emission Factor"),
+                    fieldname: "source_of_indirect_emission_factor",
+                    fieldtype: "Data",
+                    default: docData ? docData.source_of_indirect_emission_factor : "",
+                    depends_on: "eval:doc.indirect_emission_factor",
+                    mandatory_depends_on: "eval:doc.indirect_emission_factor"
+                },
+                {
+                    label: __(""),
+                    fieldname: "cb2",
+                    fieldtype: "Column Break",
+                },
+                {
+                    label: __("Specific (indirect) embedded emissions [tCO2/t]"),
+                    fieldname: "specific_indirect_embedded_emissions",
+                    fieldtype: "Float",
+                    default: docData ? docData.specific_indirect_embedded_emissions : "",
+                    depends_on: "eval:doc.indirect_emission_factor",
+                },
             ],
             size: 'extra-large', // small, large, extra-large 
             primary_action_label: `${update ? "Update" : "Create"} Emission`,
@@ -362,8 +401,7 @@ function executeJS() {
         absBtn.forEach(btn => {
             btn.addEventListener("click", function() {
                 const docName = container.querySelector(".inv-name").dataset.name;
-                CreateEmissionDialog(docName)
-                console.log(docName)
+                CreateEmissionDialog(docName);
                 
             })
         })
