@@ -69,15 +69,16 @@
   "is_the_installation_tracking_emission",
   "section_break_fvtl",
   "emission_data",
-  "source_of_electricity",
   "indirect_emission_factor",
-  "indirect_emission_data",
+  "source_of_indirect_emission_factor",
+  "specific_indirect_embedded_emissions",
   "amended_from",
   "column_break_mies",
   "production_method",
+  "specific_direct_embedded_emissions",
   "electricity_consumed",
-  "direct_emission_data",
-  "source_of_indirect_embedded_emissions"
+  "column_break_pfox",
+  "source_of_electricity"
  ],
  "fields": [
   {
@@ -236,19 +237,6 @@
   {
    "fieldname": "column_break_wczo",
    "fieldtype": "Column Break"
-  },
-  {
-   "fetch_from": "emission_data.specific_direct_embedded_emissions",
-   "fieldname": "direct_emission_data",
-   "fieldtype": "Data",
-   "label": "Direct embedded emissions [t CO2/t product]"
-  },
-  {
-   "description": "Electricity consumed [MWh/t]",
-   "fetch_from": "emission_data.specific_indirect_embedded_emissions",
-   "fieldname": "indirect_emission_data",
-   "fieldtype": "Data",
-   "label": "Indirect embedded emissions [t CO2/t product]"
   },
   {
    "fieldname": "forwarding_details_section",
@@ -513,18 +501,36 @@
    "read_only": 1
   },
   {
-   "description": "Electricity consumed [MWh/t]",
    "fetch_from": "emission_data.source_of_indirect_emission_factor",
-   "fieldname": "source_of_indirect_embedded_emissions",
+   "fieldname": "source_of_indirect_emission_factor",
    "fieldtype": "Data",
-   "label": "Source of indirect embedded emissions"
+   "label": "Source of Indirect Emission Factor",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "emission_data.specific_indirect_embedded_emissions",
+   "fieldname": "specific_indirect_embedded_emissions",
+   "fieldtype": "Float",
+   "label": "Specific (indirect) embedded emissions [tCO2/t]",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "emission_data.specific_direct_embedded_emissions",
+   "fieldname": "specific_direct_embedded_emissions",
+   "fieldtype": "Data",
+   "label": "Specific (direct) embedded emissions [tCO2/t]",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_pfox",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-20 07:12:54.343305",
+ "modified": "2025-03-26 11:52:37.606706",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
