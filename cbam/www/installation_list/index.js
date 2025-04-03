@@ -309,11 +309,6 @@ function executeJS() {
                     
                 },
                 {
-                    label: __("Attach"),
-                    fieldname: "cb1",
-                    fieldtype: "Attach",
-                },
-                {
                     label: __(""),
                     fieldname: "cb1",
                     fieldtype: "Column Break",
