@@ -24,9 +24,11 @@
   "column_break_kaso",
   "raw_mass",
   "currency",
+  "inward_processing",
   "column_break_jims",
   "customs_procedure",
   "customs_value",
+  "invoice_number",
   "column_break_jevc",
   "country_of_origin",
   "country_of_origin_code",
@@ -167,8 +169,9 @@
   },
   {
    "fieldname": "customs_procedure",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Customs Procedure",
+   "options": "Customs Procedure",
    "read_only_depends_on": "eval:doc.manufacture==\"I am NOT the manufacturer of the whole amount of the product\"",
    "reqd": 1
   },
@@ -225,20 +228,23 @@
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
    "label": "Installation",
-   "options": "CBAM Installation"
+   "options": "CBAM Installation",
+   "read_only": 1
   },
   {
    "fieldname": "emission_data",
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
    "label": "Emission Data",
-   "options": "CBAM Emission Data"
+   "options": "CBAM Emission Data",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_wczo",
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval:!frappe.user.has_role(\"System Manager\")",
    "fieldname": "forwarding_details_section",
    "fieldtype": "Section Break",
    "label": "Forwarding Details"
@@ -282,6 +288,7 @@
    "default": "G-",
    "fieldname": "naming_series",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Naming Series",
    "options": "G-",
    "set_only_once": 1
@@ -315,7 +322,8 @@
   {
    "fieldname": "rejection_reason",
    "fieldtype": "Small Text",
-   "label": "Rejection Reason"
+   "label": "Rejection Reason",
+   "read_only": 1
   },
   {
    "fieldname": "rejected_from_supplier",
@@ -323,6 +331,7 @@
    "ignore_user_permissions": 1,
    "label": "Rejected from Supplier",
    "options": "Operating Company",
+   "read_only": 1,
    "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")"
   },
   {
@@ -524,13 +533,24 @@
   {
    "fieldname": "column_break_pfox",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "inward_processing",
+   "fieldtype": "Select",
+   "label": "Inward Processing",
+   "options": "Yes\nNo"
+  },
+  {
+   "fieldname": "invoice_number",
+   "fieldtype": "Data",
+   "label": "Invoice Number"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-26 11:52:37.606706",
+ "modified": "2025-04-03 12:57:28.679183",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
