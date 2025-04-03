@@ -61,7 +61,7 @@ web_include_js = [
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
-# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+doctype_list_js = {"Good" : "public/js/doctype/good/good_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
@@ -274,9 +274,16 @@ fixtures = [
     {"dt": "Module Profile", "filters": [
         [
             "name", "in", [
-                
                 "Declarant"
-                
+            ]
+        ]
+    ]},
+    {"dt": "Dynamic Web Template", "filters": [
+        [
+            "name", "in", [
+                "Impressum-en",
+                "CBAM Home-en",
+                "Privacy Policy-en"
             ]
         ]
     ]},
