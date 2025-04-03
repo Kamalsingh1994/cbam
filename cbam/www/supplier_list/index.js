@@ -47,7 +47,7 @@ function executeJS() {
 
     
 
-    
+
     const createSupplier = async function(values, d) {
         values.parent_operating_company = await cbam.supplier.get_supplier()
         frappe.call({
@@ -138,6 +138,12 @@ function executeJS() {
                     default: docData ? docData.zip_code : ""
                 },
                 {
+                    label: __("Phone No"),
+                    fieldname: "company_phone_number",
+                    fieldtype: "Data",
+                    default: docData ? docData.company_phone_number : ""
+                },
+                {
                     label: __(""),
                     fieldname: "cb2",
                     fieldtype: "Column Break",
@@ -194,14 +200,11 @@ function executeJS() {
                     
                     
                 },
-                
                 {
-                    label: __("Phone No"),
-                    fieldname: "company_phone_number",
+                    label: __("Commercial Contact Phone Number"),
+                    fieldname: "main_contact_employee_phone_number",
                     fieldtype: "Data",
                     default: docData ? docData.company_phone_number : ""
-                    
-                    
                 },
                 {
                     label: __("Parent Operating Company"),
