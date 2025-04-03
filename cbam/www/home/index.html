@@ -1,5 +1,30 @@
 {% extends "templates/cbamweb.html" %}
 
+{% set preferred_lang = frappe.request.cookies.get("preferred_language") %}
+{% set user_lang = frappe.db.get_value("User", frappe.session.user, "language") %}
+{% set lang = preferred_lang or user_lang or "en" %}
+
+{% set template = "CBAM Home" %}
+
+{% set record = frappe.get_all(
+    "Dynamic Web Template",
+    filters={"template": template, "is_active": 1, "language": lang},
+    fields=["content"],
+    limit=1
+) %}
+
+{% if not record %}
+  {% set record = frappe.get_all(
+      "Dynamic Web Template",
+      filters={"template": template, "is_active": 1, "language": "en"},
+      fields=["content"],
+      limit=1
+  ) %}
+{% endif %}
+
+{% set content = record[0].content if record else "" %}
+
+
 {% block page_content %}
 {% include "templates/includes/web_sidebar.html" %}
 <main class="main container my-4 ">
@@ -18,93 +43,7 @@
         <div class="list-row-container">
           <div class="content-container">
             <div class="text-content">
-              <div class="flex-col">
-                <span class="policy-text">Welcome to CBAM-Myconet,</span>
-                <span class="policy-text">
-                  On this platform you can easily submit you CBAM relevant information to your 
-                  European customers.
-                </span>
-              </div>
-
-              <div class="flex-col">
-                <span class="policy-text bold">The data is structured as follows:</span>
-                <span class="policy-text">
-                  <span class="underline">Goods</span>: 
-                  Here you find a list of all goods for which data is requested from you
-                </span>
-                <span class="policy-text">
-                  <span class="underline">Suppliers</span>: 
-                  Here you can enter, manage and review all suppliers from which you source any CBAM-goods
-                </span>
-                <span class="policy-text">
-                  <span class="underline">Installations</span>: 
-                  Here you can enter all Installations your company operates and allocate different emission values to them
-                </span>
-                <span class="policy-text">
-                  <span class="underline">My Operating company</span>: 
-                  Here you can edit your company and contact informtation
-                </span>
-              </div>
-
-              <div class="flex-col">
-                <span class="policy-text bold">Please follow these steps in order to submit your data.</span>
-                <ol class="order-list">
-                  <li class="policy-text">Please, review all goods allocated to you on the “Goods”-page</li>
-                  <li class="policy-text">
-                    Create supplier entries for all suppliers from which you have purchased 
-                    CBAM-goods yourself on the “Suppliers”-page
-                  </li>
-                  <li class="policy-text">
-                    Go to the “installations”-page and enter all installations in which you 
-                    manufacture CABM goods. Create all relevant emission entries for each 
-                    installation.
-                  </li>
-                  <li class="policy-text">Enter you company and contact details on “My operating company”</li>
-                  <li class="policy-text">Go back to the “Goods”-list and follow this workflow:</li>
-                  <ol class="order-list" type="a">
-                    <li class="sub-policy-text">Click on the 3-dots to select an action</li>
-                    <li class="sub-policy-text">First “reject” all items your company did not sell</li>
-                    <li class="sub-policy-text">
-                      Next “split” all items for which you bought a partial amount from 
-                      another supplier/different suppliers
-                    </li>
-                    <ol class="order-list" type="i">
-                      <li>You can split the requested mass into as many parts as you need</li>
-                      <li>
-                        Please, do not split the mass by different components. The request refers to the listed 
-                        product not its individual components.
-                      </li>
-                      <li>
-                        Splitting is only relevant, if the full sold mass stems from differently sourced 
-                        batches/companies (yours can be one of these companies)
-                      </li>
-                      <li>
-                        You can also split the mass, if the full amount was produced in different installations, you operate
-                      </li>
-                    </ol>
-                    <li class="sub-policy-text">Forward all amounts you bought to the corresponding supplier</li>
-                    <li class="sub-policy-text">
-                      Assign an installation and the relevant emission values to all items 
-                      produced by your company
-                    </li>
-                    <ol class="order-list" type="i">
-                      <li>
-                        You are only responsible to enter the emission data, if you have conducted the last 
-                        relevant productions step. Assembling and packaging is not considered as relevant 
-                        production step. If you only assembled/paged the item, please forward the data request 
-                        to the companies you purchased the individual items from. In this case a splitting by 
-                        components (translated via component mass) can be correct.
-                      </li>
-                    </ol>
-                  </ol>
-                  <li class="policy-text">Submit all data by:</li>
-                  <ol class="order-list" type="a">
-                    <li class="sub-policy-text">Going to the "Goods"-page.</li>
-                    <li class="sub-policy-text">Click the button next to "Article Nr" to select all entries.</li>
-                    <li class="sub-policy-text">Press "Actions" and select "Submit Emission".</li>
-                  </ol>
-                </ol>
-              </div>
+               {{ content }}
             </div>
           </div>
           <!-- <div class="video-container">
