@@ -142,54 +142,54 @@
             </div>
         </div>
     </div>
-{% if doc.installation %}
-              <h2>{{_('Emission Details')}}</h2>
-              <div class="container responsive-md" style="width: 100%">
-                  <div class="tc-field-cont field-cont">
-                      <span class="field-label">{{_('Installation')}}</span>
-                      <div class="field tc-field">{{_(doc.installation) or ""}}</div>
-                  </div>
-                  
-                  <div class="tc-field-cont field-cont">
-                      <span class="field-label">{{_('Emission Data')}}</span>
-                      <div class="field tc-field">{{_(doc.emission_data) or ""}}</div>
-                  </div>
+    {% if doc.installation %}
+        <h2>{{_('Emission Details')}}</h2>
+        <div class="container responsive-md" style="width: 100%">
+            <div class="tc-field-cont field-cont">
+                <span class="field-label">{{_('Installation')}}</span>
+                <div class="field tc-field">{{_(doc.installation) or ""}}</div>
+            </div>
+            
+            <div class="tc-field-cont field-cont">
+                <span class="field-label">{{_('Emission Data')}}</span>
+                <div class="field tc-field">{{_(doc.emission_data) or ""}}</div>
+            </div>
 
-                  <div class="tc-field-cont field-cont">
-                      <span class="field-label">{{_('Production method')}}</span>
-                      <div class="field tc-field">{{_(doc.production_method) or ""}}</div>
-                  </div>
+            <div class="tc-field-cont field-cont">
+                <span class="field-label">{{_('Production method')}}</span>
+                <div class="field tc-field">{{_(doc.production_method) or ""}}</div>
+            </div>
 
-                  <div class="tc-field-cont field-cont">
-                      <span class="field-label">{{_('Source of electricity')}}</span>
-                      <div class="field tc-field">{{_(doc.source_of_electricity) or ""}}</div>
-                  </div>
+            <div class="tc-field-cont field-cont">
+                <span class="field-label">{{_('Source of electricity')}}</span>
+                <div class="field tc-field">{{_(doc.source_of_electricity) or ""}}</div>
+            </div>
 
-                  <div class="tc-field-cont field-cont">
-                      <span class="field-label">{{_('Specific (direct) embedded emissions [tCO2/t]')}}</span>
-                      <div class="field tc-field">{{_(doc.direct_emission_data) or ""}}</div>
-                  </div>
+            <div class="tc-field-cont field-cont">
+                <span class="field-label">{{_('Specific (direct) embedded emissions [tCO2/t]')}}</span>
+                <div class="field tc-field">{{_(doc.direct_emission_data) or ""}}</div>
+            </div>
 
-                  <div class="tc-field-cont field-cont">
-                      <span class="field-label">{{_('Electricity consumed [MWh/t]')}}</span>
-                      <div class="field tc-field">{{_(doc.electricity_consumed) or ""}}</div>
-                  </div>
+            <div class="tc-field-cont field-cont">
+                <span class="field-label">{{_('Electricity consumed [MWh/t]')}}</span>
+                <div class="field tc-field">{{_(doc.electricity_consumed) or ""}}</div>
+            </div>
 
-                  <div class="tc-field-cont field-cont">
-                      <span class="field-label">{{_('Indirect Emission Factor')}}</span>
-                      <div class="field tc-field">{{_(doc.indirect_emission_factor) or ""}}</div>
-                  </div>
+            <div class="tc-field-cont field-cont">
+                <span class="field-label">{{_('Indirect Emission Factor')}}</span>
+                <div class="field tc-field">{{_(doc.indirect_emission_factor) or ""}}</div>
+            </div>
 
-                  <div class="tc-field-cont field-cont">
-                      <span class="field-label">{{_('Source of Indirect Emission Factor')}}</span>
-                      <div class="field tc-field">{{_(doc.source_of_indirect_emission_factor) or ""}}</div>
-                  </div>
+            <div class="tc-field-cont field-cont">
+                <span class="field-label">{{_('Source of Indirect Emission Factor')}}</span>
+                <div class="field tc-field">{{_(doc.source_of_indirect_emission_factor) or ""}}</div>
+            </div>
 
-                  <div class="tc-field-cont field-cont">
-                      <span class="field-label">{{_('Specific (indirect) embedded emissions [tCO2/t]')}}</span>
-                      <div class="field tc-field">{{_(doc.specific_indirect_embedded_emissions) or ""}}</div>
-                  </div>
-              </div>
+            <div class="tc-field-cont field-cont">
+                <span class="field-label">{{_('Specific (indirect) embedded emissions [tCO2/t]')}}</span>
+                <div class="field tc-field">{{_(doc.specific_indirect_embedded_emissions) or ""}}</div>
+            </div>
+        </div>
      {% endif %}
 </div>
 </div>
