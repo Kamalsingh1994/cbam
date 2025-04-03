@@ -277,16 +277,7 @@ fixtures = [
                 "Declarant"
             ]
         ]
-    ]},
-    {"dt": "Dynamic Web Template", "filters": [
-        [
-            "name", "in", [
-                "Impressum-en",
-                "CBAM Home-en",
-                "Privacy Policy-en"
-            ]
-        ]
-    ]},
+    ]}
     # {"dt": "Custom DocPerm", "filters": [
     #     [
     #         "role", "in", [
