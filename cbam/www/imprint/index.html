@@ -1,5 +1,29 @@
 {% extends "templates/cbamweb.html" %}
 
+{% set preferred_lang = frappe.request.cookies.get("preferred_language") %}
+{% set user_lang = frappe.db.get_value("User", frappe.session.user, "language") %}
+{% set lang = preferred_lang or user_lang or "en" %}
+
+{% set template = "Impressum" %}
+
+{% set record = frappe.get_all(
+    "Dynamic Web Template",
+    filters={"template": template, "is_active": 1, "language": lang},
+    fields=["content"],
+    limit=1
+) %}
+
+{% if not record %}
+  {% set record = frappe.get_all(
+      "Dynamic Web Template",
+      filters={"template": template, "is_active": 1, "language": "en"},
+      fields=["content"],
+      limit=1
+  ) %}
+{% endif %}
+
+{% set content = record[0].content if record else "" %}
+
 {% block page_content %}
 {% include "templates/includes/web_sidebar.html" %}
 <main class="main container my-4 ">
@@ -9,19 +33,7 @@
             <div class="container info-container">
               <div class="container responsive-md" style="width: 100%">
                 <div class="privacy-head">
-                    <h2 class="heading-secondary">{{_('Imprint')}}</h2>
-                    <p class="policy-text bold">{{_('Gallehr Sustainable Risk Management GmbH')}}</p>
-                    <p class="policy-text">{{_('Hauptstraße 43')}}</p>
-                    <p class="policy-text">{{_('D-61184 Karben')}}</p>
-                    <p class="policy-text">{{_('Phone')}}: +49 6039 92 63 686</p>
-                    <p class="policy-text">{{_('Fax')}}: +49 6039 92 63 689</p>
-                    <p class="policy-text">{{_('E-mail')}}: <a href="mailto:kontakt@gallehr.de">kontakt@gallehr.de</a></p>
-                    <p class="policy-text">{{_('Website')}}: <a href="https://www.gallehr.de" target="_blank">www.gallehr.de</a></p>
-                    <p class="policy-text">{{_('Managing Director')}} : {{_('Dipl.-Ing. Sebastian Gallehr')}}</p>
-                    <p class="policy-text">{{_('Register Court')}}: {{_('Frankfurt am Main')}}</p>
-                    <p class="policy-text">{{_('Registration Number')}}: HRB 80660</p>
-                    <p class="policy-text">{{_('UST-ID')}}: DE255485677</p>
-                    <p class="policy-text">{{_('Tax Number')}}: 202 340 0391</p>
+                    {{ content }}
                 </div>
               </div>
             </div>

@@ -274,9 +274,16 @@ fixtures = [
     {"dt": "Module Profile", "filters": [
         [
             "name", "in", [
-                
                 "Declarant"
-                
+            ]
+        ]
+    ]},
+    {"dt": "Dynamic Web Template", "filters": [
+        [
+            "name", "in", [
+                "Impressum-en",
+                "CBAM Home-en",
+                "Privacy Policy-en"
             ]
         ]
     ]},
