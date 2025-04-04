@@ -24,9 +24,11 @@
   "column_break_kaso",
   "raw_mass",
   "currency",
+  "inward_processing",
   "column_break_jims",
   "customs_procedure",
   "customs_value",
+  "invoice_number",
   "column_break_jevc",
   "country_of_origin",
   "country_of_origin_code",
@@ -34,12 +36,23 @@
   "shipping_country_code",
   "supplier_section",
   "operating_company",
-  "declarant",
+  "country",
   "column_break_lqxr",
   "supplier_name",
-  "supplier_number",
+  "city",
   "column_break_fkqq",
+  "supplier_number",
+  "zip_code",
+  "section_break_kbvy",
+  "declarant",
+  "column_break_rtyx",
   "importing_company",
+  "cbam_representative_section",
+  "cbam_representative_email",
+  "cbam_representative_phone_number",
+  "column_break_nsuo",
+  "cbam_representative_first_name",
+  "cbam_representative_last_name",
   "forwarding_details_section",
   "forwarded_from_supplier",
   "column_break_awva",
@@ -50,10 +63,24 @@
   "split_details",
   "requested_data_section",
   "installation",
-  "emission_data",
+  "installation_city",
+  "is_the_installation_subject_to_an_emission_trading_system",
   "column_break_wczo",
-  "direct_emission_data",
-  "indirect_emission_data"
+  "installation_country",
+  "installation_zip_code",
+  "is_the_installation_tracking_emission",
+  "section_break_fvtl",
+  "emission_data",
+  "indirect_emission_factor",
+  "source_of_indirect_emission_factor",
+  "specific_indirect_embedded_emissions",
+  "amended_from",
+  "column_break_mies",
+  "production_method",
+  "specific_direct_embedded_emissions",
+  "electricity_consumed",
+  "column_break_pfox",
+  "source_of_electricity"
  ],
  "fields": [
   {
@@ -142,8 +169,9 @@
   },
   {
    "fieldname": "customs_procedure",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Customs Procedure",
+   "options": "Customs Procedure",
    "read_only_depends_on": "eval:doc.manufacture==\"I am NOT the manufacturer of the whole amount of the product\"",
    "reqd": 1
   },
@@ -200,33 +228,23 @@
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
    "label": "Installation",
-   "options": "CBAM Installation"
+   "options": "CBAM Installation",
+   "read_only": 1
   },
   {
    "fieldname": "emission_data",
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
    "label": "Emission Data",
-   "options": "CBAM Emission Data"
+   "options": "CBAM Emission Data",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_wczo",
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "emission_data.specific_direct_embedded_emissions",
-   "fieldname": "direct_emission_data",
-   "fieldtype": "Data",
-   "label": "Direct embedded emissions [t CO2/t product]"
-  },
-  {
-   "description": "Electricity consumed [MWh/t]",
-   "fetch_from": "emission_data.electricity_consumed",
-   "fieldname": "indirect_emission_data",
-   "fieldtype": "Data",
-   "label": "Indirect embedded emissions [t CO2/t product]"
-  },
-  {
+   "depends_on": "eval:!frappe.user.has_role(\"System Manager\")",
    "fieldname": "forwarding_details_section",
    "fieldtype": "Section Break",
    "label": "Forwarding Details"
@@ -270,6 +288,7 @@
    "default": "G-",
    "fieldname": "naming_series",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Naming Series",
    "options": "G-",
    "set_only_once": 1
@@ -303,7 +322,8 @@
   {
    "fieldname": "rejection_reason",
    "fieldtype": "Small Text",
-   "label": "Rejection Reason"
+   "label": "Rejection Reason",
+   "read_only": 1
   },
   {
    "fieldname": "rejected_from_supplier",
@@ -311,6 +331,7 @@
    "ignore_user_permissions": 1,
    "label": "Rejected from Supplier",
    "options": "Operating Company",
+   "read_only": 1,
    "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")"
   },
   {
@@ -339,11 +360,197 @@
    "fieldtype": "Link",
    "label": "Declarant",
    "options": "Declarant"
+  },
+  {
+   "fetch_from": "operating_company.country",
+   "fieldname": "country",
+   "fieldtype": "Data",
+   "label": "Country",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "operating_company.city",
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "label": "City",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "operating_company.zip_code",
+   "fieldname": "zip_code",
+   "fieldtype": "Data",
+   "label": "Zip Code",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_kbvy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_rtyx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cbam_representative_section",
+   "fieldtype": "Section Break",
+   "label": "CBAM Representative"
+  },
+  {
+   "fetch_from": "operating_company.cbam_representive_employee_email",
+   "fieldname": "cbam_representative_email",
+   "fieldtype": "Data",
+   "label": "CBAM Representative Email",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "operating_company.cbam_representive_employee_phone_number",
+   "fieldname": "cbam_representative_phone_number",
+   "fieldtype": "Data",
+   "label": "CBAM Representative Phone Number",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_nsuo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "operating_company.cbam_representive_employee_first_name",
+   "fieldname": "cbam_representative_first_name",
+   "fieldtype": "Data",
+   "label": "CBAM Representative First Name",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "operating_company.cbam_representive_last_name",
+   "fieldname": "cbam_representative_last_name",
+   "fieldtype": "Data",
+   "label": "CBAM Representative Last Name",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "installation.country",
+   "fieldname": "installation_country",
+   "fieldtype": "Data",
+   "label": "Installation Country",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_fvtl",
+   "fieldtype": "Section Break",
+   "label": "Emission Details"
+  },
+  {
+   "fieldname": "column_break_mies",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "installation.city",
+   "fieldname": "installation_city",
+   "fieldtype": "Data",
+   "label": "Installation City",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "installation.is_the_installation_subject_to_an_emission_trading_system",
+   "fieldname": "is_the_installation_subject_to_an_emission_trading_system",
+   "fieldtype": "Data",
+   "label": "Is the installation subject to an emission trading system?",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "installation.zip_code",
+   "fieldname": "installation_zip_code",
+   "fieldtype": "Data",
+   "label": "Installation Zip Code",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "installation.is_the_installation_tracking_emissions_data",
+   "fieldname": "is_the_installation_tracking_emission",
+   "fieldtype": "Data",
+   "label": "Is the installation tracking emission?",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "emission_data.source_of_electricity",
+   "fieldname": "source_of_electricity",
+   "fieldtype": "Data",
+   "label": "Source of electricity",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "emission_data.electricity_consumed",
+   "fieldname": "electricity_consumed",
+   "fieldtype": "Data",
+   "label": "Electricity consumed [MWh/t]",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Good",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "emission_data.indirect_emission_factor",
+   "fieldname": "indirect_emission_factor",
+   "fieldtype": "Data",
+   "label": "Indirect Emission Factor",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "emission_data.production_method",
+   "fieldname": "production_method",
+   "fieldtype": "Data",
+   "label": "Production method",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "emission_data.source_of_indirect_emission_factor",
+   "fieldname": "source_of_indirect_emission_factor",
+   "fieldtype": "Data",
+   "label": "Source of Indirect Emission Factor",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "emission_data.specific_indirect_embedded_emissions",
+   "fieldname": "specific_indirect_embedded_emissions",
+   "fieldtype": "Float",
+   "label": "Specific (indirect) embedded emissions [tCO2/t]",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "emission_data.specific_direct_embedded_emissions",
+   "fieldname": "specific_direct_embedded_emissions",
+   "fieldtype": "Data",
+   "label": "Specific (direct) embedded emissions [tCO2/t]",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_pfox",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "inward_processing",
+   "fieldtype": "Select",
+   "label": "Inward Processing",
+   "options": "Yes\nNo"
+  },
+  {
+   "fieldname": "invoice_number",
+   "fieldtype": "Data",
+   "label": "Invoice Number"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-01-14 17:58:59.062441",
+ "modified": "2025-04-04 10:35:01.399033",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
@@ -378,26 +585,32 @@
   },
   {
    "create": 1,
+   "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "Commercial Contact",
    "select": 1,
    "share": 1,
+   "submit": 1,
    "write": 1
   },
   {
    "create": 1,
+   "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "CBAM Representative",
    "select": 1,
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],
@@ -424,5 +637,6 @@
    "color": "Green",
    "title": "Data Submitted"
   }
- ]
+ ],
+ "track_changes": 1
 }

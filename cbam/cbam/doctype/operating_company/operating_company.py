@@ -8,8 +8,16 @@ from frappe.model.document import Document
 
 class OperatingCompany(Document):
 	def validate(self):
-		self.create_commercial_contact()
-		self.create_cbam_user()	
+		
+		if not frappe.db.exists("Operating Company", {"commercial_contact_user": self.main_contact_employee_email, "name": ["!=", self.name]}):
+			self.create_commercial_contact()
+			self.create_cbam_user()
+			self.status = "Pending Verification"
+		else:
+			frappe.msgprint("User already exists for another Operating Company")
+			self.create_commercial_contact_user = 0
+			self.commercial_contact_user = ""
+			self.status = "Missing Commercial Contact"
 		self.set_title()
 
 	def set_title(self):
@@ -43,23 +51,28 @@ class OperatingCompany(Document):
 		self.flags.new_flag = True
 		if self.cbam_representive_employee_email and not username:
 			username = frappe.db.get_value("User", self.cbam_representive_employee_email, "name")
+			user = None
 			if not username:
 				user = frappe.new_doc("User")
 				user.send_welcome_email = False
 				user.first_name = self.cbam_representive_last_name or self.cbam_representive_employee_first_name
 				user.email = self.cbam_representive_employee_email
-				user.append("roles",{
-					"role": frappe.db.get_single_value("CBAM Settings", "commercial_contact_user_role")
-				})
+				# user.append("roles",{
+				# 	"role": frappe.db.get_single_value("CBAM Settings", "commercial_contact_user_role")
+				# })
+			elif username:
+				user = frappe.get_doc("User", self.cbam_representive_employee_email)
+    
+			if user:
 				user.append("roles",{
 					"role": frappe.db.get_single_value("CBAM Settings", "cbam_representative_user_role")
 				})
 				user.save(ignore_permissions=True)
-				
+					
 				username = user.name
 
 
-			self.cbam_representative_user = username
+				self.cbam_representative_user = username
 		if not self.is_new():
 			self.flags.new_flag = False
 			self.create_permissions(username)
@@ -87,7 +100,7 @@ class OperatingCompany(Document):
 	def create_permissions(self, user):
 		if not user:
 			return
-		if not frappe.db.exists("User Permission", {"user": user, "for_value":self.name}):
+		if not frappe.db.exists("User Permission", {"user": user, "allow":"Operating Company"}):
 			us_pem = frappe.new_doc("User Permission")
 			us_pem.user = user 
 			us_pem.allow = "Operating Company"
@@ -95,7 +108,7 @@ class OperatingCompany(Document):
 			us_pem.is_default = 1
 			us_pem.save(ignore_permissions=True)
 
-		if not frappe.db.exists("User Permission", {"user":user, "for_value":self.declarant}):
+		if not frappe.db.exists("User Permission", {"user":user, "allow":"Declarant"}):
 			aus_pem = frappe.new_doc("User Permission")
 			aus_pem.user = user
 			aus_pem.allow = "Declarant"

@@ -178,7 +178,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-14 18:58:00.659177",
+ "modified": "2025-03-10 11:41:42.502212",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Installation",
@@ -199,6 +199,7 @@
   },
   {
    "create": 1,
+   "delete": 1,
    "email": 1,
    "export": 1,
    "if_owner": 1,
@@ -222,12 +223,14 @@
   },
   {
    "create": 1,
+   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "CBAM Representative",
+   "select": 1,
    "share": 1,
    "write": 1
   }

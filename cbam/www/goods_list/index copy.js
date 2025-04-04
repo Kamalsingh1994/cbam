@@ -77,7 +77,6 @@ window.addEventListener("DOMContentLoaded", function() {
                 doc_list.push(index.querySelector('#doc-name').dataset.name)
             }
         })
-        console.log(doc_list)
         CreateForwardDialog(doc_list)
     })
 
@@ -175,7 +174,6 @@ window.addEventListener("DOMContentLoaded", function() {
                 default: "",
                 options: "Supplier\nInstallation",
                 change: async () =>{
-                   console.log("AAAA")
                     cur_dialog.fields_dict[`source_name_${no}`].df.options = await cbam.utils.get_links("Operating Company", ["supplier_name as label", "name as value"])
                     cur_dialog.fields_dict[`source_name_${no}`].refresh()
                 },
@@ -228,8 +226,6 @@ window.addEventListener("DOMContentLoaded", function() {
                 default: "Supplier",
                 options: "\nSupplier\nInstallation",
                 change: () =>{
-                   
-                   console.log()
                     cur_dialog.refresh()
                 },
                 in_list_view: 1
@@ -280,7 +276,6 @@ window.addEventListener("DOMContentLoaded", function() {
                 options: await cbam.utils.get_links("CBAM Emission Data"),
                 change: async () =>{
                     let installation =  await cbam.utils.get_installation(d.get_value("emission_data"));
-                    console.log(installation)
                     d.set_value("installation", installation)
                  }
                 //options: "\nSub Supplier\nCollegue"
@@ -381,7 +376,6 @@ window.addEventListener("DOMContentLoaded", function() {
             primary_action_label: 'Split Goods',
             secondary_action_label: 'Add More',
             primary_action(values) {
-                console.log(values);
                 d.hide();
             },
             secondary_action(values) {

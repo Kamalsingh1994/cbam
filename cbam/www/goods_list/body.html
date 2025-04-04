@@ -8,24 +8,24 @@
           <div class="selected-cta-container">
             <span class="status-filter-container">
               <select type="text" class="form-control  status-filter" data-fieldtype="Select" data-fieldname="status" placeholder="">
-                <option value="">All</option>
-                <option value="Raw Data">Raw Data</option>
-                <option value="Split for completing">Split for completing</option>
-                <option value="Split">Split</option>
-                <option value="Done">Done</option>
-                <option value="Rejected">Rejected</option>
+                <option value="">{{_('All')}}</option>
+                <option value="Raw Data">{{_('Raw Data')}}</option>
+                <option value="Split for completing">{{_('Split for completing')}}</option>
+                <option value="Split">{{_('Split')}}</option>
+                <option value="Done">{{_('Done')}}</option>
+                <option value="Rejected">{{_('Rejected')}}</option>
               </select>
             </span>
 
             <div class="selected-container">
-              <span>Selected: <span class="selected-no">0</span></span>
+              <span>{{_('Selected')}}: <span class="selected-no">0</span></span>
             </div>
             <div class="actions-btn-group hidden data-btn">       
               <button type="button" class="btn btn-primary btn-sm" data-toggle="dropdown" aria-expanded="false">        
                 <span class="action-btn-flex">
                   <span class="hidden-xs actions-btn-group-label" data-label="Actions">
                     <span>
-                      <span class="alt-underline">A</span>ctions</span>
+                      <span class="alt-underline">{{_('Actions')}}</span>
                     </span>
                     <svg class="icon icon-xs">
                       <use href="#icon-select"></use>
@@ -35,22 +35,22 @@
               <ul class="dropdown-menu dropdown-menu-right" role="menu">
                 <li class="user-action">
                   <a id="bulkforward-data" class="grey-link dropdown-item" href="#" onclick="return false;">
-                    <span class="menu-item-label" data-label="Forward"><span>Forward</span></span>
+                    <span class="menu-item-label" data-label="Forward"><span>{{_('Forward')}}</span></span>
                   </a>
                 </li>
                 <li class="user-action">
                   <a id="bulkreject-data" class="grey-link dropdown-item" href="#" onclick="return false;">
-                    <span class="menu-item-label" data-label="Reject"><span>Reject</span></span>
+                    <span class="menu-item-label" data-label="Reject"><span>{{_('Reject')}}</span></span>
                   </a>
                 </li>
                 <li class="user-action">
                   <a id="bulkassign-data" class="grey-link dropdown-item" href="#" onclick="return false;">
-                    <span class="menu-item-label" data-label="Assign Emission"><span>Assign Emission</span></span>
+                    <span class="menu-item-label" data-label="Assign Emission"><span>{{_('Assign Emission')}}</span></span>
                   </a>
                 </li>
                 <li class="user-action">
                   <a id="bulksubmit-data" class="grey-link dropdown-item" href="#" onclick="return false;">
-                    <span class="menu-item-label" data-label="Submit Emission"><span>Submit Emission</span></span>
+                    <span class="menu-item-label" data-label="Submit Emission"><span>{{_('Submit Emission')}}</span></span>
                   </a>
                 </li>
               </ul>      
@@ -84,24 +84,24 @@
                 />
               </span>
             <span class="level-item bold ellipsis">
-              <span class="invoice-title ellipsis" title="Sales Invoice">Article Nr</span>
+              <span class="invoice-title ellipsis" title="Sales Invoice">{{_('Article Nr')}}</span>
             </span>
           </div>
           
           <div class="list-row-col list-subject level tc-container">
-            <span class="tc-text">Good Description</span>
+            <span class="tc-text">{{_('Good Description')}}</span>
           </div>
           <div class="list-row-col list-subject level gt-container ">
-            <span class="gt-text">Raw Mass</span>
+            <span class="gt-text">{{_('Raw Mass')}}</span>
           </div>
           <div class="list-row-col list-subject level gt-container ">
-            <span class="gt-text">Importer</span>
+            <span class="gt-text">{{_('Importer')}}</span>
           </div>
           <div class="list-row-col list-subject level status-title">
-            <span class="gt-text">Status</span>
+            <span class="gt-text">{{_('Status')}}</span>
           </div>
           <div class="list-row-col list-subject level gt-container ">
-            <span class="gt-text">Parts</span>
+            <span class="gt-text">{{_('Parts')}}</span>
           </div>
           <!-- <div class="list-row-col list-subject level prt-container">
             <span class="prt-text">Actions</span>
@@ -189,12 +189,12 @@
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             {%endif%}
             <div class="options-abs hidden">
-              <button class="abs-option-btn" data-action="Split">Split</button>
-              <button class="abs-option-btn" data-action="Forward">Forward</button>
-              <button class="abs-option-btn" data-action="Reject">Reject</button>
+              <button class="abs-option-btn" data-action="Split">{{_('Split')}}</button>
+              <button class="abs-option-btn" data-action="Forward">{{_('Forward')}}</button>
+              <button class="abs-option-btn" data-action="Reject">{{_('Reject')}}</button>
               <!-- <button class="abs-option-btn" data-action="Add Installation">Add Installation</button> -->
-              <button class="abs-option-btn" data-action="Add Emission Data">Add Emission</button>
-              <button class="abs-option-btn" data-action="Submit Emission Data">Submit Emission</button>
+              <button class="abs-option-btn" data-action="Add Emission Data">{{_('Add Emission')}}</button>
+              <button class="abs-option-btn" data-action="Submit Emission Data">{{_('Submit Emission')}}</button>
             </div>
             <span class="ml-2 collapse-indicator mb-1 arr-icon">
               <svg class="es-icon es-line icon-sm arr-icon" aria-hidden="true">
@@ -208,32 +208,32 @@
           <div class="container responsive-md" style="width: 100%">
             
             <div class="tc-field-cont field-cont">
-              <span class="field-label">Internal Customs Import Number</span>
+              <span class="field-label">{{_('Internal Customs Import Number')}}</span>
               <div class="field tc-field">{{doc.internal_customs_import_number}}</div>
             </div>
             
             <div class="tc-field-cont field-cont">
-              <span class="field-label">Country of origin</span>
+              <span class="field-label">{{_('Country of origin')}}</span>
               <div class="field tc-field">{{doc.country_of_origin}}</div>
             </div>
 
             <div class="tc-field-cont field-cont">
-              <span class="field-label">Customs value in Euro</span>
+              <span class="field-label">{{_('Customs value in Euro')}}</span>
               <div class="field tc-field">{{doc.customs_value}}</div>
             </div>
 
             <div class="tc-field-cont field-cont">
-              <span class="field-label">Invoice number</span>
+              <span class="field-label">{{_('Invoice number')}}</span>
               <div class="field tc-field">{{doc.invoice_number}}</div>
             </div>
 
             <div class="tc-field-cont field-cont">
-              <span class="field-label">Hand over date</span>
+              <span class="field-label">{{_('Hand over date')}}</span>
               <div class="field tc-field">{{doc.hand_over_date}}</div>
             </div>
 
             <div class="tc-field-cont field-cont">
-              <span class="field-label">Customs Tariff Number</span>
+              <span class="field-label">{{_('Customs Tariff Number')}}</span>
               <div class="field tc-field">{{doc.customs_tariff_number}}</div>
             </div>
             <div class="prt-field-cont field-cont field-res" style="align-self: flex-end;">
@@ -243,7 +243,7 @@
                     <svg class="icon print-btn icon-sm" aria-hidden="true" style="width: 12px; height: 12px;">
                       <use class="print-btn" href="#icon-printer"></use>
                     </svg>
-                    <span class="print-btn">Print</span>
+                    <span class="print-btn">{{_('Print')}}</span>
                   </span>
                 </button>
               </div>

@@ -95,7 +95,6 @@ window.addEventListener("DOMContentLoaded", function() {
             primary_action_label: 'Create Emission',
             //secondary_action_label: '',
             primary_action(values) {
-                console.log(values);
                 d.hide();
             },
             secondary_action(values) {
@@ -154,7 +153,6 @@ window.addEventListener("DOMContentLoaded", function() {
             size: 'extra-large', // small, large, extra-large 
             primary_action_label: 'Submit',
             primary_action(values) {
-                console.log(values);
                 d.hide();
             }
         });
@@ -180,7 +178,6 @@ window.addEventListener("DOMContentLoaded", function() {
             primary_action_label: 'Reject Goods',
             //secondary_action_label: '',
             primary_action(values) {
-                console.log(values);
                 d.hide();
             },
             secondary_action(values) {
@@ -338,7 +335,6 @@ window.addEventListener("DOMContentLoaded", function() {
             primary_action_label: 'Create Installation',
             //secondary_action_label: '',
             primary_action(values) {
-                console.log(values);
                 d.hide();
             },
             secondary_action(values) {
@@ -363,7 +359,6 @@ window.addEventListener("DOMContentLoaded", function() {
                 default: "",
                 options: "\nSub Supplier\nInstallation",
                 change: () =>{
-                   console.log("Chanfe")
                     cur_dialog.refresh()
                 }
             },
@@ -415,7 +410,6 @@ window.addEventListener("DOMContentLoaded", function() {
             primary_action_label: 'Split Goods',
             secondary_action_label: 'Add More',
             primary_action(values) {
-                console.log(values);
                 d.hide();
             },
             secondary_action(values) {

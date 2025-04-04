@@ -1,0 +1,4 @@
+<p>Following Operating Companies records for the user "{{doc.name}}" had duplicate Commercial Contact User due to which their values have not been set:</p><br>
+{% for i in doc.items %}
+    <p><strong><a href ="{{frappe.utils.get_url()}}/app/operating-company/{{i.name}}"> {{frappe.db.get_value("Operating Company", i.name, "title")}}</a></strong></p><br>
+{% endfor %}

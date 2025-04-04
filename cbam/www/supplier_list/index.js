@@ -2,18 +2,33 @@ let CreateSupplierDialog;
 
 window.addEventListener("DOMContentLoaded", () => {
     executeJS();
-    
-    document.querySelector('.add-new').addEventListener('click', function(e){
+    refreshElements(frappe)
+    document.querySelector('.add-new').addEventListener('click', async function(e){
         CreateSupplierDialog()
     })
 });
+
+const refreshElements = function (frappe) {
+    const contentContainer = document.querySelectorAll(".content-container");
+    return new Promise((resolve, reject) => {
+        frappe.call({
+            method: "cbam.www.supplier_list.index.get_supplier_partial_html",
+            callback: function(r) {
+                if(r.message) {
+                    contentContainer.forEach(container => {
+                        container.remove();
+                    });
+                    document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
+                    executeJS();
+                    resolve(true);
+                }
+            }
+        })
+    })
+}
+
+
 function executeJS() {
-    // This condition is to stop the rest of the code from executing if the user is not authorized.
-    // frappe.call({
-    //     method: "paystack_integration.utils.ex_utils.clear_website_cache",
-    //     callback: function(r) {
-    //     }
-    // });
 
     const contentContainer = document.querySelectorAll(".content-container");
     const infoContainer = document.querySelectorAll(".info-container");
@@ -29,31 +44,40 @@ function executeJS() {
     let amount = 0;
 
     selectedEl.textContent = selected;
+
     
-    const createSupplier = function(values, d) {
-        values.parent_operating_company = cbam.utils.get_parent_supplier()
-        console.log(values);
+
+
+    const createSupplier = async function(values, d) {
+        values.parent_operating_company = await cbam.supplier.get_supplier()
         frappe.call({
             method: "cbam.utils.create_new_doc",
             args: {
                 doc: values
             },
-            callback: function(r) {
-                console.log(r.message);
+            callback: async function(r) {
                 if(r.message) {
-                    frappe.call({
-                        method: "cbam.www.supplier_list.index.get_supplier_partial_html",
-                        callback: function(r) {
-                            if(r.message) {
-                                contentContainer.forEach(container => {
-                                    container.remove();
-                                });
-                                document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
-                                executeJS();
-                            }
-                        }
-                    })
-                    d.hide();
+                    const refreshed = await refreshElements(frappe);
+                    if(refreshed) {
+                        d.hide();
+                    }
+                }
+            }
+        })
+    }
+    
+    const updateSupplier = function(values, d) {
+        frappe.call({
+            method: "cbam.utils.update_doc",
+            args: {
+                doc: values
+            },
+            callback: async function(r) {
+                if(r.message) {
+                    const refreshed = await refreshElements(frappe);
+                    if(refreshed) {
+                        d.hide();
+                    }
                 }
             }
         })
@@ -62,6 +86,7 @@ function executeJS() {
     const hideDropDown = function() {
         dropDownCont.forEach(dropDownEl => dropDownEl.classList.add("hidden"));
     }
+    
     window.addEventListener('click', function(e){
         if(!e.target.classList.contains("action-btn")) {
             hideDropDown()
@@ -69,24 +94,28 @@ function executeJS() {
     })
     
 
-    CreateSupplierDialog = async function(){
+    CreateSupplierDialog = async function(docName="", docData=false, update=false){
         let d = new frappe.ui.Dialog({
-            title: `Add New Supplier`,
+            title: `${update ? "Update" : "Add New"} Supplier`,
             fields: [
                 {
                     label: __("Supplier Number"),
                     fieldname: "supplier_number",
-                    fieldtype: "Data"
-                    
+                    fieldtype: "Data",
+                    default: docData ? docData.supplier_number : ""
                 },
                 {
-                    label: __("Supplier Name"),
-                    fieldname: "supplier_name",
+                    label: __("Country"),
+                    fieldname: "country",
+                    fieldtype: "Autocomplete",
+                    options: await cbam.utils.get_links("Country"),
+                    default: docData ? docData.country : ""
+                },
+                {
+                    label: __("Company Email"),
+                    fieldname: "company_email",
                     fieldtype: "Data",
-                    reqd:1
-                    //options: "Same contact person as Operating Company\nDifferent contact person\nNo contact person for this Installation"
-                   
-                    
+                    default: docData ? docData.company_email : ""
                 },
                 {
                     label: __(""),
@@ -94,28 +123,46 @@ function executeJS() {
                     fieldtype: "Column Break",
                 },
                 {
+                    label: __("Supplier Name"),
+                    fieldname: "supplier_name",
+                    fieldtype: "Data",
+                    reqd: update ? 0 : 1,
+                    //options: "Same contact person as Operating Company\nDifferent contact person\nNo contact person for this Installation"
+                    default: docData ? docData.supplier_name : ""
+                    
+                },
+                {
+                    label: __("Zip Code"),
+                    fieldname: "zip_code",
+                    fieldtype: "Data",
+                    default: docData ? docData.zip_code : ""
+                },
+                {
+                    label: __("Phone No"),
+                    fieldname: "company_phone_number",
+                    fieldtype: "Data",
+                    default: docData ? docData.company_phone_number : ""
+                },
+                {
+                    label: __(""),
+                    fieldname: "cb2",
+                    fieldtype: "Column Break",
+                },
+                {
                     label: __("City"),
                     fieldname: "city",
                     fieldtype: "Data",
-                   
-                    
-                },
-                
+                    default: docData ? docData.city : ""   
+                },                
                 {
-                    label: __("Country"),
-                    fieldname: "country",
-                    fieldtype: "Autocomplete",
-                    options: await cbam.utils.get_links("Country")
-                   
-                    
+                    label: __("Street and Number"),
+                    fieldname: "street_and_number",
+                    fieldtype: "Data",
+                    default: docData ? docData.street_and_number : ""
                 },
-              
-
-
-               
                 {
                     label: __("Main Contact"),
-                    fieldname: "cb1",
+                    fieldname: "cb3",
                     fieldtype: "Section Break",
                     depends_on: ""
                 },
@@ -123,24 +170,21 @@ function executeJS() {
                     label: __("First Name"),
                     fieldname: "main_contact_employee_first_name",
                     fieldtype: "Data",
-                   
-                    
+                    default: docData ? docData.main_contact_employee_first_name : ""
                 },
                 
                 {
                     label: __("Last Name"),
                     fieldname: "main_contact_employee_last_name",
                     fieldtype: "Data",
-                    reqd:1
-                   
-                    
+                    reqd: update ? 0 : 1,
+                    default: docData ? docData.main_contact_employee_last_name : ""
                 },
                 {
                     label: __("Main Contact Employee Position"),
                     fieldname: "main_contact_employee_position",
                     fieldtype: "Data",
-                   
-                    
+                    default: docData ? docData.main_contact_employee_position : ""
                 },
                 {
                     label: __(""),
@@ -151,29 +195,39 @@ function executeJS() {
                     label: __("Email"),
                     fieldname: "main_contact_employee_email",
                     fieldtype: "Data",
-                    reqd:1
-                   
+                    reqd: update ? 0 : 1,
+                    default: docData ? docData.main_contact_employee_email : ""
+                    
                     
                 },
-               
                 {
-                    label: __("Phone No"),
-                    fieldname: "reason",
+                    label: __("Commercial Contact Phone Number"),
+                    fieldname: "main_contact_employee_phone_number",
                     fieldtype: "Data",
-                   
-                    
+                    default: docData ? docData.company_phone_number : ""
                 },
-
-               
+                {
+                    label: __("Parent Operating Company"),
+                    fieldname: "parent_operating_company",
+                    fieldtype: "Data",
+                    read_only: 1,
+                    default: await cbam.supplier.get_supplier()
+                }
 
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: 'Create Supplier',
+            primary_action_label: `${update ? "Update" : "Create"} Supplier`,
             //secondary_action_label: '',
             primary_action(values) {
                 values.doctype = "Operating Company"
-                values.create_commercial_contact_user = 1
-                createSupplier(values, d);
+                if (update) {
+                    values.name = docName
+                    values.create_commercial_contact_user = 1
+                    updateSupplier(values, d);
+                } else {
+                    values.create_commercial_contact_user = 1
+                    createSupplier(values, d);
+                }
                 // cbam.utils.new_doc(values)
                 // d.hide();
             },
@@ -189,7 +243,7 @@ function executeJS() {
 
         absBtn.forEach(btn => {
             btn.addEventListener("click", function() {
-                const docName = container.querySelector(".inv-name").dataset.name;
+                const docName = container.querySelector(".inv-name").dataset.number;
                 const action = btn.dataset.action;
                 if(action == "Split"){
                     CreateSplitDialog(docName)
@@ -202,22 +256,20 @@ function executeJS() {
         })
 
         container.addEventListener("click", function(e) {
-            if(e.target.classList.contains("action-btn")) {
-                // Hide all the visible drop downs
-                const curDropDown = container.querySelector(".options-abs");
-
-                if(!curDropDown.classList.contains("hidden")) {
-                    curDropDown.classList.add("hidden");
-                    return;
-                }
-
-                hideDropDown();
-
-                // Show only the drop down which is clicked
-
-                if(curDropDown.classList.contains("hidden")) {
-                    curDropDown.classList.remove("hidden");
-                }
+            if(e.target.classList.contains("edit-btn")) {
+                const docName = container.querySelector(".inv-name").dataset.name;
+                frappe.call({
+                    method: "cbam.utils.supplier.get_supplier_details",
+                    args: {
+                        
+                        sup: docName
+                    },
+                    callback: function(response) {
+                        if (response.message) {
+                            CreateSupplierDialog(docName, response.message, true);
+                        }
+                    }
+                });
             }
         })
     })
@@ -316,23 +368,7 @@ function executeJS() {
 
         })
 
-        // container.addEventListener("click", function(e) {
-        //     if (e.target.classList.contains("arr-icon")) {
-        //         const childInfoCon = container.querySelector(".info-container");
-        //         const isCurrentlyHidden = childInfoCon.classList.contains("hidden");
-                
-        //         infoContainer.forEach(c => c.classList.add("hidden"));
-        //         arrowEl.forEach(arrow => arrow.setAttribute("href", "#es-line-down"));
-                
-        //         if (isCurrentlyHidden) {
-        //             childInfoCon.classList.remove("hidden");
-        //             container.querySelector(".arrow").setAttribute("href", "#es-line-up");
-        //         } else {
-        //             childInfoCon.classList.add("hidden");
-        //             container.querySelector(".arrow").setAttribute("href", "#es-line-down");
-        //         }
-        //     }
-        // });
+       
     })
 
     if(document.querySelector(".list-container")) {
@@ -343,15 +379,6 @@ function executeJS() {
         const currentDomain = window.location.origin;
 
         let exPrintFormat = "";
-
-        // frappe.call({
-        //     method: 'paystack_integration.utils.ex_utils.get_print_format',
-        //     callback: function(r) {
-        //         if(r.message) {
-        //             exPrintFormat = r.message;
-        //         }
-        //     }
-        // });
 
         contentContainer.forEach(parentContainer => {
             parentContainer.addEventListener("click", function(e) {
@@ -373,14 +400,6 @@ function executeJS() {
             });
         });
 
-        contentContainer.forEach(container => {
-            container.addEventListener("click", function(e) {
-                if(e.target.classList.contains("print-btn")) {
-                    const invName = container.querySelector(".inv-name").dataset.name;
-                    window.open(`${currentDomain}/printview?doctype=Sales%20Invoice&name=${invName}&trigger_print=1&format=${exPrintFormat || "Standard"}r&no_letterhead=1&letterhead=No%20Letterhead&settings=%7B%7D&_lang=en`);
-                    // window.open(`${currentDomain}/api/method/frappe.utils.print_format.download_pdf?doctype=Sales%20Invoice&name=${invName}&&format=${exPrintFormat || "Standard"}&no_letterhead=1&letterhead=No%20Letterhead&settings=%7B%7D&_lang=en`, '_blank');
-                }
-            })
-        })
+        
     }
 }

@@ -31,6 +31,7 @@ def submit_goods(goods):
         if doc.status == "Data Assigned":
             doc.status = "Data Submitted"
             doc.save(ignore_permissions=True)
+            doc.submit()
 
 
 @frappe.whitelist()
@@ -57,7 +58,7 @@ def reject_goods(goods, reason=None):
         else:
             _goods = doc.article_number
 
-        dec = frappe.get_doc("Declarent", doc.declarent)
+        dec = frappe.get_doc("Declarant", doc.declarant)
 
         email = frappe.get_doc("Notification", frappe.db.get_single_value("CBAM Settings", "supplier_good_rejection_notification_template"))
         if _parent_operating_company:

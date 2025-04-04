@@ -16,6 +16,7 @@
   "tier_n1_unregistered_template",
   "tier_n1_registered_template",
   "signup_template",
+  "duplicate_commercial_contact_notification_template",
   "column_break_tiem",
   "supplier_good_rejection_notification_template",
   "data_request_template",
@@ -106,12 +107,19 @@
    "fieldtype": "Link",
    "label": "Signup Template",
    "options": "Notification"
+  },
+  {
+   "fieldname": "duplicate_commercial_contact_notification_template",
+   "fieldtype": "Link",
+   "label": "Duplicate Commercial Contact Notification Template",
+   "options": "Notification"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-01-14 12:19:51.164089",
+ "modified": "2025-04-03 13:27:27.631918",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Settings",
@@ -135,18 +143,26 @@
    "share": 1
   },
   {
+   "create": 1,
+   "delete": 1,
    "email": 1,
    "print": 1,
    "read": 1,
    "role": "Commercial Contact",
-   "share": 1
+   "select": 1,
+   "share": 1,
+   "write": 1
   },
   {
+   "create": 1,
+   "delete": 1,
    "email": 1,
    "print": 1,
    "read": 1,
    "role": "CBAM Representative",
-   "share": 1
+   "select": 1,
+   "share": 1,
+   "write": 1
   }
  ],
  "sort_field": "modified",

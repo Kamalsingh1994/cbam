@@ -86,7 +86,6 @@ $.extend(cbam.supplier, {
             primary_action_label: 'Confirm Details',
             //secondary_action_label: '',
             primary_action(values) {
-                console.log(values);
                 d.hide();
                 return true
             },
@@ -102,7 +101,7 @@ $.extend(cbam.supplier, {
     },
 
     get_supplier(){
-        return new Promise(function(reslove, reject) {
+        return new Promise(function(resolve, reject) {
             frappe.call({
                 method: "cbam.utils.supplier.get_supplier",
                 args:{
@@ -110,7 +109,41 @@ $.extend(cbam.supplier, {
                 },
                 callback(r){
                     if(r.message){
-                        reslove(r.message)
+                        resolve(r.message)
+                    }
+                }
+            })
+            
+            
+        });
+    },
+    get_supplier_details(){
+        return new Promise(function(resolve, reject) {
+            frappe.call({
+                method: "cbam.utils.supplier.get_supplier_details",
+                args:{
+                    
+                },
+                callback(r){
+                    if(r.message){
+                        resolve(r.message)
+                    }
+                }
+            })
+            
+            
+        });
+    },
+    get_child_suppliers(){
+        return new Promise(function(resolve, reject) {
+            frappe.call({
+                method: "cbam.utils.supplier.get_child_suppliers",
+                args:{
+                    
+                },
+                callback(r){
+                    if(r.message){
+                        resolve(r.message)
                     }
                 }
             })
@@ -119,7 +152,7 @@ $.extend(cbam.supplier, {
         });
     },
     get_parent_supplier(){
-        return new Promise(function(reslove, reject) {
+        return new Promise(function(resolve, reject) {
             frappe.call({
                 method: "cbam.utils.get_supplier",
                 args:{
@@ -127,7 +160,7 @@ $.extend(cbam.supplier, {
                 },
                 callback(r){
                     if(r.message){
-                        reslove(r.message)
+                        resolve(r.message)
                     }
                 }
             })

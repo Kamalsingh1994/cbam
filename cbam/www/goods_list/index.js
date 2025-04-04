@@ -137,7 +137,7 @@ function executeJS() {
                     fieldname: "supplier",
                     fieldtype: "Autocomplete",
                     default: "",
-                    options: await cbam.utils.get_links("Operating Company", {}, ["title as label", "name as value"]),
+                    options: await cbam.supplier.get_child_suppliers(),
                     //depends_on: "eval:doc.forward_to_party == 'Sub Supplier'"
                 },
                 
@@ -157,7 +157,7 @@ function executeJS() {
 
                    
         d.show();
-        d.$wrapper.find('.modal-dialog').css("height", "350px");
+        d.$wrapper.find('.modal-dialog').css("height", "450px");
     }
 
     CreateRejectDialog = function(goods){
@@ -365,7 +365,7 @@ function executeJS() {
 									let name = $(event.currentTarget).closest(".grid-row").attr("data-name");
                                     let row = d.fields_dict.table1.grid.grid_rows_by_docname[name];
 									if(row.doc.source == "Supplier"){
-                                        row.columns.source_name.df.options= await cbam.utils.get_links("Operating Company", {}, ["title as label", "name as value"]);
+                                        row.columns.source_name.df.options= await cbam.supplier.get_child_suppliers();
                                     }
                                     else{
                                         row.columns.source_name.df.options= await cbam.utils.get_links("CBAM Installation");
@@ -410,7 +410,7 @@ function executeJS() {
                                 for(var i in table){
                                     total_raw_mass += table[i].qty;
                                 }
-                                d.set_value("total_raw_mass", `${Number(total_raw_mass).toFixed(2)}`)
+                                d.set_value("total_raw_mass", total_raw_mass)
                             }
                         },
                     ],
@@ -420,7 +420,7 @@ function executeJS() {
                     fieldtype: 'Section Break'
                 },
                 {
-                    fieldtype: "Data",
+                    fieldtype: "Float",
                     fieldname: "raw_mass",
                     label: "Total Qty",
                     default: rawMass,
@@ -433,7 +433,7 @@ function executeJS() {
                     fieldtype: "Column Break",
                 },
                 {
-                    fieldtype: "Data",
+                    fieldtype: "Float",
                     fieldname: "total_raw_mass",
                     label: "Total Qty to Split",
                     read_only: 1,
@@ -445,7 +445,7 @@ function executeJS() {
             secondary_action_label: '',
             primary_action(values) {
                 let validation_flag = true
-                if(Number(values.raw_mass).toFixed(2) != Number(values.total_raw_mass).toFixed(2)){
+                if(values.raw_mass != values.total_raw_mass){
                     msgprint("Total Qty to Split must be equal to Total Qty.")
                     validation_flag = false
                 }
@@ -687,7 +687,7 @@ function executeJS() {
 
 
     CreateEmissionSubmissionDialog = async function(goods){
-        let supplier_details = await cbam.supplier.get_supplier();
+        let supplier_details = await cbam.supplier.get_supplier_details();
         if (supplier_details.status!="Company Verified"){
             let d = new frappe.ui.Dialog({
                 title: `Please Confirm your Operating Company Details`,
@@ -761,7 +761,8 @@ function executeJS() {
                     {
                         label: __("Country"),
                         fieldname: "country",
-                        fieldtype: "Data",
+                        fieldtype: "Autocomplete",
+                        options: await cbam.utils.get_links("Country"),
                         default: supplier_details.country,
                         reqd: 1
                     },
@@ -782,7 +783,8 @@ function executeJS() {
                         fieldname: "cbam_representive_employee_email",
                         fieldtype: "Data",
                         default: supplier_details.cbam_representive_employee_email,
-                        reqd: 1
+                        reqd: supplier_details.cbam_representative_user ? 0 : 1 ,
+                        read_only: supplier_details.cbam_representative_user ? 1 : 0
                     },
                     {
                         label: __("CBAM Representative Position"),

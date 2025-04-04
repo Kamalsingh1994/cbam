@@ -1,0 +1,79 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{template}-{language}",
+ "creation": "2025-04-02 07:37:28.999336",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "is_active",
+  "template",
+  "language",
+  "column_break_jqrk",
+  "content_htmltext_section",
+  "content"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Active"
+  },
+  {
+   "fieldname": "language",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Language",
+   "options": "Language"
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Text Editor",
+   "label": "Content"
+  },
+  {
+   "fieldname": "template",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Template",
+   "options": "\nCBAM Home\nImpressum\nPrivacy Policy"
+  },
+  {
+   "fieldname": "column_break_jqrk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "content_htmltext_section",
+   "fieldtype": "Section Break",
+   "label": "Content (HTML/Text)"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-04-02 10:44:46.432153",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "Dynamic Web Template",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

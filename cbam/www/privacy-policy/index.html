@@ -1,5 +1,30 @@
 {% extends "templates/cbamweb.html" %}
 
+{% set preferred_lang = frappe.request.cookies.get("preferred_language") %}
+{% set user_lang = frappe.db.get_value("User", frappe.session.user, "language") %}
+{% set lang = preferred_lang or user_lang or "en" %}
+
+{% set template = "Privacy Policy" %}
+
+{% set record = frappe.get_all(
+    "Dynamic Web Template",
+    filters={"template": template, "is_active": 1, "language": lang},
+    fields=["content"],
+    limit=1
+) %}
+
+{% if not record %}
+  {% set record = frappe.get_all(
+      "Dynamic Web Template",
+      filters={"template": template, "is_active": 1, "language": "en"},
+      fields=["content"],
+      limit=1
+  ) %}
+{% endif %}
+
+{% set content = record[0].content if record else "" %}
+
+
 {% block page_content %}
 {% include "templates/includes/web_sidebar.html" %}
 <main class="main container my-4 ">
@@ -8,213 +33,8 @@
           <div class="content-container">
             <div class="container info-container">
               <div class="container responsive-md" style="width: 100%">
-                <div class="privacy-head">
-                    <h2 class="heading-secondary">Privacy Notice</h2>
-                    <h2 class="heading-secondary">CBAM Platform</h2>
-                    <p class="head-para">We thank you for using our web application the CBAM Platform. To ensure that you
-                        feel safe and comfortable when using the CBAM Platform, we would like to inform you
-                        about how we handle (process) your personal data. Personal data is all data that can
-                        be related to you personally, e.g. your name or your e-mail address.
-                    </p>
-                </div>
                 <div class="policies-container">
-                    <ol class="policies-list">
-                        <li class="policy">
-                            <div class="policy-div flex-col">
-                                <span class="policy-title">Controller</span>
-                                <span class="policy-text">
-                                    Controller pursuant to Art. 4 No. 7 of the General Data Protection Regulation (GDPR)
-                                    and other applicable data protection laws is 
-                                </span>
-                                <div class="flex-col">
-                                    <span class="bold">Gallehr Sustainable Risk Management GmbH („we”)</span>
-                                    <span class="bold">Hauptstraße 43</span>
-                                    <span class="bold">61184 Karben</span>
-                                    <span class="bold">Deutschland</span>
-                                </div>
-
-                                <div class="flex-col">
-                                    <span class="bold">Tel.: +49 (0)6039 9263686</span>
-                                    <span class="bold">E-Mail: <a href="mailto:kontakt@gallehr.de">kontakt@gallehr.de</a></span>
-                                    <span class="bold">Website: www.gallehr.com</span>
-                                </div>
-                            </div>
-                        </li>
-                        
-                        <li class="policy">
-                            <div class="policy-div flex-col">
-                                <span class="policy-title">Log files</span>
-                                <span class="policy-text">
-                                    Every time you visit the CBAM Platform, our system automatically collects the
-                                    following data and information from your device:
-                                </span>
-                                <div class="sub-list-container">
-                                    <ul>
-                                        <li>Your IP address</li>
-                                        <li>Referrer (previously visited website)</li>
-                                        <li>Requested website</li>
-                                        <li>Browser type and version used</li>
-                                        <li>Operation system of your device</li>
-                                        <li>Date and time of the request</li>
-                                        <li>Internet service provider of the accessing device</li>
-                                    </ul>
-                                </div>
-                                <span class="policy-text">
-                                    CBAM Platform needs to store your IP address temporarily to enable the requested
-                                    website to be delivered to your device. To do this, your IP address must be stored for
-                                    the duration of your session.
-                                </span>
-                                <span class="policy-text">
-                                    The other data is stored in the log files to ensure that our website is functioning
-                                    properly. We also use the data to optimise the website and to ensure the security of
-                                    our IT systems.
-                                </span>
-                                <span class="policy-text">
-                                    The legal basis for the processing of data in the log files is Art. 6 (1) (f) GDPR and Sec-
-                                    tion 25 (2) of the German Telecommunications-Digital-Services Data Protection Act
-                                    (Telekommunikation-Digitale-Dienste-Datenschutz-Gesetz – TDDDG).
-                                </span>
-                                <span class="policy-text">The data in log files is deleted after each session.</span>
-                            </div>
-                        </li>
-
-                        <li class="policy">
-                            <div class="policy-div flex-col">
-                                <span class="policy-title">Cookies and other technologies</span>
-                                <span class="policy-text">
-                                    On the CBAM Platform, we only use one technical necessary session cookie to keep
-                                    track, if you are logged in into your account. 
-                                </span>
-                                <span class="policy-text">
-                                    This session cookie is stored on your computer during your web session and is
-                                    automatically deleted when you close your browser – the cookie stores an anonymous
-                                    session ID allowing you to browse a website without having to log in to each page but
-                                    it does not collect any information from your device. 
-                                </span>
-                                <span class="policy-text">The legal basis for using this cookie is Art. 25 (2) TDDDG.</span>
-                            </div>
-                        </li>
-
-                        <li class="policy">
-                            <div class="policy-div flex-col">
-                                <span class="policy-title">Cookies and other technologies</span>
-                                <span class="policy-text">
-                                    On the CBAM Platform, we only use one technical necessary session cookie to keep
-                                    track, if you are logged in into your account. 
-                                </span>
-                                <span class="policy-text">
-                                    This session cookie is stored on your computer during your web session and is
-                                    automatically deleted when you close your browser – the cookie stores an anonymous
-                                    session ID allowing you to browse a website without having to log in to each page but
-                                    it does not collect any information from your device. 
-                                </span>
-                                <span class="policy-text">The legal basis for using this cookie is Art. 25 (2) TDDDG.</span>
-                            </div>
-                        </li>
-
-                        <li class="policy">
-                            <div class="policy-div flex-col">
-                                <span class="policy-title">CBAM user account and guest account</span>
-                                <span class="policy-text">A user or guest account is required to use the CBAM platform.</span>
-                                <span class="policy-text">
-                                    We provide user accounts to our customers. With this account, customers are able to
-                                    access the CBAM Platform to collect, query and document data for reporting in
-                                    accordance with Carbon Border Adjustment Mechanism. 
-                                </span>
-                                <span class="policy-text">The legal basis for using this cookie is Art. 25 (2) TDDDG.</span>
-                                <span class="policy-text">
-                                    In addition, our customers may also grant third parties, i.e. their suppliers and other
-                                    subcontractors, limited access to the CBAM Platform (guest accounts).
-                                </span>
-                                <span class="policy-text">
-                                    The following categories of personal data are processed for the provision of user and
-                                    guest accounts:
-                                </span>
-                                <div class="sub-list-container">
-                                    <ul>
-                                        <li>First name and surname</li>
-                                        <li>Business email address</li>
-                                        <li>Business telephone number</li>
-                                        <li>Log files (c.f. section 2)</li>
-                                    </ul>
-                                </div>
-                                <span class="policy-text">
-                                    We process this personal data as processor on behalf of our customers as controllers
-                                    subject to Art. 28 GDPR.
-                                </span>
-                            </div>
-                        </li>
-
-                        <li class="policy">
-                            <div class="policy-div flex-col">
-                                <span class="policy-title">Your rights</span>
-                                <span class="policy-text">If your personal data is processed by us, you have the following rights against us:</span>
-
-                                <span class="policy-title">Right of access</span>
-                                <span class="policy-text">
-                                    You have the right to request information about the categories of personal data
-                                    processed, the purposes of processing, any recipients of the data, and the planned
-                                    storage period (Art. 15 GDPR);
-                                </span>
-
-                                <span class="policy-title">Right to rectification</span>
-                                <span class="policy-text">
-                                    You have the right to request the rectification or completion of incorrect or incomplete
-                                    personal data (Art. 16 GDPR);
-                                </span>
-                                
-                                <span class="policy-title">Right to erasure</span>
-                                <span class="policy-text">
-                                    In certain cases, you have the right to request the deletion of personal data in
-                                    accordance with Art. 17 GDPR – in particular if the data is no longer required for the
-                                    intended purpose or is being processed unlawfully, or if you have withdrawn your
-                                    consent or objected the processing;
-                                </span>
-                                
-                                <span class="policy-title">Right to restriction of processing</span>
-                                <span class="policy-text">
-                                    Under certain conditions, you have the right to request the restriction of personal data
-                                    if deletion is not possible or the obligation to delete is disputed (Art. 18 GDPR);
-                                </span>
-                                
-                                <span class="policy-title">Right to withdraw consent</span>
-                                <span class="policy-text">
-                                    You have the right to withdraw consent at any time with effect for the future
-                                    (Art. 7 (3) GDPR);
-                                </span>
-                                
-                                <span class="policy-title">Right to object</span>
-                                <span class="policy-text">
-                                    You have the right to object to processing that is based on our legitimate interest for
-                                    reasons arising from your particular situation. In addition, you can object to the
-                                    processing of your personal data for advertising and data analysis purposes at any
-                                    time without providing a reason (Art. 21 (1) GDPR).
-                                </span>
-                                
-                                <span class="policy-title">Right to data portability</span>
-                                <span class="policy-text">
-                                    You have the right to data portability, i.e. you can receive certain data you have
-                                    provided to us in a commonly used and machine-readable format, such as CSV, and,
-                                    if necessary, transmit it to others (subject to Art. 20 GDPR).
-                                </span>
-                                
-                                <span class="policy-title">Right to lodge a complaint</span>
-                                <span class="policy-text">
-                                    If you believe that the processing of your data violates data protection law or that your
-                                    data protection rights have been violated in any other way, you can also complain to a
-                                    data protection supervisory authority, such as the one responsible for us:
-                                </span>
-
-                                <div class="flex-col">
-                                    <span class="policy-text">Hessischer Beauftragte für Datenschutz und Informationsfreiheit</span>
-                                    <span class="policy-text">Gustav-Stresemann-Ring 1</span>
-                                    <span class="policy-text">65189 Wiesbaden</span>
-                                    <span class="policy-text">Tel.: 0611-1408 0</span>
-                                    <span class="policy-text">E-Mail: poststelle@datenschutz.hessen.de</span>
-                                </div>
-                            </div>
-                        </li>
-                    </ol>
+                    {{ content }}  
                 </div>
               </div>
             </div>

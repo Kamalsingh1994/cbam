@@ -47,6 +47,20 @@ body {
     font-size: 1.4rem !important;
 }
 
+.edit-emission {
+    background-color: #888888 !important;
+    color: #fff !important;
+    font-size: 1.2rem !important;
+    padding: 1rem 2rem !important;
+}
+
+.edit-emission:active {
+    background-color: #888888 !important;
+    color: #fff !important;
+    box-shadow: var(--focus-default) !important;
+    font-size: 1.2rem !important;
+}
+
 .container {
     margin-left: 2.5rem;
     margin-right: 2.5rem;
@@ -263,7 +277,7 @@ input.list-row-checkbox {
     display: grid;
     align-content: center;
     justify-content: center;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
 }
 

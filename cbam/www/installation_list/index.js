@@ -2,11 +2,31 @@ let CreateInstallationDialog;
 
 window.addEventListener("DOMContentLoaded", () => {
     executeJS();
-
+    refreshElements(frappe)
     document.querySelector('.add-new').addEventListener('click', function(e){
         CreateInstallationDialog()
     })
 });
+
+const refreshElements = function (frappe) {
+    const contentContainer = document.querySelectorAll(".content-container");
+    return new Promise((resolve, reject) => {
+        frappe.call({
+            method: "cbam.www.installation_list.index.get_installation_partial_html",
+            callback: function(r) {
+                if(r.message) {
+                    contentContainer.forEach(container => {
+                        container.remove();
+                    });
+                    document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
+                    executeJS();
+                    resolve(true);
+                }
+            }
+        })
+    })
+}
+
 
 function executeJS() {
     // This condition is to stop the rest of the code from executing if the user is not authorized.
@@ -34,6 +54,7 @@ function executeJS() {
     const hideDropDown = function() {
         dropDownCont.forEach(dropDownEl => dropDownEl.classList.add("hidden"));
     }
+    
 
     const createEmission = function(values, d) {
         frappe.call({
@@ -41,22 +62,29 @@ function executeJS() {
             args: {
                 doc: values
             },
-            callback: function(r) {
-                console.log(r.message);
+            callback: async function(r) {
                 if(r.message) {
-                    frappe.call({
-                        method: "cbam.www.installation_list.index.get_installation_partial_html",
-                        callback: function(r) {
-                            if(r.message) {
-                                contentContainer.forEach(container => {
-                                    container.remove();
-                                });
-                                document.querySelector('.list-row-container').insertAdjacentHTML('beforeend', r.message);
-                                executeJS();
-                            }
-                        }
-                    })
-                    d.hide();
+                    const refreshed = await refreshElements(frappe)
+                    if(refreshed) {
+                        d.hide();
+                    }
+                }
+            }
+        })
+    }
+
+    const updateDoc = function(values, d) {
+        frappe.call({
+            method: "cbam.utils.update_doc",
+            args: {
+                doc: values
+            },
+            callback: async function(r) {
+                if(r.message) {
+                    const refreshed = await refreshElements(frappe);
+                    if(refreshed) {
+                        d.hide();
+                    }
                 }
             }
         })
@@ -68,16 +96,16 @@ function executeJS() {
         }
     })
     
-    CreateInstallationDialog = async function(docName){
+    CreateInstallationDialog = async function(docName, docData=false, update=false){
         let d = new frappe.ui.Dialog({
-            title: `Add New Installation`,
+            title: `${update ? "Update" : "Add New"} Installation`,
             fields: [
                 {
                     label: __("Name of Installation"),
                     fieldname: "name_of_the_installation",
                     fieldtype: "Data",
-                    reqd:1
-                   
+                    reqd: update? 0 : 1,
+                    default: docData ? docData.name_of_the_installation : ""
                     
                 },
                
@@ -90,8 +118,8 @@ function executeJS() {
                     label: __("City"),
                     fieldname: "city",
                     fieldtype: "Data",
-                    reqd: 1
-                    
+                    reqd: update? 0 : 1,
+                    default: docData ? docData.city : ""
                 },
                 {
                     label: __(""),
@@ -102,8 +130,8 @@ function executeJS() {
                     label: __("Zip Code"),
                     fieldname: "zip_code",
                     fieldtype: "Data",
-                    reqd: 1
-                    
+                    reqd: update? 0 : 1,
+                    default: docData ? docData.zip_code : ""
                 },
                 {
                     label: __(""),
@@ -115,7 +143,8 @@ function executeJS() {
                     fieldname: "country",
                     fieldtype: "Autocomplete",
                     options: await cbam.utils.get_links("Country", {}, ["Upper(code) as label", 'name as value']),
-                    reqd:1
+                    reqd: update? 0 : 1,
+                    default: docData ? docData.country : ""
                 },               
                 {
                     label: __("Contact Person Details"),
@@ -126,13 +155,13 @@ function executeJS() {
                 {
                     label: __("First Name"),
                     fieldname: "first_name",
-                    fieldtype: "Data",
+                    fieldtype: "Data"
                 },
                 
                 {
                     label: __("Last Name"),
                     fieldname: "last_name",
-                    fieldtype: "Data",
+                    fieldtype: "Data"
                 },
                 {
                     label: __(""),
@@ -143,67 +172,85 @@ function executeJS() {
                     label: __("Email"),
                     fieldname: "email",
                     fieldtype: "Data",
-                    options: "Email",
+                    options: "Email"
                 },
                 {
                     label: __("Phone No"),
                     fieldname: "phone_number",
-                    fieldtype: "Data",
+                    fieldtype: "Data"
                 },
                 {
                     label: __(""),
                     fieldname: "cb1",
-                    fieldtype: "Section Break",
+                    fieldtype: "Section Break"
                 },
                 {
                     label: __("Is the installation tracking emissions data?"),
                     fieldname: "is_the_installation_tracking_emissions_data",
                     fieldtype: "Select",
-                    options: "\nYes\nNo"
+                    options: "\nYes\nNo",
+                    default: docData ? docData.is_the_installation_tracking_emissions_data : ""
                 },
                 {
                     label: __(""),
                     fieldname: "cb1",
-                    fieldtype: "Column Break",
+                    fieldtype: "Column Break"
                 },
                 {
                     label: __("Is the installation subject to an emission trading system?"),
                     fieldname: "is_the_installation_subject_to_an_emission_trading_system",
-                    
                     fieldtype: "Select",
-                    options: "\nYes\nNo"
+                    options: "\nYes\nNo",
+                    default: docData ? docData.is_the_installation_subject_to_an_emission_trading_system : ""
                 },
-                
                 {
                     label: __("Which emission trading system (link to legal act)?"),
                     fieldname: "which_emission_trading_system_link_to_legal_act",
                     fieldtype: "Data",
-                    depends_on: "eval:doc.is_the_installation_subject_to_an_emission_trading_system == 'Yes'"
+                    depends_on: "eval:doc.is_the_installation_subject_to_an_emission_trading_system == 'Yes'",
+                    default: docData ? docData.which_emission_trading_system_link_to_legal_act : ""
                 },
                 {
                     label: __(""),
                     fieldname: "cb1",
-                    fieldtype: "Section Break",
+                    fieldtype: "Section Break"
                 },
                 {
                     
                     label: __("Define how emissions get monitored, reported and verified:"),
-                    fieldname: "reason",
+                    fieldname: "define_how_emissions_get_monitored_reported_and_verified",
                     fieldtype: "Small Text",
-                    default: "",
+                    default: docData ? docData.define_how_emissions_get_monitored_reported_and_verified : "",
                     depends_on: "eval:doc.is_the_installation_tracking_emissions_data == 'Yes'"
                     //options: "\nSub Supplier\nCollegue"
+                },
+                {
+                    label: __(""),
+                    fieldname: "cb1",
+                    fieldtype: "Section Break"
+                },
+                {
+                    label: __("Parent Operating Company"),
+                    fieldname: "parent_operating_company",
+                    fieldtype: "Data",
+                    read_only: 1,
+                    default: await cbam.supplier.get_supplier()
                 }
 
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: 'Create Installation',
+            primary_action_label: `${update ? "Update" : "Create"} Installation`,
             //secondary_action_label: '',
             primary_action(values) {
                 values.doctype = "CBAM Installation"
-                // cbam.utils.new_doc(values);
-                // d.hide();
-                createEmission(values, d);
+                if (update) {
+                    values.name = docName
+                    updateDoc(values, d);
+                } else {
+                    // cbam.utils.new_doc(values);
+                    // d.hide();
+                    createEmission(values, d);
+                }
             },
             secondary_action(values) {
                 no+=1
@@ -214,18 +261,16 @@ function executeJS() {
         d.show();
     }
 
-    const CreateEmissionDialog = function(docName){
+    const CreateEmissionDialog = async function(docName, docData=false, update=false){
         let d = new frappe.ui.Dialog({
             title: `Add New Emission`,
             fields: [
-                
                 {
                     label: __("Label"),
                     fieldname: "label",
                     fieldtype: "Data",
-                    reqd:1
-                   
-                    
+                    reqd: update ? 0 : 1,
+                    default: docData ? docData.label : ""                  
                 },
                 {
                     label: __(""),
@@ -237,9 +282,9 @@ function executeJS() {
                     fieldname: "specific_direct_embedded_emissions",
                     fieldtype: "Float",
                     description: "Example: 1.67 tCO2/t (t = tonnes of product)",
-                    reqd: 1
+                    reqd: update ? 0 : 1,
+                    default: docData ? docData.specific_direct_embedded_emissions : "" 
                    
-                    
                 },
                 {
                     label: __(""),
@@ -250,15 +295,18 @@ function executeJS() {
                     label: __("Source of electricity"),
                     fieldname: "source_of_electricity",
                     fieldtype: "Select",
-                    options: 'Direct technical link to electricity generator\n(Bilateral) power purchase agreement\nReceived from the grid',
-                    reqd: 1
+                    options: await cbam.utils.get_field_options("CBAM Emission Data", "source_of_electricity", false),
+                    reqd: update ? 0 : 1,
+                    default: docData ? docData.source_of_electricity : ""
                    
-                    
                 },
                 {
-                    label: __("Attach"),
-                    fieldname: "cb1",
-                    fieldtype: "Attach",
+                    label: __("Electricity consumed [MWh/t]"),
+                    fieldname: "electricity_consumed",
+                    fieldtype: "Float",
+                    reqd: update ? 0 : 1,
+                    default: docData ? docData.electricity_consumed : ""
+                    
                 },
                 {
                     label: __(""),
@@ -266,11 +314,12 @@ function executeJS() {
                     fieldtype: "Column Break",
                 },
                 {
-                    label: __("Electricity consumed [MWh/t]"),
-                    fieldname: "electricity_consumed",
-                    fieldtype: "Float",
-                    reqd: 1
-                   
+                    label: __("Production Method"),
+                    fieldname: "production_method",
+                    fieldtype: "Select",
+                    options: await cbam.utils.get_field_options("CBAM Emission Data", "production_method", false),
+                    reqd: update ? 0 : 1,
+                    default: docData ? docData.production_method : ""
                     
                 },
                 {
@@ -278,16 +327,53 @@ function executeJS() {
                     fieldname: "cbam_installation",
                     fieldtype: "Data",
                     default: docName,
-                    hidden: 1
-                }
+                    hidden: 0,
+                    read_only: 1
+                },
+                {
+                    label: __(""),
+                    fieldname: "cb2",
+                    fieldtype: "Section Break",
+                },
+                {
+                    label: __("Indirect Emission Factor"),
+                    fieldname: "indirect_emission_factor",
+                    fieldtype: "Float",
+                    default: docData ? docData.indirect_emission_factor : "",
+                },
+                {
+                    label: __("Source of Indirect Emission Factor"),
+                    fieldname: "source_of_indirect_emission_factor",
+                    fieldtype: "Data",
+                    default: docData ? docData.source_of_indirect_emission_factor : "",
+                    depends_on: "eval:doc.indirect_emission_factor",
+                    mandatory_depends_on: "eval:doc.indirect_emission_factor"
+                },
+                {
+                    label: __(""),
+                    fieldname: "cb2",
+                    fieldtype: "Column Break",
+                },
+                {
+                    label: __("Specific (indirect) embedded emissions [tCO2/t]"),
+                    fieldname: "specific_indirect_embedded_emissions",
+                    fieldtype: "Float",
+                    default: docData ? docData.specific_indirect_embedded_emissions : "",
+                    depends_on: "eval:doc.indirect_emission_factor",
+                },
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: 'Create Emission',
+            primary_action_label: `${update ? "Update" : "Create"} Emission`,
             //secondary_action_label: '',
             primary_action(values) {
                 values.doctype = "CBAM Emission Data"
-                // cbam.utils.new_doc(values)
-                createEmission(values, d);                
+                if (update) {
+                    values.name = docName
+                    updateDoc(values, d);
+                } else {
+                    // cbam.utils.new_doc(values)
+                    createEmission(values, d);
+                }      
             },
             secondary_action(values) {
                 
@@ -305,12 +391,12 @@ function executeJS() {
     
     contentContainer.forEach(container => {
         const absBtn = container.querySelectorAll(".add-newemission");
+        const editBtn = container.querySelectorAll(".edit-btn");
 
         absBtn.forEach(btn => {
             btn.addEventListener("click", function() {
                 const docName = container.querySelector(".inv-name").dataset.name;
-                console.log(docName)
-                CreateEmissionDialog(docName)
+                CreateEmissionDialog(docName);
                 
             })
         })
@@ -332,6 +418,39 @@ function executeJS() {
                 if(curDropDown.classList.contains("hidden")) {
                     curDropDown.classList.remove("hidden");
                 }
+            }
+
+            if(e.target.classList.contains("edit-btn")) {
+                const docName = container.querySelector(".inv-name").dataset.name;
+                frappe.call({
+                    method: "frappe.client.get",
+                    args: {
+                        doctype: "CBAM Installation",
+                        name: docName  // Replace with the actual document name
+                    },
+                    callback: function(response) {
+                        if (response.message) {
+                            CreateInstallationDialog(docName, response.message, true);
+                        }
+                    }
+                });
+            }
+            
+            if(e.target.classList.contains("edit-emission")) {
+                const docName = container.querySelector(".edit-emission").dataset.emission;
+                frappe.call({
+                    method: "frappe.client.get",
+                    args: {
+                        doctype: "CBAM Emission Data",
+                        name: docName  // Replace with the actual document name
+                    },
+                    callback: function(response) {
+                        if (response.message) {
+                            CreateEmissionDialog(docName, response.message, true);
+                        }
+                    }
+                });
+                
             }
         })
     })

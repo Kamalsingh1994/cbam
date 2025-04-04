@@ -1,6 +1,6 @@
 import frappe
 no_cache = 1
-from cbam.utils import get_supplier
+from cbam.utils.supplier import get_supplier
 
 def get_context(context):
     # context.user = frappe.session.user
@@ -16,13 +16,24 @@ def get_context(context):
     #     )
     
     # context.emission_datas = []
+    context = get_user_roles(context)
     context = get_operating_company(context)
     
 @frappe.whitelist()
 def get_operating_company_partial_html():
     context = {}
+    context = get_user_roles(context, re_render=True)
     context = get_operating_company(context, re_render=True)
     return frappe.render_template("cbam/templates/operating_company_partial.html", context)
+
+def get_user_roles(context, re_render=False):
+    roles = frappe.get_roles(frappe.session.user)
+    if re_render:
+        context["roles"] =  roles
+    else:
+        context.roles = roles
+        
+    return context
 
 def get_operating_company(context, re_render=False):
     supplier = get_supplier()

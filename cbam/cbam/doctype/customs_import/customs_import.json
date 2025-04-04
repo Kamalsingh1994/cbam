@@ -39,7 +39,7 @@
    "link_fieldname": "internal_customs_import_number"
   }
  ],
- "modified": "2025-01-14 12:20:05.845393",
+ "modified": "2025-03-10 11:42:20.759136",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Customs Import",
@@ -73,24 +73,32 @@
    "write": 1
   },
   {
+   "create": 1,
+   "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "CBAM Representative",
    "select": 1,
-   "share": 1
+   "share": 1,
+   "write": 1
   },
   {
+   "create": 1,
+   "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "Commercial Contact",
    "select": 1,
-   "share": 1
+   "share": 1,
+   "write": 1
   }
  ],
  "sort_field": "creation",
