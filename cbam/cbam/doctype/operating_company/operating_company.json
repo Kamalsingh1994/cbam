@@ -235,13 +235,15 @@
    "fieldname": "commercial_contact_user",
    "fieldtype": "Link",
    "label": "Commercial Contact User",
-   "options": "User"
+   "options": "User",
+   "read_only": 1
   },
   {
    "fieldname": "cbam_representative_user",
    "fieldtype": "Link",
    "label": "CBAM Representative User",
-   "options": "User"
+   "options": "User",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -269,7 +271,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-04 16:43:52.805081",
+ "modified": "2025-04-04 17:36:05.946414",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Operating Company",
