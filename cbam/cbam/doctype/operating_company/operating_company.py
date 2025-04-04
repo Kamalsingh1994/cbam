@@ -9,7 +9,7 @@ from frappe.model.document import Document
 class OperatingCompany(Document):
 	def validate(self):
 		self.create_commercial_contact()
-		if not frappe.db.exists("Operating Company", {"commercial_contact_user": self.main_contact_employee_email}):
+		if not frappe.db.exists("Operating Company", {"commercial_contact_user": self.main_contact_employee_email, "name": ["!=", self.name]}):
 			self.create_cbam_user()
 		else:
 			frappe.msgprint("User already exists for another Operating Company")
