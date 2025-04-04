@@ -1,0 +1,30 @@
+{
+ "attach_print": 0,
+ "channel": "Email",
+ "creation": "2025-04-03 13:08:35.498768",
+ "days_in_advance": 0,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "User",
+ "enabled": 1,
+ "event": "Custom",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "<p>Following Operating Companies records had duplicate Commercial Contact User due to which their values have not been set:</p><br>\n{% for i in doc.items %}\n    <p><strong>{{i.name}}</strong></p><br>\n{% endfor %}\n",
+ "message_type": "HTML",
+ "modified": "2025-04-03 13:43:24.327465",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "Duplicate Commercial Contact",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_document_field": "email"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "sender": "Nasir Khan",
+ "sender_email": "nasir.khan@phamos.eu",
+ "subject": "Something"
+}

@@ -165,7 +165,12 @@ doctype_list_js = {"Good" : "public/js/doctype/good/good_list.js"}
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
+scheduler_events = {
+    "cron": {
+        "0 21 * * *": [
+            "cbam.utils.notification.generate_alerts"
+        ]
+    }
 # 	"all": [
 # 		"cbam.tasks.all"
 # 	],
@@ -181,7 +186,7 @@ doctype_list_js = {"Good" : "public/js/doctype/good/good_list.js"}
 # 	"monthly": [
 # 		"cbam.tasks.monthly"
 # 	],
-# }
+}
 
 # Testing
 # -------
