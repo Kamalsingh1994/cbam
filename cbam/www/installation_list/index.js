@@ -363,15 +363,13 @@ function executeJS() {
                 {
                     label: __(""),
                     fieldname: "cb2",
-                    fieldtype: "Section Break",
-                    depends_on: "eval:!doc.specific_direct_embedded_emissions",
+                    fieldtype: "Section Break"
                 },
                 {
                     label: __("Emission Notes (sent to declarant when submitting goods)"),
                     fieldname: "emission_notes",
                     fieldtype: "Small Text",
                     mandatory_depends_on: "eval:!doc.specific_direct_embedded_emissions",
-                    depends_on: "eval:!doc.specific_direct_embedded_emissions",
                     description: "Explanation mandatory if no emission data entered",
                 },
                 {
