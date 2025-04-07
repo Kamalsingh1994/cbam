@@ -8,13 +8,16 @@ from frappe.model.document import Document
 
 class OperatingCompany(Document):
 	def validate(self):
-		self.create_commercial_contact()
-		if not frappe.db.exists("Operating Company", {"commercial_contact_user": self.main_contact_employee_email}):
+		
+		if not frappe.db.exists("Operating Company", {"commercial_contact_user": self.main_contact_employee_email, "name": ["!=", self.name]}):
+			self.create_commercial_contact()
 			self.create_cbam_user()
+			self.status = "Pending Verification"
 		else:
 			frappe.msgprint("User already exists for another Operating Company")
 			self.create_commercial_contact_user = 0
 			self.commercial_contact_user = ""
+			self.status = "Missing Commercial Contact"
 		self.set_title()
 
 	def set_title(self):

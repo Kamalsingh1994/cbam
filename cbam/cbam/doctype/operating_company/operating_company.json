@@ -55,7 +55,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Verification Needed\nPending Verification\nContact Verified\nCompany Verified"
+   "options": "Missing Commercial Contact\nVerification Needed\nPending Verification\nContact Verified\nCompany Verified"
   },
   {
    "fieldname": "column_break_xlzx",
@@ -235,13 +235,15 @@
    "fieldname": "commercial_contact_user",
    "fieldtype": "Link",
    "label": "Commercial Contact User",
-   "options": "User"
+   "options": "User",
+   "read_only": 1
   },
   {
    "fieldname": "cbam_representative_user",
    "fieldtype": "Link",
    "label": "CBAM Representative User",
-   "options": "User"
+   "options": "User",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -266,9 +268,10 @@
    "options": "Declarant"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-10 11:39:37.262505",
+ "modified": "2025-04-04 17:36:05.946414",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Operating Company",
