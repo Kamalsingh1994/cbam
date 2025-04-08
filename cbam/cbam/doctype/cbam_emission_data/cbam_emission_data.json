@@ -18,6 +18,7 @@
   "emission_data_of_the_installation_section",
   "type_of_applicable_reporting_methodology",
   "applicable_reporting_methodology",
+  "emission_notes",
   "column_break_gxzg",
   "specific_direct_embedded_emissions",
   "indirect_emissions_section",
@@ -231,6 +232,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

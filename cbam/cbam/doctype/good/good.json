@@ -70,11 +70,13 @@
   "installation_zip_code",
   "is_the_installation_tracking_emission",
   "section_break_fvtl",
+  "column_break_fdty",
   "emission_data",
   "indirect_emission_factor",
   "source_of_indirect_emission_factor",
   "specific_indirect_embedded_emissions",
   "amended_from",
+  "emission_notes",
   "column_break_mies",
   "production_method",
   "specific_direct_embedded_emissions",
@@ -544,6 +546,17 @@
    "fieldname": "invoice_number",
    "fieldtype": "Data",
    "label": "Invoice Number"
+  },
+  {
+   "fetch_from": "emission_data.emission_notes",
+   "fieldname": "emission_notes",
+   "fieldtype": "Small Text",
+   "label": "Emission Notes"
+  },
+  {
+   "fieldname": "column_break_fdty",
+   "fieldtype": "Column Break",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
