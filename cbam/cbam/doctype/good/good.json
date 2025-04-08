@@ -551,7 +551,8 @@
    "fetch_from": "emission_data.emission_notes",
    "fieldname": "emission_notes",
    "fieldtype": "Small Text",
-   "label": "Emission Notes"
+   "label": "Emission Notes",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_fdty",
