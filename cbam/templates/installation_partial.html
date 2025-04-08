@@ -84,22 +84,22 @@
 		<h2>{{_('Emissions data tracking of the installation')}}</h2>
 		<div class="container responsive-md" style="width: 100%">
 		<div class="tc-field-cont field-cont">
-			<span class="field-label">{{_('Is the installation tracking emissions data')}}?</span>
+			<span class="field-label">{{_('Is the installation tracking emissions data?')}}</span>
 			<span class="field tc-field">{{doc.is_the_installation_tracking_emissions_data}}</span>
 		</div>
 		<div class="tc-field-cont field-cont">
-			<span class="field-label">{{_('Is the installation subject to an emission trading system')}}?</span>
+			<span class="field-label">{{_('Is the installation subject to an emission trading system?')}}</span>
 			<span class="field tc-field">{{doc.is_the_installation_subject_to_an_emission_trading_system}}</span>
 		</div>
 		{% if doc.is_the_installation_tracking_emissions_data == "Yes" %}
 		<div class="tc-field-cont field-cont">
-			<span class="field-label">{{_('Define how emissions get monitored, reported and verified')}}:</span>
+			<span class="field-label">{{_('Define how emissions get monitored, reported and verified:')}}</span>
 			<span class="field tc-field">{{doc.define_how_emissions_get_monitored_reported_and_verified}}</span>
 		</div>
 		{% endif %}
 		{% if doc.is_the_installation_subject_to_an_emission_trading_system == "Yes" %}
 		<div class="tc-field-cont field-cont">
-			<span class="field-label">{{_('Which emission trading system (link to legal act)')}}?</span>
+			<span class="field-label">{{_('Which emission trading system (link to legal act):')}}</span>
 			<span class="field tc-field">{{doc.which_emission_trading_system_link_to_legal_act}}</span>
 		</div>
 		{% endif %}

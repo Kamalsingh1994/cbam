@@ -107,7 +107,7 @@
   {
    "fieldname": "zip_code",
    "fieldtype": "Data",
-   "label": "Zip code",
+   "label": "Zip Code",
    "non_negative": 1
   },
   {

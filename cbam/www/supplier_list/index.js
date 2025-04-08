@@ -96,7 +96,7 @@ function executeJS() {
 
     CreateSupplierDialog = async function(docName="", docData=false, update=false){
         let d = new frappe.ui.Dialog({
-            title: `${update ? "Update" : "Add New"} Supplier`,
+            title: `${update ? __("Update Supplier") : __("Add New Supplier")}`,
             fields: [
                 {
                     label: __("Supplier Number"),
@@ -216,7 +216,7 @@ function executeJS() {
 
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: `${update ? "Update" : "Create"} Supplier`,
+            primary_action_label: `${update ? __("Update Supplier") : __("Create Supplier")}`,
             //secondary_action_label: '',
             primary_action(values) {
                 values.doctype = "Operating Company"
