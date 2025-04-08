@@ -2,7 +2,7 @@ import frappe
 from frappe.model.document import Document
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def set_user_language(lang):
     user = frappe.session.user
     if user != "Guest":
@@ -42,6 +42,6 @@ def get_translations():
 
     # Map source_text to translated_text
     translated_dict = {row.source_text: row.translated_text for row in translations}
-    
+
     # Fallback to original keys if translation not found
     return {key: translated_dict.get(key, key) for key in keys}
