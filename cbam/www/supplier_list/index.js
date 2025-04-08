@@ -222,6 +222,7 @@ function executeJS() {
                 values.doctype = "Operating Company"
                 if (update) {
                     values.name = docName
+                    values.create_commercial_contact_user = 1
                     updateSupplier(values, d);
                 } else {
                     values.create_commercial_contact_user = 1

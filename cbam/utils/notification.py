@@ -9,4 +9,5 @@ def generate_alerts():
         doc.items = frappe.get_all("Operating Company", filters= {"owner": owner.owner, "creation": ["between", [today(), today()]], "commercial_contact_user": ["is", "not set"]})
         notification = frappe.db.get_single_value("CBAM Settings", "duplicate_commercial_contact_notification_template")
         email = frappe.get_doc("Notification", notification)
-        email.send(doc)
+        if doc.items:
+            email.send(doc)
