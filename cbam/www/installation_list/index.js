@@ -1,5 +1,33 @@
 let CreateInstallationDialog;
 
+
+
+// This is to load the translations from the server
+frappe.ready(() => {
+    console.log(frappe.session.user)
+    window.__translations = {};
+    frappe.call({
+    method: "cbam.api.get_translations",
+        callback: function (r) {
+            if (r.message) {
+            window.__translations = r.message;
+            }
+        }
+    });
+
+    window.__ = function (key, args = []) {
+    let translated = window.__translations[key] || key;
+    // args?.forEach((val, idx) => {
+    //     translated = translated.replace(`{${idx}}`, val);
+    // });
+    return translated;
+    };
+});
+// end of translation
+  
+
+  
+
 window.addEventListener("DOMContentLoaded", () => {
     executeJS();
     refreshElements(frappe)
@@ -98,7 +126,7 @@ function executeJS() {
     
     CreateInstallationDialog = async function(docName, docData=false, update=false){
         let d = new frappe.ui.Dialog({
-            title: `${update ? "Update" : "Add New"} Installation`,
+            title: `${update ? __("Update Installation") : __("Add New Installation")}`,
             fields: [
                 {
                     label: __("Name of Installation"),
@@ -239,7 +267,7 @@ function executeJS() {
 
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: `${update ? "Update" : "Create"} Installation`,
+            primary_action_label: `${update ? __("Update Installation") : __("Create Installation")}`,
             //secondary_action_label: '',
             primary_action(values) {
                 values.doctype = "CBAM Installation"
@@ -263,7 +291,7 @@ function executeJS() {
 
     const CreateEmissionDialog = async function(docName, docData=false, update=false){
         let d = new frappe.ui.Dialog({
-            title: `Add New Emission`,
+            title: __("Add New Emission"),
             fields: [
                 {
                     label: __("Label"),
@@ -363,7 +391,7 @@ function executeJS() {
                 },
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: `${update ? "Update" : "Create"} Emission`,
+            primary_action_label: `${update ? __("Update Emission") : __("Create Emission")}`,
             //secondary_action_label: '',
             primary_action(values) {
                 values.doctype = "CBAM Emission Data"
