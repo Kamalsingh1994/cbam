@@ -131,7 +131,7 @@
    "fieldname": "zip_code",
    "fieldtype": "Data",
    "hidden": 0,
-   "label": "Zip code",
+   "label": "Zip Code",
    "max_length": 0,
    "max_value": 0,
    "precision": "",

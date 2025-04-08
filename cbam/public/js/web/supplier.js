@@ -1,11 +1,34 @@
 frappe.provide("cbam.supplier")
 
+// This is to load the translations from the server
+frappe.ready(() => {
+    if (!window.location.pathname.startsWith("/app")) {
+      window.__translations = {};
+  
+      frappe.call({
+        method: "cbam.api.get_translations",
+        callback: function (r) {
+          if (r.message) {
+            window.__translations = r.message;
+          }
+        }
+      });
+  
+      window.__ = function (key, args = []) {
+        let translated = window.__translations[key] || key;
+        return translated;
+      };
+    }
+  });
+  
+// end of translation
+
 $.extend(cbam.supplier, {
     async confirm_supplier_details(){
         let supplier_details = await cbam.supplier.get_supplier();
-        
+        const cc_add = __("Company Contact and Address")
         let d = new frappe.ui.Dialog({
-            title: `Please Confrim your Operating Company Details`,
+            title: __("Please Confrim your Operating Company Details"),
             fields: [
                 {
                     label: __("Operating Company Name"),
@@ -17,7 +40,7 @@ $.extend(cbam.supplier, {
                     //options: "\nSub Supplier\nCollegue"
                 },
                 {
-                    label: __("<strong>Company Contact and Address</strong>"),
+                    label: `<strong>${cc_add}</strong>`,
                     fieldname: "sb1",
                     fieldtype: "Section Break",
                     
@@ -52,7 +75,7 @@ $.extend(cbam.supplier, {
                     
                 },
                 {
-                    label: __("Zip code"),
+                    label: __("Zip Code"),
                     fieldname: "zip_code",
                     fieldtype: "Data",
                     default: supplier_details.zip_code
@@ -83,7 +106,7 @@ $.extend(cbam.supplier, {
 
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: 'Confirm Details',
+            primary_action_label: __('Confirm Details'),
             //secondary_action_label: '',
             primary_action(values) {
                 d.hide();
