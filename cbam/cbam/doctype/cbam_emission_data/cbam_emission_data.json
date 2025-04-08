@@ -172,6 +172,12 @@
    "fieldtype": "Select",
    "label": "Production Method",
    "options": "Blast furnace route\nSmelting reduction\nOther production routes\nNickel Pig Iron production\nFerro-nickel (FeNi)\nFerro-chromium (FeCr)\nFerro-manganese (FeMn)\nProduction of Direct reduced Iron (using hydrogen)\nDRI (Direct reduced iron)\nBasic oxigen steel making\nBasic oxigen steel making (incl. Blast furnace)\nBasic oxigen steel making (incl. Melting reduction)\nElectric arc furnace\nElectric arc furnace (alloy steels)\nElectric arc furnace (carbon steel, from direct reduced iron)\nElectric arc furnace (general)\nAluminium products\nIntegrated production with primary smelting\nIntegrated production with secondary melting\nIntegrated with mixed primary and secondary production\nPrimary (electrolytic) smelting\nSecondary melting (recycling)\nMix of primary and secondary production\nSintered ore\nIron or steel products"
+  },
+  {
+   "fieldname": "emission_notes",
+   "fieldtype": "Small Text",
+   "label": "Emission Notes",
+   "mandatory_depends_on": "eval:!doc.specific_direct_embedded_emissions"
   }
  ],
  "grid_page_length": 50,
