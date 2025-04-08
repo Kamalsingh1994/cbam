@@ -313,3 +313,17 @@ fixtures = [
     # ]
     # },
 ]
+
+web_translation_keys = [
+    "Zip Code", "City", "Add New", "Label", "Specific (direct) embedded emissions [tCO2/t]", "Source of electricity", 
+    "Electricity consumed [MWh/t]", "Production Method", "Installation", "Indirect Emission Factor", 
+    "Source of Indirect Emission Factor", "Specific (indirect) embedded emissions [tCO2/t]", "Add New Emission",
+    "Create Emission","Is the installation subject to an emission trading system?","Is the installation tracking emissions data?",
+    "Parent Operating Company","Update Installation","Add New Installation","Name of Installation","Country Code","Operating Company",
+    "Update CBAM Representive Details","Operating Company Name","Please Confrim your Operating Company Details","Company Contact and Address",
+    "Company Phone Number","Phone No","Company Email", "Country", "Supplier Number", "Street and Number","Supplier Name",
+    "First Name", "Last Name","Main Contact Employee Position","Email","Commercial Contact Phone Number","Main Contact",
+    "Update Supplier","Confirm Details","Position", "Phone Number","CBAM Representative Details","Please Confirm your Commercial Contact Details",
+    "Please Confrim your Commercial Contact Details"
+
+]
