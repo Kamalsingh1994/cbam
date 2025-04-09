@@ -398,7 +398,7 @@ function executeJS() {
                     fieldname: "emission_notes",
                     fieldtype: "Small Text",
                     mandatory_depends_on: "eval:!doc.specific_direct_embedded_emissions",
-                    description: "Explanation mandatory if no emission data entered",
+                    description: __("Explanation mandatory if no emission data entered"),
                 },
                 {
                     label: __(""),
