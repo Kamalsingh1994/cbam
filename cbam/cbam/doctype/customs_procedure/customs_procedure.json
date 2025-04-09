@@ -20,14 +20,16 @@
    "fieldname": "description",
    "fieldtype": "Small Text",
    "in_global_search": 1,
+   "in_list_view": 1,
    "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "Description"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-09 23:24:43.392968",
+ "modified": "2025-04-09 23:29:49.032461",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Customs Procedure",
