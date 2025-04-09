@@ -230,7 +230,7 @@ function executeJS() {
 
     const UpdateRepresentativeDetails = async function(){
         let d = new frappe.ui.Dialog({
-            title: `Please Confirm your Commercial Contact Details`,
+            title: `Please Confirm your Cbam Representative Details`,
             fields: [
                 {
                     label: __("Operating Company"),
