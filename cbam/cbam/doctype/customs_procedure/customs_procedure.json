@@ -1,26 +1,39 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:customs_procedure",
  "creation": "2025-04-03 12:52:39.999733",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "customs_procedure"
+  "customs_procedure",
+  "description"
  ],
  "fields": [
   {
    "fieldname": "customs_procedure",
    "fieldtype": "Data",
-   "label": "Customs Procedure"
+   "label": "Customs Procedure",
+   "unique": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Description"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-03 12:53:57.515699",
+ "modified": "2025-04-09 23:29:49.032461",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Customs Procedure",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -46,6 +59,7 @@
    "share": 1
   }
  ],
+ "search_fields": "description",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

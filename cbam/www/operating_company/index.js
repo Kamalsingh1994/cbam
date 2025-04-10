@@ -76,8 +76,9 @@ function executeJS() {
     })
 
     const UpdateContactDetails = async function(){
+            const cc_add = __("Company Contact and Address")
             let d = new frappe.ui.Dialog({
-                title: `Please Confrim your Operating Company Details`,
+                title: __("Please Confrim your Operating Company Details"),
                 fields: [
                     {
                         label: __("Operating Company Name"),
@@ -88,7 +89,7 @@ function executeJS() {
                         //options: "\nSub Supplier\nCollegue"
                     },
                     {
-                        label: __("<strong>Company Contact and Address</strong>"),
+                        label: `<strong>${cc_add}</strong>`,
                         fieldname: "sb1",
                         fieldtype: "Section Break",
                     },
@@ -117,7 +118,7 @@ function executeJS() {
                         default: supplier_details.street_and_number,
                     },
                     {
-                        label: __("Zip code"),
+                        label: __("Zip Code"),
                         fieldname: "zip_code",
                         fieldtype: "Data",
                         default: supplier_details.zip_code,
@@ -142,7 +143,7 @@ function executeJS() {
                     }    
                 ],
                 size: 'extra-large', // small, large, extra-large 
-                primary_action_label: 'Confirm Details',
+                primary_action_label: __('Confirm Details'),
                 //secondary_action_label: '',
                 primary_action(values) {
                     confirmDetails(values, d)                    
@@ -155,8 +156,9 @@ function executeJS() {
     }
 
     const UpdateCommericalDetails = async function(){
+            const cc_details = __("Commercial Contact Details")
             let d = new frappe.ui.Dialog({
-                title: `Please Confrim your Commercial Contact Details`,
+                title: __("Please Confirm your CBAM Representative Contact Details"),
                 fields: [
                     {
                         label: __("Operating Company"),
@@ -168,7 +170,7 @@ function executeJS() {
                         //options: "\nSub Supplier\nCollegue"
                     },
                     {
-                        label: __("<strong>Commercial Contact Details</strong>"),
+                        label: `<strong>${cc_details}</strong>`,
                         fieldname: "sb1",
                         fieldtype: "Section Break",
                     },
@@ -216,7 +218,7 @@ function executeJS() {
                     },
                 ],
                 size: 'extra-large', // small, large, extra-large 
-                primary_action_label: 'Confirm Details',
+                primary_action_label: __('Confirm Details'),
                 //secondary_action_label: '',
                 primary_action(values) {
                     confirmDetails(values, d);
@@ -229,8 +231,10 @@ function executeJS() {
     }
 
     const UpdateRepresentativeDetails = async function(){
+
+        const cbr_details = __("CBAM Representative Details")
         let d = new frappe.ui.Dialog({
-            title: `Please Confirm your Cbam Representative Details`,
+            title: __("Please Confirm your Cbam Representative Details"),
             fields: [
                 {
                     label: __("Operating Company"),
@@ -241,7 +245,7 @@ function executeJS() {
                     //options: "\nSub Supplier\nCollegue"
                 },
                 {
-                    label: __("<strong>CBAM Representive Details</strong>"),
+                    label: `<strong>${cbr_details}</strong>`,
                     fieldname: "sb1",
                     fieldtype: "Section Break",
                 },
@@ -289,7 +293,7 @@ function executeJS() {
                 }
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: 'Confirm Details',
+            primary_action_label: __('Confirm Details'),
             //secondary_action_label: '',
             primary_action(values) {
                 confirmDetails(values, d);

@@ -65,16 +65,20 @@
   "installation",
   "installation_city",
   "is_the_installation_subject_to_an_emission_trading_system",
+  "define_how_emissions_get_monitored_reported_and_verified",
   "column_break_wczo",
   "installation_country",
   "installation_zip_code",
   "is_the_installation_tracking_emission",
+  "which_emission_trading_system_link_to_legal_act",
   "section_break_fvtl",
+  "column_break_fdty",
   "emission_data",
   "indirect_emission_factor",
   "source_of_indirect_emission_factor",
   "specific_indirect_embedded_emissions",
   "amended_from",
+  "emission_notes",
   "column_break_mies",
   "production_method",
   "specific_direct_embedded_emissions",
@@ -541,16 +545,41 @@
    "options": "Yes\nNo"
   },
   {
-   "fieldname": "invoice_number",
-   "fieldtype": "Data",
-   "label": "Invoice Number"
-  }
+    "fieldname": "invoice_number",
+    "fieldtype": "Data",
+    "label": "Invoice Number"
+   },
+   {
+    "fetch_from": "emission_data.emission_notes",
+    "fieldname": "emission_notes",
+    "fieldtype": "Small Text",
+    "label": "Emission Notes",
+    "read_only": 1
+   },
+   {
+    "fieldname": "column_break_fdty",
+    "fieldtype": "Column Break"
+   },
+   {
+    "fetch_from": "installation.define_how_emissions_get_monitored_reported_and_verified",
+    "fieldname": "define_how_emissions_get_monitored_reported_and_verified",
+    "fieldtype": "Small Text",
+    "label": "Define how emissions get monitored, reported and verified:",
+    "read_only": 1
+   },
+   {
+    "fetch_from": "installation.which_emission_trading_system_link_to_legal_act",
+    "fieldname": "which_emission_trading_system_link_to_legal_act",
+    "fieldtype": "Data",
+    "label": "Which emission trading system (link to legal act)?",
+    "read_only": 1
+   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-04 10:35:01.399033",
+ "modified": "2025-04-08 09:35:09.598154",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",

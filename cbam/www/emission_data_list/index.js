@@ -1,4 +1,28 @@
 window.addEventListener("DOMContentLoaded", function() {
+
+    // This is to load the translations from the server
+    console.log(frappe.session.user)
+    frappe.ready(() => {
+        if (!window.location.pathname.startsWith("/app")) {
+            window.__translations = {};
+            frappe.call({
+            method: "cbam.api.get_translations",
+            callback: function (r) {
+                if (r.message) {
+                window.__translations = r.message;
+                }
+            }
+            });
+
+            window.__ = function (key, args = []) {
+            let translated = window.__translations[key] || key;
+            return translated;
+            };
+        }
+    });
+    // end of translation
+
+
     const contentContainer = document.querySelectorAll(".content-container");
     const infoContainer = document.querySelectorAll(".info-container");
     const arrowEl = document.querySelectorAll(".arrow");
@@ -27,7 +51,7 @@ window.addEventListener("DOMContentLoaded", function() {
 
     const CreateEmissionDialog = function(docName){
         let d = new frappe.ui.Dialog({
-            title: `Add New Emission`,
+            title: __("Add New Emission"),
             fields: [
                 
                 {
@@ -92,7 +116,7 @@ window.addEventListener("DOMContentLoaded", function() {
 
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: 'Create Emission',
+            primary_action_label: __("Create Emission"),
             //secondary_action_label: '',
             primary_action(values) {
                 d.hide();
@@ -195,7 +219,7 @@ window.addEventListener("DOMContentLoaded", function() {
 
     const CreateInstallationDialog = function(docName){
         let d = new frappe.ui.Dialog({
-            title: `Add New Installation`,
+            title: __("Add New Installation"),
             fields: [
                 {
                     label: __("Name of Installation"),
@@ -332,7 +356,7 @@ window.addEventListener("DOMContentLoaded", function() {
 
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: 'Create Installation',
+            primary_action_label: __('Create Installation'),
             //secondary_action_label: '',
             primary_action(values) {
                 d.hide();

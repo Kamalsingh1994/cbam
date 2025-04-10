@@ -1,5 +1,33 @@
 let CreateInstallationDialog;
 
+
+
+// This is to load the translations from the server
+frappe.ready(() => {
+    console.log(frappe.session.user)
+    window.__translations = {};
+    frappe.call({
+    method: "cbam.api.get_translations",
+        callback: function (r) {
+            if (r.message) {
+            window.__translations = r.message;
+            }
+        }
+    });
+
+    window.__ = function (key, args = []) {
+    let translated = window.__translations[key] || key;
+    // args?.forEach((val, idx) => {
+    //     translated = translated.replace(`{${idx}}`, val);
+    // });
+    return translated;
+    };
+});
+// end of translation
+  
+
+  
+
 window.addEventListener("DOMContentLoaded", () => {
     executeJS();
     refreshElements(frappe)
@@ -54,7 +82,6 @@ function executeJS() {
     const hideDropDown = function() {
         dropDownCont.forEach(dropDownEl => dropDownEl.classList.add("hidden"));
     }
-    
 
     const createEmission = function(values, d) {
         frappe.call({
@@ -98,7 +125,7 @@ function executeJS() {
     
     CreateInstallationDialog = async function(docName, docData=false, update=false){
         let d = new frappe.ui.Dialog({
-            title: `${update ? "Update" : "Add New"} Installation`,
+            title: `${update ? __("Update Installation") : __("Add New Installation")}`,
             fields: [
                 {
                     label: __("Name of Installation"),
@@ -239,7 +266,7 @@ function executeJS() {
 
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: `${update ? "Update" : "Create"} Installation`,
+            primary_action_label: `${update ? __("Update Installation") : __("Create Installation")}`,
             //secondary_action_label: '',
             primary_action(values) {
                 values.doctype = "CBAM Installation"
@@ -263,7 +290,7 @@ function executeJS() {
 
     const CreateEmissionDialog = async function(docName, docData=false, update=false){
         let d = new frappe.ui.Dialog({
-            title: `Add New Emission`,
+            title: __("Add New Emission"),
             fields: [
                 {
                     label: __("Label"),
@@ -361,9 +388,28 @@ function executeJS() {
                     default: docData ? docData.specific_indirect_embedded_emissions : "",
                     depends_on: "eval:doc.indirect_emission_factor",
                 },
+                {
+                    label: __(""),
+                    fieldname: "cb2",
+                    fieldtype: "Section Break"
+                },
+                {
+                    label: __("Emission Notes (sent to declarant when submitting goods)"),
+                    fieldname: "emission_notes",
+                    fieldtype: "Small Text",
+                    mandatory_depends_on: "eval:!doc.specific_direct_embedded_emissions",
+                    description: __("Explanation mandatory if no emission data entered"),
+                },
+                {
+                    label: __(""),
+                    fieldname: "cb2",
+                    fieldtype: "Column Break",
+                },
+
+
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: `${update ? "Update" : "Create"} Emission`,
+            primary_action_label: `${update ? __("Update Emission") : __("Create Emission")}`,
             //secondary_action_label: '',
             primary_action(values) {
                 values.doctype = "CBAM Emission Data"
