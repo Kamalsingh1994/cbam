@@ -2,7 +2,7 @@
 
 {% set preferred_lang = frappe.request.cookies.get("preferred_language") %}
 {% set user_lang = frappe.db.get_value("User", frappe.session.user, "language") %}
-{% set lang = preferred_lang or user_lang or "en" %}
+{% set lang = user_lang or "en" %}
 
 {% set template = "CBAM Home" %}
 
