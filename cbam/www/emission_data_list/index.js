@@ -16,9 +16,6 @@ window.addEventListener("DOMContentLoaded", function() {
 
             window.__ = function (key, args = []) {
             let translated = window.__translations[key] || key;
-            // args?.forEach((val, idx) => {
-            //     translated = translated.replace(`{${idx}}`, val);
-            // });
             return translated;
             };
         }
@@ -359,7 +356,7 @@ window.addEventListener("DOMContentLoaded", function() {
 
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: 'Create Installation',
+            primary_action_label: __('Create Installation'),
             //secondary_action_label: '',
             primary_action(values) {
                 d.hide();

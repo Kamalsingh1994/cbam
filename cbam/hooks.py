@@ -321,6 +321,7 @@ web_translation_keys = [
     "Company Phone Number","Phone No","Company Email", "Country", "Supplier Number", "Street and Number","Supplier Name",
     "First Name", "Last Name","Main Contact Employee Position","Email","Commercial Contact Phone Number","Main Contact",
     "Update Supplier","Confirm Details","Position", "Phone Number","CBAM Representative Details","Please Confirm your Commercial Contact Details",
-    "Please Confrim your Commercial Contact Details"
-
+    "Please Confirm your CBAM Representative Contact Details","Commercial Contact Details","Define how emissions get monitored, reported and verified:",
+    "Which emission trading system (link to legal act)?","Emission Notes (sent to declarant when submitting goods)",
+    "Explanation mandatory if no emission data entered", "Explanation mandatory if no emission data entered","Update Emission","Create Installation"
 ]

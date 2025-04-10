@@ -82,7 +82,6 @@ function executeJS() {
     const hideDropDown = function() {
         dropDownCont.forEach(dropDownEl => dropDownEl.classList.add("hidden"));
     }
-    
 
     const createEmission = function(values, d) {
         frappe.call({
@@ -389,6 +388,25 @@ function executeJS() {
                     default: docData ? docData.specific_indirect_embedded_emissions : "",
                     depends_on: "eval:doc.indirect_emission_factor",
                 },
+                {
+                    label: __(""),
+                    fieldname: "cb2",
+                    fieldtype: "Section Break"
+                },
+                {
+                    label: __("Emission Notes (sent to declarant when submitting goods)"),
+                    fieldname: "emission_notes",
+                    fieldtype: "Small Text",
+                    mandatory_depends_on: "eval:!doc.specific_direct_embedded_emissions",
+                    description: __("Explanation mandatory if no emission data entered"),
+                },
+                {
+                    label: __(""),
+                    fieldname: "cb2",
+                    fieldtype: "Column Break",
+                },
+
+
             ],
             size: 'extra-large', // small, large, extra-large 
             primary_action_label: `${update ? __("Update Emission") : __("Create Emission")}`,

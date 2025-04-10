@@ -38,7 +38,7 @@ if (frappe.session.user && window.show_language_picker) {
                 document.cookie = `preferred_language=${lang}`;
                 setInterval(() => {
                     window.location.reload();
-                }, 500);
+                }, 1000);
             });
         });
     }

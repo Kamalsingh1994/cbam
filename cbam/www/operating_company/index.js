@@ -156,8 +156,9 @@ function executeJS() {
     }
 
     const UpdateCommericalDetails = async function(){
+            const cc_details = __("Commercial Contact Details")
             let d = new frappe.ui.Dialog({
-                title: __("Please Confrim your Commercial Contact Details"),
+                title: __("Please Confirm your CBAM Representative Contact Details"),
                 fields: [
                     {
                         label: __("Operating Company"),
@@ -169,7 +170,7 @@ function executeJS() {
                         //options: "\nSub Supplier\nCollegue"
                     },
                     {
-                        label: __("<strong>Commercial Contact Details</strong>"),
+                        label: `<strong>${cc_details}</strong>`,
                         fieldname: "sb1",
                         fieldtype: "Section Break",
                     },
