@@ -234,7 +234,7 @@ function executeJS() {
 
         const cbr_details = __("CBAM Representative Details")
         let d = new frappe.ui.Dialog({
-            title: `Please Confirm your Cbam Representative Details`,
+            title: __("Please Confirm your Cbam Representative Details"),
             fields: [
                 {
                     label: __("Operating Company"),

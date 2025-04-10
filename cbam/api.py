@@ -5,8 +5,11 @@ from frappe.model.document import Document
 @frappe.whitelist(allow_guest=True)
 def set_user_language(lang):
     user = frappe.session.user
+    doc = frappe.get_doc("User", user)
     if user != "Guest":
-        frappe.db.set_value("User", user, "language", lang)
+        doc.language = lang
+        doc.save()
+        doc.reload()
 
 
 @frappe.whitelist(allow_guest=True)

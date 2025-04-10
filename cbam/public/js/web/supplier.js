@@ -1,25 +1,25 @@
 frappe.provide("cbam.supplier")
 
 // This is to load the translations from the server
-frappe.ready(() => {
-    if (!window.location.pathname.startsWith("/app")) {
-      window.__translations = {};
-  
-      frappe.call({
+
+if (!window.location.pathname.startsWith("/app")) {
+    frappe.ready(() => {
+        window.__translations = {};
+        frappe.call({
         method: "cbam.api.get_translations",
         callback: function (r) {
-          if (r.message) {
+            if (r.message) {
             window.__translations = r.message;
-          }
+            }
         }
-      });
-  
-      window.__ = function (key, args = []) {
-        let translated = window.__translations[key] || key;
-        return translated;
-      };
-    }
-  });
+        });
+
+        window.__ = function (key, args = []) {
+            let translated = window.__translations[key] || key;
+            return translated;
+        };
+    });
+};
   
 // end of translation
 
