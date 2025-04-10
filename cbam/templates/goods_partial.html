@@ -20,19 +20,20 @@
             />
             </span>
         <span class="level-item bold ">
-        <span class="inv-name" id="doc-name" data-doctype="DocType" data-name="{{doc.name}}" title="Sales Invoice" >{{doc.article_number}}</span>
+        <span class="inv-name" id="doc-name" data-doctype="DocType" data-name="{{doc.name}}" data-installation="{{doc.installation}}" data-emission="{{doc.emission_data}}" title="Sales Invoice" >{{doc.article_number}}</span>
         </span>
     </div>
     <div class="list-row-col list-subject level tc-container gd">
         <span class="text-cut"><span class="inv-tax" >{{doc.good_description}}</span></span>
-        </div>
+    </div>
     
     <div class="list-row-col list-subject level tc-container rm">
-        <span><span class="currency"></span> <span class="inv-tax inv-rawmass" data-rawmass = "{{doc.raw_mass}}">{{doc.raw_mass}}</span></span>
+        <span><span class="currency"></span> <span class="inv-tax inv-rawmass" data-rawmass = "{{doc.raw_mass}}">{{frappe.format_value(doc.raw_mass, {"fieldtype": "Float"})}}</span></span>
     </div>
     
     
     <div class="list-row-col list-subject level gt-container">
+        
         <span><span class="currency"></span> <span class="inv-amount" data-gt=grand_total>{{doc.importing_company}}</span></span>
     </div>
     {% set color = "grey" %}
@@ -97,7 +98,9 @@
         <button class="abs-option-btn" data-action="Reject">{{_('Reject')}}</button>
         <!-- <button class="abs-option-btn" data-action="Add Installation">Add Installation</button> -->
         <button class="abs-option-btn" data-action="Add Emission Data">{{_('Add Emission')}}</button>
+        {% if "CBAM Representative" in roles %}
         <button class="abs-option-btn" data-action="Submit Emission Data">{{_('Submit Emission')}}</button>
+        {% endif %}
     </div>
     <span class="ml-2 collapse-indicator mb-1 arr-icon">
         <svg class="es-icon es-line icon-sm arr-icon" aria-hidden="true">
@@ -108,89 +111,87 @@
 </div>
 <div class="container info-container hidden">
     <div class="container responsive-md" style="width: 100%">
+    <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Country of origin')}}</span>
+        <div class="field tc-field">{{_(doc.country_of_origin)}}</div>
+    </div>
+
+    <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Imported into EU on')}}</span>
+        <div class="field tc-field">{{_(doc.hand_over_date)}}</div>
+    </div>
+
+    <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Customs Tariff Number')}}</span>
+        <div class="field tc-field">{{_(doc.customs_tariff_number)}}</div>
+    </div>
+
+    <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Good Description')}}</span>
+        <div class="field tc-field">{{_(doc.good_description)}}</div>
+    </div>
+    <div class="prt-field-cont field-cont field-res" style="align-self: flex-end;">
+        <div class="tc-field prt-field print-btn">
+        <button class="btn btn-primary print-btn btn-sm primary-action">
+            <span class="print-btn prt-icon-cont">
+            <svg class="icon print-btn icon-sm" aria-hidden="true" style="width: 12px; height: 12px;">
+                <use class="print-btn" href="#icon-printer"></use>
+            </svg>
+            <span class="print-btn">{{_('Print')}}</span>
+            </span>
+        </button>
+        </div>
+    </div>
+    </div>
+    {% if doc.installation %}
+    <h2>{{_('Emission Details')}}</h2>
+    <div class="container responsive-md" style="width: 100%">
         <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Country of origin')}}</span>
-            <div class="field tc-field">{{doc.country_of_origin}}</div>
+            <span class="field-label">{{_('Installation')}}</span>
+            <div class="field tc-field">{{_(doc.installation) or ""}}</div>
         </div>
         
         <div class="tc-field-cont field-cont">
-          <span class="field-label">{{_('Imported into EU on')}}</span>
-          <div class="field tc-field">{{doc.hand_over_date}}</div>
+            <span class="field-label">{{_('Emission Data')}}</span>
+            <div class="field tc-field">{{_(doc.emission_data) or ""}}</div>
         </div>
 
         <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Customs Tariff Number')}}</span>
-            <div class="field tc-field">{{doc.customs_tariff_number}}</div>
+            <span class="field-label">{{_('Production method')}}</span>
+            <div class="field tc-field">{{_(doc.production_method) or ""}}</div>
         </div>
 
         <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Good Description')}}</span>
-            <div class="field tc-field">{{doc.good_description}}</div>
-          </div>
+            <span class="field-label">{{_('Source of electricity')}}</span>
+            <div class="field tc-field">{{_(doc.source_of_electricity) or ""}}</div>
+        </div>
 
+        <div class="tc-field-cont field-cont">
+            <span class="field-label">{{_('Specific (direct) embedded emissions [tCO2/t]')}}</span>
+            <div class="field tc-field">{{_(doc.direct_emission_data) or ""}}</div>
+        </div>
 
-        <div class="prt-field-cont field-cont field-res" style="align-self: flex-end;">
-            <div class="tc-field prt-field print-btn">
-            <button class="btn btn-primary print-btn btn-sm primary-action">
-                <span class="print-btn prt-icon-cont">
-                <svg class="icon print-btn icon-sm" aria-hidden="true" style="width: 12px; height: 12px;">
-                    <use class="print-btn" href="#icon-printer"></use>
-                </svg>
-                <span class="print-btn">{{_('Print')}}</span>
-                </span>
-            </button>
-            </div>
+        <div class="tc-field-cont field-cont">
+            <span class="field-label">{{_('Electricity consumed [MWh/t]')}}</span>
+            <div class="field tc-field">{{_(doc.electricity_consumed) or ""}}</div>
+        </div>
+
+        <div class="tc-field-cont field-cont">
+            <span class="field-label">{{_('Indirect Emission Factor')}}</span>
+            <div class="field tc-field">{{_(doc.indirect_emission_factor) or ""}}</div>
+        </div>
+
+        <div class="tc-field-cont field-cont">
+            <span class="field-label">{{_('Source of Indirect Emission Factor')}}</span>
+            <div class="field tc-field">{{_(doc.source_of_indirect_emission_factor) or ""}}</div>
+        </div>
+
+        <div class="tc-field-cont field-cont">
+            <span class="field-label">{{_('Specific (indirect) embedded emissions [tCO2/t]')}}</span>
+            <div class="field tc-field">{{_(doc.specific_indirect_embedded_emissions) or ""}}</div>
         </div>
     </div>
-    {% if doc.installation %}
-        <h2>{{_('Emission Details')}}</h2>
-        <div class="container responsive-md" style="width: 100%">
-            <div class="tc-field-cont field-cont">
-                <span class="field-label">{{_('Installation')}}</span>
-                <div class="field tc-field">{{_(doc.installation) or ""}}</div>
-            </div>
-            
-            <div class="tc-field-cont field-cont">
-                <span class="field-label">{{_('Emission Data')}}</span>
-                <div class="field tc-field">{{_(doc.emission_data) or ""}}</div>
-            </div>
-
-            <div class="tc-field-cont field-cont">
-                <span class="field-label">{{_('Production method')}}</span>
-                <div class="field tc-field">{{_(doc.production_method) or ""}}</div>
-            </div>
-
-            <div class="tc-field-cont field-cont">
-                <span class="field-label">{{_('Source of electricity')}}</span>
-                <div class="field tc-field">{{_(doc.source_of_electricity) or ""}}</div>
-            </div>
-
-            <div class="tc-field-cont field-cont">
-                <span class="field-label">{{_('Specific (direct) embedded emissions [tCO2/t]')}}</span>
-                <div class="field tc-field">{{_(doc.direct_emission_data) or ""}}</div>
-            </div>
-
-            <div class="tc-field-cont field-cont">
-                <span class="field-label">{{_('Electricity consumed [MWh/t]')}}</span>
-                <div class="field tc-field">{{_(doc.electricity_consumed) or ""}}</div>
-            </div>
-
-            <div class="tc-field-cont field-cont">
-                <span class="field-label">{{_('Indirect Emission Factor')}}</span>
-                <div class="field tc-field">{{_(doc.indirect_emission_factor) or ""}}</div>
-            </div>
-
-            <div class="tc-field-cont field-cont">
-                <span class="field-label">{{_('Source of Indirect Emission Factor')}}</span>
-                <div class="field tc-field">{{_(doc.source_of_indirect_emission_factor) or ""}}</div>
-            </div>
-
-            <div class="tc-field-cont field-cont">
-                <span class="field-label">{{_('Specific (indirect) embedded emissions [tCO2/t]')}}</span>
-                <div class="field tc-field">{{_(doc.specific_indirect_embedded_emissions) or ""}}</div>
-            </div>
-        </div>
-     {% endif %}
+    {% endif %}
 </div>
 </div>
 {% endfor %}

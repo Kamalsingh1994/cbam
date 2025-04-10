@@ -51,11 +51,13 @@
                         <span class="menu-item-label" data-label="Assign Emission"><span>{{_('Assign Emission')}}</span></span>
                       </a>
                     </li>
-                    <li class="user-action">
-                      <a id="bulksubmit-data" class="grey-link dropdown-item" href="#" onclick="return false;">
-                        <span class="menu-item-label" data-label="Submit Emission"><span>{{_('Submit Emission')}}</span></span>
-                      </a>
-                    </li>
+                    {% if "CBAM Representative" in roles %}
+                      <li class="user-action">
+                        <a id="bulksubmit-data" class="grey-link dropdown-item" href="#" onclick="return false;">
+                          <span class="menu-item-label" data-label="Submit Emission"><span>{{_('Submit Emission')}}</span></span>
+                        </a>
+                      </li>
+                    {% endif %}
                   </ul>      
                 </div>
                 <!-- <button class="btn btn-primary btn-sm primary-action hidden data-btn" id="bulkassign-data">
@@ -214,7 +216,9 @@
                   <button class="abs-option-btn" data-action="Reject">{{_('Reject')}}</button>
                   <!-- <button class="abs-option-btn" data-action="Add Installation">Add Installation</button> -->
                   <button class="abs-option-btn" data-action="Add Emission Data">{{_('Add Emission')}}</button>
-                  <button class="abs-option-btn" data-action="Submit Emission Data">{{_('Submit Emission')}}</button>
+                  {% if "CBAM Representative" in roles %}
+                    <button class="abs-option-btn" data-action="Submit Emission Data">{{_('Submit Emission')}}</button>
+                  {% endif %}
                 </div>
                 <span class="ml-2 collapse-indicator mb-1 arr-icon">
                   <svg class="es-icon es-line icon-sm arr-icon" aria-hidden="true">
