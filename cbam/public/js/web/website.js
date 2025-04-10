@@ -1,62 +1,3 @@
-// frappe.show_language_picker = function () {
-//     if (frappe.session.user && frappe.session.user !== "Guest" && window.show_language_picker) {
-//         frappe.call("frappe.translate.get_all_languages", {
-//             with_language_name: true,
-//         }).then((res) => {
-//             let language_list = res.message;
-
-//             // Filter to include only Chinese (zh) and English (en)
-//             language_list = language_list.filter(
-//                 (language_doc) =>
-//                     language_doc.language_code === "zh" ||
-//                     language_doc.language_code === "en"
-//             );
-
-//             let language_switcher = $("#language-switcher .form-control");
-//             let language_codes = [];
-
-//             language_list.forEach((language_doc) => {
-//                 language_codes.push(language_doc.language_code);
-//                 language_switcher.append(
-//                     $("<option></option>")
-//                         .attr("value", language_doc.language_code)
-//                         .text(language_doc.language_name)
-//                 );
-//             });
-
-//             $("#language-switcher").removeClass("hide");
-
-//             // Set language based on user preference
-//             let user_lang = frappe.boot.lang || "en";
-//             let cookie_lang = frappe.get_cookie("preferred_language");
-
-//             // Update cookie if it doesn't match
-//             if (cookie_lang !== user_lang) {
-//                 document.cookie = `preferred_language=${user_lang}`;
-//             }
-
-//             let selected_language = language_codes.includes(user_lang) ? user_lang : "en";
-
-//             language_switcher.val(selected_language);
-//             document.documentElement.lang = selected_language;
-
-//             // Handle change event
-//             language_switcher.change(() => {
-//                 const lang = language_switcher.val();
-//                 frappe.call({
-//                     method: "cbam.api.set_user_language",
-//                     args: { lang }
-//                 });
-//                 document.cookie = `preferred_language=${lang}`;
-//                 setTimeout(() => {
-//                     window.location.reload();
-//                 }, 500);
-//             });
-//         });
-//     }
-// };
-
-// frappe.show_language_picker();
 // Automatically reload the page if the preferred language doesn't match the expected language
 (function auto_switch_language_on_load() {
     const is_guest = frappe.session.user === "Guest";
@@ -136,10 +77,8 @@ frappe.show_language_picker = function () {
                         body: JSON.stringify({ lang })
                     }).then(() => {
                         document.cookie = `preferred_language=${lang}`;
-                        setTimeout(() => {
-                            window.location.href = window.location.pathname + window.location.search;
-                        }, 500);
-                    });
+                        window.location.href = window.location.pathname + window.location.search;
+                    });                    
                 });
             }
         };
