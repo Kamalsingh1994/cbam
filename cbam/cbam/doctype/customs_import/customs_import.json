@@ -32,6 +32,7 @@
    "label": "Goods Import Complete"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [
   {
@@ -39,7 +40,7 @@
    "link_fieldname": "internal_customs_import_number"
   }
  ],
- "modified": "2025-03-10 11:42:20.759136",
+ "modified": "2025-04-11 00:08:20.928243",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Customs Import",
@@ -59,46 +60,31 @@
    "write": 1
   },
   {
-   "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
-   "import": 1,
    "print": 1,
-   "read": 1,
    "report": 1,
    "role": "Declarant",
    "select": 1,
-   "share": 1,
-   "write": 1
+   "share": 1
   },
   {
-   "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
-   "import": 1,
    "print": 1,
-   "read": 1,
    "report": 1,
    "role": "CBAM Representative",
    "select": 1,
-   "share": 1,
-   "write": 1
+   "share": 1
   },
   {
-   "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
-   "import": 1,
    "print": 1,
-   "read": 1,
    "report": 1,
    "role": "Commercial Contact",
    "select": 1,
-   "share": 1,
-   "write": 1
+   "share": 1
   }
  ],
  "sort_field": "creation",
