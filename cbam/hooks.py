@@ -21,15 +21,12 @@ website_context = {
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "cbam",
-# 		"logo": "/assets/cbam/logo.png",
-# 		"title": "CBAM",
-# 		"route": "/cbam",
-# 		"has_permission": "cbam.api.permission.has_app_permission"
-# 	}
-# ]
+add_to_apps_screen = [
+	{
+		"name": "cbam",
+		"logo": "assets/cbam/images/gallehr_partner_logo.png"
+	}
+]
 
 # Includes in <head>
 # ------------------
