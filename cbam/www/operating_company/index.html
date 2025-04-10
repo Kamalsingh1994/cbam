@@ -66,7 +66,6 @@
                 </div>
                 <div class="tc-field-cont field-cont" style="opacity: 0;">
                 </div>
-                {% if "Commercial Contact" in roles %}
                 <div class="tc-field-cont field-cont btn-div">
                   <button class="btn btn-primary btn-sm primary-action">
                     <span> 
@@ -74,7 +73,6 @@
                     </span>
                   </button>
                 </div>
-                {% endif %}
               </div>
               
               <h2>{{_('Commercial Contact')}}</h2>
@@ -142,7 +140,18 @@
                   <span class="field-label">{{_('Position')}}</span>
                   <div class="field tc-field">{{doc.cbam_representive_employee_position or ""}}</div>
                 </div>
-                {% if "Commercial Contact" in roles or "CBAM Representative" in roles %}
+
+                {% if "Commercial Contact" in roles and not doc.cbam_representative_user %}
+                  <div class="tc-field-cont field-cont btn-div cbam-btn-container">
+                    <button class="btn btn-primary btn-sm primary-action">
+                      <span> 
+                        <span><a href = "#" class="ex-pay-link add-newemission" id="cbam_rep">{{_('Create CBAM Representive Details')}}</a></span>
+                      </span>
+                    </button>
+                  </div>
+                {% endif %}
+
+                {% if "CBAM Representative" in roles %}
                 <div class="tc-field-cont field-cont btn-div cbam-btn-container">
                   <button class="btn btn-primary btn-sm primary-action">
                     <span> 
