@@ -115,7 +115,6 @@ class Good(Document):
 
 
 	def create_new_good_doc(self, source, source_name, qty):
-		frappe.msgprint(source)
 		new_good = frappe.copy_doc(self)
 		new_good.parent_good = self.name
 		new_good.raw_mass = qty
@@ -230,7 +229,6 @@ class Good(Document):
 			elif responsiblity == "Rejected":
 				template = settings.supplier_good_rejection_notification_template
 			else:
-				frappe.msgprint("Test else")
 				template = settings.tier_n1_registered_template #! Just for testing reason
 
 			notification = frappe.get_doc("Notification", template)

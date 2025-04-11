@@ -24,10 +24,7 @@ website_context = {
 # add_to_apps_screen = [
 # 	{
 # 		"name": "cbam",
-# 		"logo": "/assets/cbam/logo.png",
-# 		"title": "CBAM",
-# 		"route": "/cbam",
-# 		"has_permission": "cbam.api.permission.has_app_permission"
+# 		"logo": "assets/cbam/images/gallehr_partner_logo.png"
 # 	}
 # ]
 
@@ -40,6 +37,7 @@ app_include_js = [
     "cbam.bundle.js",
     "cbam-utils.bundle.js"
 ]
+
 
 # include js, css files in header of web template
 #web_include_css = "/assets/cbam/css/cbam.css"
@@ -312,4 +310,19 @@ fixtures = [
     #     ]
     # ]
     # },
+]
+
+web_translation_keys = [
+    "Zip Code", "City", "Add New", "Label", "Specific (direct) embedded emissions [tCO2/t]", "Source of electricity", 
+    "Electricity consumed [MWh/t]", "Production Method", "Installation", "Indirect Emission Factor", 
+    "Source of Indirect Emission Factor", "Specific (indirect) embedded emissions [tCO2/t]", "Add New Emission",
+    "Create Emission","Is the installation subject to an emission trading system?","Is the installation tracking emissions data?",
+    "Parent Operating Company","Update Installation","Add New Installation","Name of Installation","Country Code","Operating Company",
+    "Update CBAM Representive Details","Operating Company Name","Please Confrim your Operating Company Details","Company Contact and Address",
+    "Company Phone Number","Phone No","Company Email", "Country", "Supplier Number", "Street and Number","Supplier Name",
+    "First Name", "Last Name","Main Contact Employee Position","Email","Commercial Contact Phone Number","Main Contact",
+    "Update Supplier","Confirm Details","Position", "Phone Number","CBAM Representative Details","Please Confirm your Commercial Contact Details",
+    "Please Confirm your CBAM Representative Contact Details","Commercial Contact Details","Define how emissions get monitored, reported and verified:",
+    "Which emission trading system (link to legal act)?","Emission Notes (sent to declarant when submitting goods)",
+    "Explanation mandatory if no emission data entered", "Explanation mandatory if no emission data entered","Update Emission","Create Installation", "Please Confirm your CBAM Representative Details"
 ]

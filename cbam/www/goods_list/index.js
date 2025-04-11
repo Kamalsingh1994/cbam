@@ -5,15 +5,15 @@ let CreateEmissionSubmissionDialog;
 let contentContainer;
 
 window.addEventListener("DOMContentLoaded", () => {
-    const bulkassign = document.querySelector("#bulkassign-data");
-    const bulksubmit = document.querySelector("#bulksubmit-data");
-    const bulkforward = document.querySelector("#bulkforward-data");
-    const bulkreject = document.querySelector("#bulkreject-data");
+    const bulkassign = document?.querySelector("#bulkassign-data");
+    const bulksubmit = document?.querySelector("#bulksubmit-data");
+    const bulkforward = document?.querySelector("#bulkforward-data");
+    const bulkreject = document?.querySelector("#bulkreject-data");
 
     executeJS();
 
 
-    bulkassign.addEventListener("click", function(e){
+    bulkassign?.addEventListener("click", function(e){
         e.preventDefault();
         //const doc_list = document.querySelectorAll("#doc-name")
         const doc_list = []
@@ -27,7 +27,7 @@ window.addEventListener("DOMContentLoaded", () => {
         CreateEmissionDialog(doc_list)
     })
 
-    bulkreject.addEventListener("click", function(e){
+    bulkreject?.addEventListener("click", function(e){
         e.preventDefault();
         //const doc_list = document.querySelectorAll("#doc-name")
         const doc_list = []
@@ -41,7 +41,7 @@ window.addEventListener("DOMContentLoaded", () => {
         CreateRejectDialog(doc_list)
     })
 
-    bulkforward.addEventListener("click", function(e){
+    bulkforward?.addEventListener("click", function(e){
         e.preventDefault();
         //const doc_list = document.querySelectorAll("#doc-name")
         const doc_list = []
@@ -55,7 +55,7 @@ window.addEventListener("DOMContentLoaded", () => {
     })
 
 
-    bulksubmit.addEventListener("click", function(e){
+    bulksubmit?.addEventListener("click", function(e){
         e.preventDefault();
         //const doc_list = document.querySelectorAll("#doc-name")
         const doc_list = []
@@ -689,7 +689,9 @@ function executeJS() {
     CreateEmissionSubmissionDialog = async function(goods){
         let supplier_details = await cbam.supplier.get_supplier_details();
         if (supplier_details.status!="Company Verified"){
-            let d = new frappe.ui.Dialog({
+            const cc_add = __("Company Contact and Address")
+            const cbr_details = __("CBAM Representative Details")
+            let d = new frappe.ui.Dialog({ 
                 title: `Please Confirm your Operating Company Details`,
                 fields: [
                     {
@@ -702,7 +704,7 @@ function executeJS() {
                         //options: "\nSub Supplier\nCollegue"
                     },
                     {
-                        label: __("<strong>Company Contact and Address</strong>"),
+                        label: `<strong>${cc_add}</strong>`,
                         fieldname: "sb1",
                         fieldtype: "Section Break",
                         
@@ -738,7 +740,7 @@ function executeJS() {
                         
                     },
                     {
-                        label: __("Zip code"),
+                        label: __("Zip Code"),
                         fieldname: "zip_code",
                         fieldtype: "Data",
                         default: supplier_details.zip_code,
@@ -767,7 +769,7 @@ function executeJS() {
                         reqd: 1
                     },
                     {
-                        label: __("<strong>CBAM Representive Details</strong>"),
+                        label: `<strong>${cbr_details}</strong>`,
                         fieldname: "sb1",
                         fieldtype: "Section Break",                        
                     },
@@ -817,7 +819,7 @@ function executeJS() {
                     
                 ],
                 size: 'extra-large', // small, large, extra-large 
-                primary_action_label: 'Confirm Details',
+                primary_action_label: __('Confirm Details'),
                 //secondary_action_label: '',
                 primary_action(values) {
                     values.varify = true
