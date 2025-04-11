@@ -73,3 +73,4 @@ def split_goods(good, values):
     good_doc = frappe.get_doc("Good", good)
     good_doc.add_split_good_details(details)
     good_doc.split_goods()
+    frappe.msgprint("Goods splitted successfully.")
