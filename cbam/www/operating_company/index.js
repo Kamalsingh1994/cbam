@@ -56,7 +56,7 @@ function executeJS() {
         }
     })
 
-    if(!cbamHasFieldVals) {
+    if(!cbamHasFieldVals && cbamBtnCont) {
         cbamBtnCont.classList.remove("hidden");
     }
 
