@@ -5,15 +5,15 @@ let CreateEmissionSubmissionDialog;
 let contentContainer;
 
 window.addEventListener("DOMContentLoaded", () => {
-    const bulkassign = document.querySelector("#bulkassign-data");
-    const bulksubmit = document.querySelector("#bulksubmit-data");
-    const bulkforward = document.querySelector("#bulkforward-data");
-    const bulkreject = document.querySelector("#bulkreject-data");
+    const bulkassign = document?.querySelector("#bulkassign-data");
+    const bulksubmit = document?.querySelector("#bulksubmit-data");
+    const bulkforward = document?.querySelector("#bulkforward-data");
+    const bulkreject = document?.querySelector("#bulkreject-data");
 
     executeJS();
 
 
-    bulkassign.addEventListener("click", function(e){
+    bulkassign?.addEventListener("click", function(e){
         e.preventDefault();
         //const doc_list = document.querySelectorAll("#doc-name")
         const doc_list = []
@@ -27,7 +27,7 @@ window.addEventListener("DOMContentLoaded", () => {
         CreateEmissionDialog(doc_list)
     })
 
-    bulkreject.addEventListener("click", function(e){
+    bulkreject?.addEventListener("click", function(e){
         e.preventDefault();
         //const doc_list = document.querySelectorAll("#doc-name")
         const doc_list = []
@@ -41,7 +41,7 @@ window.addEventListener("DOMContentLoaded", () => {
         CreateRejectDialog(doc_list)
     })
 
-    bulkforward.addEventListener("click", function(e){
+    bulkforward?.addEventListener("click", function(e){
         e.preventDefault();
         //const doc_list = document.querySelectorAll("#doc-name")
         const doc_list = []
@@ -55,7 +55,7 @@ window.addEventListener("DOMContentLoaded", () => {
     })
 
 
-    bulksubmit.addEventListener("click", function(e){
+    bulksubmit?.addEventListener("click", function(e){
         e.preventDefault();
         //const doc_list = document.querySelectorAll("#doc-name")
         const doc_list = []

@@ -4,7 +4,6 @@ let CreateInstallationDialog;
 
 // This is to load the translations from the server
 frappe.ready(() => {
-    console.log(frappe.session.user)
     window.__translations = {};
     frappe.call({
     method: "cbam.api.get_translations",

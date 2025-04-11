@@ -60,178 +60,162 @@ function executeJS() {
         cbamBtnCont.classList.remove("hidden");
     }
 
-    company_contact.addEventListener("click", function(e){     
-        e.preventDefault();   
-        UpdateContactDetails();
-    })
-
-    commercial_contact.addEventListener("click", function(e) {
-        e.preventDefault();
-        UpdateCommericalDetails();
-    })
-
-    cbam_rep.addEventListener("click", function(e) {
-        e.preventDefault();
-        UpdateRepresentativeDetails();
-    })
-
     const UpdateContactDetails = async function(){
-            const cc_add = __("Company Contact and Address")
-            let d = new frappe.ui.Dialog({
-                title: __("Please Confrim your Operating Company Details"),
-                fields: [
-                    {
-                        label: __("Operating Company Name"),
-                        fieldname: "supplier_name",
-                        fieldtype: "Data",
-                        
-                        default: supplier_details.supplier_name,
-                        //options: "\nSub Supplier\nCollegue"
-                    },
-                    {
-                        label: `<strong>${cc_add}</strong>`,
-                        fieldname: "sb1",
-                        fieldtype: "Section Break",
-                    },
-                    {
-                        label: __("Company Phone Number"),
-                        fieldname: "company_phone_number",
-                        fieldtype: "Data",
-                        default: supplier_details.company_phone_number
-                    },
-                    {
-                        label: __("Company Email"),
-                        fieldname: "company_email",
-                        fieldtype: "Data",
-                        default: supplier_details.company_email,
-                        options: "Email"
-                    },
-                    {
-                        label: __(""),
-                        fieldname: "cb1",
-                        fieldtype: "Column Break",
-                    },
-                    {
-                        label: __("Street and Number"),
-                        fieldname: "street_and_number",
-                        fieldtype: "Data",
-                        default: supplier_details.street_and_number,
-                    },
-                    {
-                        label: __("Zip Code"),
-                        fieldname: "zip_code",
-                        fieldtype: "Data",
-                        default: supplier_details.zip_code,
-                    },
-                    {
-                        label: __(""),
-                        fieldname: "cb1",
-                        fieldtype: "Column Break",
-                    },
-                    {
-                        label: __("City"),
-                        fieldname: "city",
-                        fieldtype: "Data",
-                        default: supplier_details.city,
-                    },
-                    {
-                        label: __("Country"),
-                        fieldname: "country",
-                        fieldtype: "Autocomplete",
-                        options: await cbam.utils.get_links("Country"),
-                        default: supplier_details.country,
-                    }    
-                ],
-                size: 'extra-large', // small, large, extra-large 
-                primary_action_label: __('Confirm Details'),
-                //secondary_action_label: '',
-                primary_action(values) {
-                    confirmDetails(values, d)                    
+        const cc_add = __("Company Contact and Address")
+        let d = new frappe.ui.Dialog({
+            title: __("Please Confrim your Operating Company Details"),
+            fields: [
+                {
+                    label: __("Operating Company Name"),
+                    fieldname: "supplier_name",
+                    fieldtype: "Data",
+                    
+                    default: supplier_details.supplier_name,
+                    //options: "\nSub Supplier\nCollegue"
                 },
-                secondary_action(values) {                    
-                    no+=1                    
-                }
-            });
-            d.show()        
+                {
+                    label: `<strong>${cc_add}</strong>`,
+                    fieldname: "sb1",
+                    fieldtype: "Section Break",
+                },
+                {
+                    label: __("Company Phone Number"),
+                    fieldname: "company_phone_number",
+                    fieldtype: "Data",
+                    default: supplier_details.company_phone_number
+                },
+                {
+                    label: __("Company Email"),
+                    fieldname: "company_email",
+                    fieldtype: "Data",
+                    default: supplier_details.company_email,
+                    options: "Email"
+                },
+                {
+                    label: __(""),
+                    fieldname: "cb1",
+                    fieldtype: "Column Break",
+                },
+                {
+                    label: __("Street and Number"),
+                    fieldname: "street_and_number",
+                    fieldtype: "Data",
+                    default: supplier_details.street_and_number,
+                },
+                {
+                    label: __("Zip Code"),
+                    fieldname: "zip_code",
+                    fieldtype: "Data",
+                    default: supplier_details.zip_code,
+                },
+                {
+                    label: __(""),
+                    fieldname: "cb1",
+                    fieldtype: "Column Break",
+                },
+                {
+                    label: __("City"),
+                    fieldname: "city",
+                    fieldtype: "Data",
+                    default: supplier_details.city,
+                },
+                {
+                    label: __("Country"),
+                    fieldname: "country",
+                    fieldtype: "Autocomplete",
+                    options: await cbam.utils.get_links("Country"),
+                    default: supplier_details.country,
+                }    
+            ],
+            size: 'extra-large', // small, large, extra-large 
+            primary_action_label: __('Confirm Details'),
+            //secondary_action_label: '',
+            primary_action(values) {
+                confirmDetails(values, d)                    
+            },
+            secondary_action(values) {                    
+                no+=1                    
+            }
+        });
+        d.show()        
     }
 
     const UpdateCommericalDetails = async function(){
-            const cc_details = __("Commercial Contact Details")
-            let d = new frappe.ui.Dialog({
-                title: __("Please Confirm your CBAM Representative Contact Details"),
-                fields: [
-                    {
-                        label: __("Operating Company"),
-                        fieldname: "supplier_name",
-                        fieldtype: "Data",
-                        
-                        default: supplier_details.supplier_name,
-                        read_only:1
-                        //options: "\nSub Supplier\nCollegue"
-                    },
-                    {
-                        label: `<strong>${cc_details}</strong>`,
-                        fieldname: "sb1",
-                        fieldtype: "Section Break",
-                    },
-                    {
-                        label: __("Last Name"),
-                        fieldname: "main_contact_employee_last_name",
-                        fieldtype: "Data",
-                        default: supplier_details.main_contact_employee_last_name,
-                    },
-                    {
-                        label: __("Position"),
-                        fieldname: "main_contact_employee_position",
-                        fieldtype: "Data",
-                        default: supplier_details.main_contact_employee_position
-                    },
-                    {
-                        label: __(""),
-                        fieldname: "cb1",
-                        fieldtype: "Column Break",
-                    },
-                    {
-                        label: __("First Name"),
-                        fieldname: "main_contact_employee_first_name",
-                        fieldtype: "Data",
-                        default: supplier_details.main_contact_employee_first_name,
-                    },
-                    {
-                        label: __("Phone Number"),
-                        fieldname: "main_contact_employee_phone_number",
-                        fieldtype: "Data",
-                        default: supplier_details.main_contact_employee_phone_number
-                    },
-                    {
-                        label: __(""),
-                        fieldname: "cb1",
-                        fieldtype: "Column Break",
-                    },
-                    {
-                        label: __("Email"),
-                        fieldname: "main_contact_employee_email",
-                        fieldtype: "Data",
-                        default: supplier_details.main_contact_employee_email,
-                        options: "Email",
-                        read_only: 1
-                    },
-                ],
-                size: 'extra-large', // small, large, extra-large 
-                primary_action_label: __('Confirm Details'),
-                //secondary_action_label: '',
-                primary_action(values) {
-                    confirmDetails(values, d);
+        const cc_details = __("Commercial Contact Details")
+        let d = new frappe.ui.Dialog({
+            title: __("Please Confirm your CBAM Representative Contact Details"),
+            fields: [
+                {
+                    label: __("Operating Company"),
+                    fieldname: "supplier_name",
+                    fieldtype: "Data",
+                    
+                    default: supplier_details.supplier_name,
+                    read_only:1
+                    //options: "\nSub Supplier\nCollegue"
                 },
-                secondary_action(values) {                    
-                    no+=1                    
-                }
-            });
-            d.show()      
+                {
+                    label: `<strong>${cc_details}</strong>`,
+                    fieldname: "sb1",
+                    fieldtype: "Section Break",
+                },
+                {
+                    label: __("Last Name"),
+                    fieldname: "main_contact_employee_last_name",
+                    fieldtype: "Data",
+                    default: supplier_details.main_contact_employee_last_name,
+                },
+                {
+                    label: __("Position"),
+                    fieldname: "main_contact_employee_position",
+                    fieldtype: "Data",
+                    default: supplier_details.main_contact_employee_position
+                },
+                {
+                    label: __(""),
+                    fieldname: "cb1",
+                    fieldtype: "Column Break",
+                },
+                {
+                    label: __("First Name"),
+                    fieldname: "main_contact_employee_first_name",
+                    fieldtype: "Data",
+                    default: supplier_details.main_contact_employee_first_name,
+                },
+                {
+                    label: __("Phone Number"),
+                    fieldname: "main_contact_employee_phone_number",
+                    fieldtype: "Data",
+                    default: supplier_details.main_contact_employee_phone_number
+                },
+                {
+                    label: __(""),
+                    fieldname: "cb1",
+                    fieldtype: "Column Break",
+                },
+                {
+                    label: __("Email"),
+                    fieldname: "main_contact_employee_email",
+                    fieldtype: "Data",
+                    default: supplier_details.main_contact_employee_email,
+                    options: "Email",
+                    read_only: 1
+                },
+            ],
+            size: 'extra-large', // small, large, extra-large 
+            primary_action_label: __('Confirm Details'),
+            //secondary_action_label: '',
+            primary_action(values) {
+                confirmDetails(values, d);
+            },
+            secondary_action(values) {                    
+                no+=1                    
+            }
+        });
+        d.show()      
     }
 
     const UpdateRepresentativeDetails = async function(){
-
         const cbr_details = __("CBAM Representative Details")
         let d = new frappe.ui.Dialog({
             title: __("Please Confirm your Cbam Representative Details"),
@@ -302,6 +286,22 @@ function executeJS() {
                 no+=1                    
             }
         });
+        
         d.show()      
     }    
+
+    company_contact?.addEventListener("click", function(e){     
+        e.preventDefault();   
+        UpdateContactDetails();
+    })
+
+    commercial_contact?.addEventListener("click", function(e) {
+        e.preventDefault();
+        UpdateCommericalDetails();
+    })
+
+    cbam_rep?.addEventListener("click", function(e) {
+        e.preventDefault();
+        UpdateRepresentativeDetails();
+    })
 }
