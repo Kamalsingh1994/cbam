@@ -1,169 +1,167 @@
 {% if doc %}
-    <div class="content-container">
-      <div class="container info-container">
-        <p hidden id="doc_dict">{{doc.as_dict()}}</p>
-        <h2>{{_('Company Details')}}</h2>
-        <div class="container responsive-md" id="contact" style="width: 100%">                
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Supplier Name')}}</span>
-            <div class="field tc-field">{{doc.supplier_name or ""}}</div>
-          </div>
+<div class="content-container">
+  <div class="container info-container">
+    <p hidden id="doc_dict">{{doc.as_dict()}}</p>
+    <h2>{{_('Company Details')}}</h2>
+    <div class="container responsive-md" id="contact" style="width: 100%">                
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Supplier Name')}}</span>
+        <div class="field tc-field">{{doc.supplier_name or ""}}</div>
+      </div>
 
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Street and Number')}}</span>
-            <div class="field tc-field">{{doc.street_and_number or ""}}</div>
-          </div>
-          
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('City')}}</span>
-            <div class="field tc-field">{{doc.city or ""}}</div>
-          </div>
-          
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Zip Code')}}</span>
-            <div class="field tc-field">{{doc.zip_code or ""}}</div>
-          </div>
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Street and Number')}}</span>
+        <div class="field tc-field">{{doc.street_and_number or ""}}</div>
+      </div>
+      
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('City')}}</span>
+        <div class="field tc-field">{{doc.city or ""}}</div>
+      </div>
+      
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Zip Code')}}</span>
+        <div class="field tc-field">{{doc.zip_code or ""}}</div>
+      </div>
 
 
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Country')}}</span>
-            <div class="field tc-field">{{doc.country or ""}}</div>
-          </div>
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Country')}}</span>
+        <div class="field tc-field">{{doc.country or ""}}</div>
+      </div>
 
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Phone Number')}}</span>
-            <div class="field tc-field">{{doc.company_phone_number or ""}}</div>
-          </div>
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Phone Number')}}</span>
+        <div class="field tc-field">{{doc.company_phone_number or ""}}</div>
+      </div>
 
-          
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Email')}}</span>
-            <div class="field tc-field">{{doc.company_email or ""}}</div>
-          </div>
-          <div class="tc-field-cont field-cont" style="opacity: 0;">
-          </div>
-          <div class="tc-field-cont field-cont btn-div">
-            <button class="btn btn-primary btn-sm primary-action">
-              <span> 
-                <span><a href = "#" class="ex-pay-link add-newemission" id="company_contact">{{_('Update Contact Details')}}</a></span>
-              </span>
-            </button>
-          </div>
-        </div>
-        
-        <h2>{{_('Commercial Contact')}}</h2>
-        <div class="container responsive-md" id="commerical" style="width: 100%">
-          
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Last Name')}}</span>
-            <div class="field tc-field">{{doc.main_contact_employee_last_name or ""}}</div>
-          </div>
-          
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Email')}}</span>
-            <div class="field tc-field">{{doc.main_contact_employee_email or ""}}</div>
-          </div>
-          
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('First Name')}}</span>
-            <div class="field tc-field">{{doc.main_contact_employee_first_name or ""}}</div>
-          </div>
-          
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Phone Number')}}</span>
-            <div class="field tc-field">{{doc.main_contact_employee_phone_number or ""}}</div>
-          </div>
-          
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Position')}}</span>
-            <div class="field tc-field">{{doc.main_contact_employee_position or ""}}</div>
-          </div>
-          {% if "Commercial Contact" in roles %}
-          <div class="tc-field-cont field-cont btn-div">
-            <button class="btn btn-primary btn-sm primary-action">
-              <span> 
-                <span><a href = "#" class="ex-pay-link add-newemission" id="commerical_contact">{{_('Update Commercial Contact Details')}}</a></span>
-              </span>
-            </button>
-          </div>
-          {% endif %}
-        </div>
-        
-        <h2>{{_('CBAM Representive Details')}}</h2>
-        <div class="container responsive-md" id="cbam_representive" style="width: 100%">
-          
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Last Name')}}</span>
-            <div class="field tc-field">{{doc.cbam_representive_last_name or ""}}</div>
-          </div>
-          
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Email')}}</span>
-            <div class="field tc-field">{{doc.cbam_representive_employee_email or ""}}</div>
-          </div>
-          
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('First Name')}}</span>
-            <div class="field tc-field">{{doc.cbam_representive_employee_first_name or ""}}</div>
-          </div>
-          
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Phone Number')}}</span>
-            <div class="field tc-field">{{doc.cbam_representive_employee_phone_number or ""}}</div>
-          </div>
-          
-          <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Position')}}</span>
-            <div class="field tc-field">{{doc.cbam_representive_employee_position or ""}}</div>
-          </div>
-
-          {% if "Commercial Contact" in roles and not doc.cbam_representative_user %}
-            <div class="tc-field-cont field-cont btn-div cbam-btn-container">
-              <button class="btn btn-primary btn-sm primary-action">
-                <span> 
-                  <span><a href = "#" class="ex-pay-link add-newemission" id="cbam_rep">{{_('Create CBAM Representive Details')}}</a></span>
-                </span>
-              </button>
-            </div>
-          {% endif %}
-
-          {% if "CBAM Representative" in roles %}
-          <div class="tc-field-cont field-cont btn-div cbam-btn-container">
-            <button class="btn btn-primary btn-sm primary-action">
-              <span> 
-                <span><a href = "#" class="ex-pay-link add-newemission" id="cbam_rep">{{_('Update CBAM Representive Details')}}</a></span>
-              </span>
-            </button>
-          </div>
-          {% endif %}
-        </div>
-
-        <!-- <h2>Goods List</h2>
-        <div class="table-responsive" style="width: 100%;">
-        <table class="table" style="width: 100%;">
-            <tr>
-              <td width="1%"><strong>No.</strong></td>
-              <td width="25%"><strong>Good Number</strong></td>
-              <td width="25%"><strong>Supplier</strong></td>
-              <td width="25%"><strong>Employee</strong></td>
-              <td width="25%"><strong>Status</strong></td>
-            </tr>
-            
-            {% for good in doc.goods%}
-            <tr>
-              <td>{{good.idx or ""}}</td>
-              <td>{{good.good_number or ""}}</td>
-              <td>{{good.supplier or ""}}</td>
-              <td>{{good.employee or ""}}</td>
-              <td>{{good.status or ""}}</td>
-            </tr>
-            {% endfor %}
-        </table>
-        </div> -->
+      
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Email')}}</span>
+        <div class="field tc-field">{{doc.company_email or ""}}</div>
+      </div>
+      <div class="tc-field-cont field-cont" style="opacity: 0;">
+      </div>
+      <div class="tc-field-cont field-cont btn-div">
+        <button class="btn btn-primary btn-sm primary-action" id="company_contact">
+          <span> 
+            <span><a href = "#" class="ex-pay-link add-newemission">{{_('Update Contact Details')}}</a></span>
+          </span>
+        </button>
       </div>
     </div>
-    {%else%}
-    <h2>{{_('You do not have any Operating Company Assigned')}}</h2>
-    {% endif %}
+    
+    <h2>{{_('Commercial Contact')}}</h2>
+    <div class="container responsive-md" id="commerical" style="width: 100%">
+      
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Last Name')}}</span>
+        <div class="field tc-field">{{doc.main_contact_employee_last_name or ""}}</div>
+      </div>
+      
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Email')}}</span>
+        <div class="field tc-field">{{doc.main_contact_employee_email or ""}}</div>
+      </div>
+      
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('First Name')}}</span>
+        <div class="field tc-field">{{doc.main_contact_employee_first_name or ""}}</div>
+      </div>
+      
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Phone Number')}}</span>
+        <div class="field tc-field">{{doc.main_contact_employee_phone_number or ""}}</div>
+      </div>
+      
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Position')}}</span>
+        <div class="field tc-field">{{doc.main_contact_employee_position or ""}}</div>
+      </div>
+      {% if "Commercial Contact" in roles %}
+      <div class="tc-field-cont field-cont btn-div">
+        <button class="btn btn-primary btn-sm primary-action" id="commerical_contact">
+          <span> 
+            <span><a href = "#" class="ex-pay-link add-newemission">{{_('Update Commercial Contact Details')}}</a></span>
+          </span>
+        </button>
+      </div>
+      {% endif %}
+    </div>
+    
+    <h2>{{_('CBAM Representive Details')}}</h2>
+    <div class="container responsive-md" id="cbam_representive" style="width: 100%">
+      
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Last Name')}}</span>
+        <div class="field tc-field">{{doc.cbam_representive_last_name or ""}}</div>
+      </div>
+      
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Email')}}</span>
+        <div class="field tc-field">{{doc.cbam_representive_employee_email or ""}}</div>
+      </div>
+      
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('First Name')}}</span>
+        <div class="field tc-field">{{doc.cbam_representive_employee_first_name or ""}}</div>
+      </div>
+      
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Phone Number')}}</span>
+        <div class="field tc-field">{{doc.cbam_representive_employee_phone_number or ""}}</div>
+      </div>
+      
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Position')}}</span>
+        <div class="field tc-field">{{doc.cbam_representive_employee_position or ""}}</div>
+      </div>
+
+      {% if "Commercial Contact" in roles and not doc.cbam_representative_user %}
+        <div class="tc-field-cont field-cont btn-div cbam-btn-container">
+          <button class="btn btn-primary btn-sm primary-action" id="cbam_rep">
+            <span> 
+              <span><a href = "#" class="ex-pay-link add-newemission">{{_('Create CBAM Representive Details')}}</a></span>
+            </span>
+          </button>
+        </div>
+      {% endif %}
+
+      {% if "CBAM Representative" in roles %}
+      <div class="tc-field-cont field-cont btn-div cbam-btn-container">
+        <button class="btn btn-primary btn-sm primary-action" id="cbam_rep">
+          <span> 
+            <span><a href = "#" class="ex-pay-link add-newemission">{{_('Update CBAM Representive Details')}}</a></span>
+          </span>
+        </button>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- <h2>Goods List</h2>
+    <div class="table-responsive" style="width: 100%;">
+    <table class="table" style="width: 100%;">
+        <tr>
+          <td width="1%"><strong>No.</strong></td>
+          <td width="25%"><strong>Good Number</strong></td>
+          <td width="25%"><strong>Supplier</strong></td>
+          <td width="25%"><strong>Employee</strong></td>
+          <td width="25%"><strong>Status</strong></td>
+        </tr>
+        
+        {% for good in doc.goods%}
+        <tr>
+          <td>{{good.idx or ""}}</td>
+          <td>{{good.good_number or ""}}</td>
+          <td>{{good.supplier or ""}}</td>
+          <td>{{good.employee or ""}}</td>
+          <td>{{good.status or ""}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    </div> -->
   </div>
+</div>
+{%else%}
+<h2>{{_('You do not have any Operating Company Assigned')}}</h2>
 {% endif %}
