@@ -293,7 +293,7 @@ function executeJS() {
                 fieldname: "installation",
                 fieldtype: "Select",
                 default: `${installation || ""}`,
-                options: await cbam.utils.get_links("CBAM Installation"),
+                options: await cbam.utils.get_links("CBAM Installation", {}, ["name_of_the_installation as label", "name as value"]),
                 change: async () => {
                     d.set_value("emission_data", null);
                     if(d.get_value("installation")) {
@@ -312,7 +312,7 @@ function executeJS() {
                 fieldname: "emission_data",
                 fieldtype: "Select",
                 default: `${emission || ""}`,
-                options: await cbam.utils.get_links("CBAM Emission Data"),
+                options: await cbam.utils.get_links("CBAM Emission Data", {}, ["label as label", "name as value"]),
                 read_only: 0,
                 change: async () =>{
                     // let installation =  await cbam.utils.get_installation(d.get_value("emission_data"));
@@ -400,7 +400,7 @@ function executeJS() {
                             fieldtype: "Column Break",
                         },
                         {
-                            label: __("Qty to Split"),
+                            label: __("Qty to Split [Kg]"),
                             fieldname: `qty`,
                             fieldtype: "Float",
                             in_list_view: 1,
@@ -422,7 +422,7 @@ function executeJS() {
                 {
                     fieldtype: "Float",
                     fieldname: "raw_mass",
-                    label: "Total Qty",
+                    label: "Total Qty [Kg]",
                     default: rawMass,
                     read_only: 1,
 
@@ -435,7 +435,7 @@ function executeJS() {
                 {
                     fieldtype: "Float",
                     fieldname: "total_raw_mass",
-                    label: "Total Qty to Split",
+                    label: "Total Qty to Split [Kg]",
                     read_only: 1,
                     default: "0.00"
                 }
