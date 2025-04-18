@@ -468,7 +468,7 @@ input.list-row-checkbox {
 .list-head-grid,
 .list-body-grid {
     display: grid;
-    grid-template-columns: 1.5fr repeat(4, 1fr);
+    grid-template-columns: 4.5rem repeat(4, 1fr);
     align-content: center;
     justify-content: start;
 }
