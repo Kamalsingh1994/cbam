@@ -18,6 +18,11 @@ def update_doc(doc):
     return existing_doc
 
 @frappe.whitelist()
+def get_roles(user):
+    roles = frappe.get_roles(user)
+    return roles
+
+@frappe.whitelist()
 def get_supplier():
     filters = {"commercial_contact_user": frappe.session.user}
     if "CBAM Representative" in frappe.get_roles():

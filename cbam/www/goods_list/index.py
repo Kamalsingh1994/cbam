@@ -1,4 +1,5 @@
 import frappe
+from cbam.utils import get_roles
 no_cache = 1
 
 
@@ -27,7 +28,7 @@ def get_goods_partial_html():
     return frappe.render_template("cbam/templates/goods_partial.html", context)
 
 def get_user_roles(context, re_render=False):
-    roles = frappe.get_roles(frappe.session.user)
+    roles = get_roles(frappe.session.user)
     if re_render:
         context["roles"] =  roles
     else:
