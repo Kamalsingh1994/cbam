@@ -6,8 +6,6 @@ app_email = "wolfram.schmidt@phamos.eu"
 app_license = "mit"
 
 after_install = "cbam.utils.after_install.after_install"
-app_logo_url = 'assets/cbam/images/gallehr_partner_logo.png'
-
 #update boot context
 boot_session = "cbam.boot.update_boot_context"
 extend_bootinfo = "cbam.boot.update_website_context"
