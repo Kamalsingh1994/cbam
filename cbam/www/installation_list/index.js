@@ -482,8 +482,9 @@ function executeJS() {
                 });
             }
             
-            if(e.target.classList.contains("edit-emission")) {
-                const docName = container.querySelector(".edit-emission").dataset.emission;
+            if(e.target.classList.contains("edit-emission")) { 
+                // const docName = container.querySelector(".edit-emission").dataset.emission;
+                const docName = e.target.dataset.emission;
                 frappe.call({
                     method: "frappe.client.get",
                     args: {
