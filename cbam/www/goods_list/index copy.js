@@ -131,7 +131,7 @@ window.addEventListener("DOMContentLoaded", function() {
 
     const CreateRejectDialog = function(goods){
         let d = new frappe.ui.Dialog({
-            title: `Rejecting Request`,
+            title: __('Rejecting Request'),
             fields: [
                 {
                     label: __("Reason to Reject"),
@@ -143,7 +143,7 @@ window.addEventListener("DOMContentLoaded", function() {
 
             ],
             size: 'small', // small, large, extra-large 
-            primary_action_label: 'Reject Goods',
+            primary_action_label: __('Reject Goods'),
             //secondary_action_label: '',
             primary_action(values) {
                 cbam.goods.reject_goods(goods, values.reason)
@@ -373,8 +373,8 @@ window.addEventListener("DOMContentLoaded", function() {
             //     }
             // ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: 'Split Goods',
-            secondary_action_label: 'Add More',
+            primary_action_label: __('Split Goods'),
+            secondary_action_label: __('Add More'),
             primary_action(values) {
                 d.hide();
             },

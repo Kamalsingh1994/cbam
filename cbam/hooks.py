@@ -61,6 +61,9 @@ doctype_list_js = {"Good" : "public/js/doctype/good/good_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
+after_migrate = [
+    "cbam.utils.translation.remove_duplicate_translations"
+]
 # Svg Icons
 # ------------------
 # include app icons in desk
@@ -308,19 +311,4 @@ fixtures = [
     #     ]
     # ]
     # },
-]
-
-web_translation_keys = [
-    "Zip Code", "City", "Add New", "Label", "Specific (direct) embedded emissions [tCO2/t]", "Source of electricity", 
-    "Electricity consumed [MWh/t]", "Production Method", "Installation", "Indirect Emission Factor", 
-    "Source of Indirect Emission Factor", "Specific (indirect) embedded emissions [tCO2/t]", "Add New Emission",
-    "Create Emission","Is the installation subject to an emission trading system?","Is the installation tracking emissions data?",
-    "Parent Operating Company","Update Installation","Add New Installation","Name of Installation","Country Code","Operating Company",
-    "Update CBAM Representive Details","Operating Company Name","Please Confrim your Operating Company Details","Company Contact and Address",
-    "Company Phone Number","Phone No","Company Email", "Country", "Supplier Number", "Street and Number","Supplier Name",
-    "First Name", "Last Name","Main Contact Employee Position","Email","Commercial Contact Phone Number","Main Contact",
-    "Update Supplier","Confirm Details","Position", "Phone Number","CBAM Representative Details","Please Confirm your Commercial Contact Details",
-    "Please Confirm your CBAM Representative Contact Details","Commercial Contact Details","Define how emissions get monitored, reported and verified:",
-    "Which emission trading system (link to legal act)?","Emission Notes (sent to declarant when submitting goods)",
-    "Explanation mandatory if no emission data entered", "Explanation mandatory if no emission data entered","Update Emission","Create Installation", "Please Confirm your CBAM Representative Details"
 ]
