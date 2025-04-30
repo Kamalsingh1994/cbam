@@ -130,7 +130,7 @@ function executeJS() {
 
     CreateForwardDialog = async function(goods){
         let d = new frappe.ui.Dialog({
-            title: `Forwarding Request`,
+            title: __('Forwarding Request'),
             fields: [
                 {
                     label: __("Supplier"),
@@ -143,7 +143,7 @@ function executeJS() {
                 
             ],
             size: 'large', // small, large, extra-large 
-            primary_action_label: 'Submit',
+            primary_action_label: __('Submit'),
             primary_action(values) {
               
                 if(!Array.isArray(goods)){
@@ -162,7 +162,7 @@ function executeJS() {
 
     CreateRejectDialog = function(goods){
         let d = new frappe.ui.Dialog({
-            title: `Rejecting Request`,
+            title: __('Rejecting Request'),
             fields: [
                 {
                     label: __("Reason to Reject"),
@@ -174,7 +174,7 @@ function executeJS() {
 
             ],
             size: 'small', // small, large, extra-large 
-            primary_action_label: 'Reject Goods',
+            primary_action_label: __('Reject Goods'),
             //secondary_action_label: '',
             primary_action(values) {
                 // cbam.goods.reject_goods(goods, values.reason)
@@ -286,7 +286,7 @@ function executeJS() {
     CreateEmissionDialog = async function(good, installation, emission){
     const read_only = 1;
     let d = new frappe.ui.Dialog({
-        title: `Assigning Emission Data`,
+        title: __("Assigning Emission Data"),
         fields: [
             {
                 label: __("Installation"),
@@ -322,7 +322,7 @@ function executeJS() {
             },
         ],
         size: 'large', // small, large, extra-large 
-        primary_action_label: 'Assign Emission Data',
+        primary_action_label: __('Assign Emission Data'),
         //secondary_action_label: '',
         primary_action(values) {
             d.hide();
@@ -346,7 +346,7 @@ function executeJS() {
         let fields = split_fields(1);
         let no = 1;
         let d = new frappe.ui.Dialog({
-            title: `Spliting Goods`,
+            title: __('Spliting Goods'),
             fields: [
                 {
                     fieldtype: "Table",
@@ -422,7 +422,7 @@ function executeJS() {
                 {
                     fieldtype: "Float",
                     fieldname: "raw_mass",
-                    label: "Total Qty [Kg]",
+                    label: __("Total Qty [Kg]"),
                     default: rawMass,
                     read_only: 1,
 
@@ -435,18 +435,18 @@ function executeJS() {
                 {
                     fieldtype: "Float",
                     fieldname: "total_raw_mass",
-                    label: "Total Qty to Split [Kg]",
+                    label: __("Total Qty to Split [Kg]"),
                     read_only: 1,
                     default: "0.00"
                 }
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: 'Split Goods',
+            primary_action_label: __('Split Goods'),
             secondary_action_label: '',
             primary_action(values) {
                 let validation_flag = true
                 if(values.raw_mass != values.total_raw_mass){
-                    msgprint("Total Qty to Split must be equal to Total Qty.")
+                    msgprint(__("Total Qty to Split must be equal to Total Qty."))
                     validation_flag = false
                 }
                 else {
