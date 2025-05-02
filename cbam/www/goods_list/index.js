@@ -284,9 +284,6 @@ function executeJS() {
     }
 
     CreateEmissionDialog = async function(good, installation, emission) {
-        const read_only = 1;
-    
-        // Get installation options and default emission options (when no installation selected)
         const installationOptions = await cbam.utils.get_links("CBAM Installation", {}, ["name_of_the_installation as label", "name as value"]);
         const defaultEmissionOptions = await cbam.utils.get_links("CBAM Emission Data", {}, ["label as label", "name as value"]);
     
@@ -297,7 +294,6 @@ function executeJS() {
                     label: __("Installation"),
                     fieldname: "installation",
                     fieldtype: "Select",
-                    default: `${installation || ""}`,
                     options: installationOptions,
                     change: async () => {
                         const selectedInstallation = d.get_value("installation");
@@ -321,9 +317,8 @@ function executeJS() {
                     label: __("Emission"),
                     fieldname: "emission_data",
                     fieldtype: "Select",
-                    default: `${emission || ""}`,
                     options: defaultEmissionOptions,
-                    read_only: installation ? 0 : 1, // make it readonly if no installation
+                    read_only: 1,
                 },
             ],
             size: 'large',
@@ -337,9 +332,16 @@ function executeJS() {
             }
         });
     
+        // Ensure both fields are cleared before showing the dialog
+        d.set_value("installation", null);
+        d.set_value("emission_data", null);
         d.show();
         d.$wrapper.find('.modal-dialog').css("height", "350px");
     }
+    
+    
+    
+    
 
 
 
