@@ -10,7 +10,8 @@
     "Dynamic Web Template",
     filters={"template": template, "is_active": 1, "language": lang},
     fields=["content"],
-    limit=1
+    limit=1,
+    ignore_permissions=True
 ) %}
 
 {% if not record %}
@@ -18,7 +19,8 @@
       "Dynamic Web Template",
       filters={"template": template, "is_active": 1, "language": "en"},
       fields=["content"],
-      limit=1
+      limit=1,
+      ignore_permissions=True
   ) %}
 {% endif %}
 
