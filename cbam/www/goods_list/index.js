@@ -283,61 +283,62 @@ function executeJS() {
         ]
     }
 
-    CreateEmissionDialog = async function(good, installation, emission){
-    const read_only = 1;
-    let d = new frappe.ui.Dialog({
-        title: __("Assigning Emission Data"),
-        fields: [
-            {
-                label: __("Installation"),
-                fieldname: "installation",
-                fieldtype: "Select",
-                default: `${installation || ""}`,
-                options: await cbam.utils.get_links("CBAM Installation", {}, ["name_of_the_installation as label", "name as value"]),
-                change: async () => {
-                    d.set_value("emission_data", null);
-                    if(d.get_value("installation")) {
-                        d.set_df_property("emission_data", "read_only", 0);
-                        let emissionOptions = await cbam.utils.get_links("CBAM Emission Data", filters={"cbam_installation": d.get_value("installation")});
-                        d.fields_dict.emission_data.df.options =  emissionOptions;
-                        d.fields_dict.emission_data.refresh()
-                    } else {
-                        d.set_df_property("emission_data", "read_only", 1);
-                    }
-                }
-                //options: "\nSub Supplier\nCollegue"
-            },
-            {
-                label: __("Emission"),
-                fieldname: "emission_data",
-                fieldtype: "Select",
-                default: `${emission || ""}`,
-                options: await cbam.utils.get_links("CBAM Emission Data", {}, ["label as label", "name as value"]),
-                read_only: 0,
-                change: async () =>{
-                    // let installation =  await cbam.utils.get_installation(d.get_value("emission_data"));
-                    // d.set_value("installation", installation)
-                 }
-                //options: "\nSub Supplier\nCollegue"
-            },
-        ],
-        size: 'large', // small, large, extra-large 
-        primary_action_label: __('Assign Emission Data'),
-        //secondary_action_label: '',
-        primary_action(values) {
-            d.hide();
-            if(!Array.isArray(good)){
-                good = [good]
-            }
-            // cbam.goods.assign_emission(good, values.emission_data)
-            performGoodsAction("assign_emission", {goods: good, emission: values.emission_data}, d);
-        }
-    });
-
-               
-    d.show();
-    d.$wrapper.find('.modal-dialog').css("height", "350px");
+    CreateEmissionDialog = async function(good, installation, emission) {
+        const read_only = 1;
     
+        // Get installation options and default emission options (when no installation selected)
+        const installationOptions = await cbam.utils.get_links("CBAM Installation", {}, ["name_of_the_installation as label", "name as value"]);
+        const defaultEmissionOptions = await cbam.utils.get_links("CBAM Emission Data", {}, ["label as label", "name as value"]);
+    
+        let d = new frappe.ui.Dialog({
+            title: __("Assigning Emission Data"),
+            fields: [
+                {
+                    label: __("Installation"),
+                    fieldname: "installation",
+                    fieldtype: "Select",
+                    default: `${installation || ""}`,
+                    options: installationOptions,
+                    change: async () => {
+                        const selectedInstallation = d.get_value("installation");
+                        d.set_value("emission_data", null);
+    
+                        if (selectedInstallation) {
+                            d.set_df_property("emission_data", "read_only", 0);
+                            let emissionOptions = await cbam.utils.get_links("CBAM Emission Data", 
+                                { cbam_installation: selectedInstallation }, 
+                                ["label as label", "name as value"]);
+                            d.fields_dict.emission_data.df.options = emissionOptions;
+                            d.fields_dict.emission_data.refresh();
+                        } else {
+                            d.set_df_property("emission_data", "read_only", 1);
+                            d.fields_dict.emission_data.df.options = defaultEmissionOptions;
+                            d.fields_dict.emission_data.refresh();
+                        }
+                    }
+                },
+                {
+                    label: __("Emission"),
+                    fieldname: "emission_data",
+                    fieldtype: "Select",
+                    default: `${emission || ""}`,
+                    options: defaultEmissionOptions,
+                    read_only: installation ? 0 : 1, // make it readonly if no installation
+                },
+            ],
+            size: 'large',
+            primary_action_label: __('Assign Emission Data'),
+            primary_action(values) {
+                d.hide();
+                if (!Array.isArray(good)) {
+                    good = [good];
+                }
+                performGoodsAction("assign_emission", { goods: good, emission: values.emission_data }, d);
+            }
+        });
+    
+        d.show();
+        d.$wrapper.find('.modal-dialog').css("height", "350px");
     }
 
 
