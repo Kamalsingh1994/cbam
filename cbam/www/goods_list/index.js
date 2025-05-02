@@ -130,7 +130,7 @@ function executeJS() {
 
     CreateForwardDialog = async function(goods){
         let d = new frappe.ui.Dialog({
-            title: `Forwarding Request`,
+            title: __('Forwarding Request'),
             fields: [
                 {
                     label: __("Supplier"),
@@ -143,7 +143,7 @@ function executeJS() {
                 
             ],
             size: 'large', // small, large, extra-large 
-            primary_action_label: 'Submit',
+            primary_action_label: __('Submit'),
             primary_action(values) {
               
                 if(!Array.isArray(goods)){
@@ -162,7 +162,7 @@ function executeJS() {
 
     CreateRejectDialog = function(goods){
         let d = new frappe.ui.Dialog({
-            title: `Rejecting Request`,
+            title: __('Rejecting Request'),
             fields: [
                 {
                     label: __("Reason to Reject"),
@@ -174,7 +174,7 @@ function executeJS() {
 
             ],
             size: 'small', // small, large, extra-large 
-            primary_action_label: 'Reject Goods',
+            primary_action_label: __('Reject Goods'),
             //secondary_action_label: '',
             primary_action(values) {
                 // cbam.goods.reject_goods(goods, values.reason)
@@ -283,62 +283,65 @@ function executeJS() {
         ]
     }
 
-    CreateEmissionDialog = async function(good, installation, emission){
-    const read_only = 1;
-    let d = new frappe.ui.Dialog({
-        title: `Assigning Emission Data`,
-        fields: [
-            {
-                label: __("Installation"),
-                fieldname: "installation",
-                fieldtype: "Select",
-                default: `${installation || ""}`,
-                options: await cbam.utils.get_links("CBAM Installation"),
-                change: async () => {
-                    d.set_value("emission_data", null);
-                    if(d.get_value("installation")) {
-                        d.set_df_property("emission_data", "read_only", 0);
-                        let emissionOptions = await cbam.utils.get_links("CBAM Emission Data", filters={"cbam_installation": d.get_value("installation")});
-                        d.fields_dict.emission_data.df.options =  emissionOptions;
-                        d.fields_dict.emission_data.refresh()
-                    } else {
-                        d.set_df_property("emission_data", "read_only", 1);
-                    }
-                }
-                //options: "\nSub Supplier\nCollegue"
-            },
-            {
-                label: __("Emission"),
-                fieldname: "emission_data",
-                fieldtype: "Select",
-                default: `${emission || ""}`,
-                options: await cbam.utils.get_links("CBAM Emission Data"),
-                read_only: 0,
-                change: async () =>{
-                    // let installation =  await cbam.utils.get_installation(d.get_value("emission_data"));
-                    // d.set_value("installation", installation)
-                 }
-                //options: "\nSub Supplier\nCollegue"
-            },
-        ],
-        size: 'large', // small, large, extra-large 
-        primary_action_label: 'Assign Emission Data',
-        //secondary_action_label: '',
-        primary_action(values) {
-            d.hide();
-            if(!Array.isArray(good)){
-                good = [good]
-            }
-            // cbam.goods.assign_emission(good, values.emission_data)
-            performGoodsAction("assign_emission", {goods: good, emission: values.emission_data}, d);
-        }
-    });
-
-               
-    d.show();
-    d.$wrapper.find('.modal-dialog').css("height", "350px");
+    CreateEmissionDialog = async function(good, installation, emission) {
+        const installationOptions = await cbam.utils.get_links("CBAM Installation", {}, ["name_of_the_installation as label", "name as value"]);
+        const defaultEmissionOptions = await cbam.utils.get_links("CBAM Emission Data", {}, ["label as label", "name as value"]);
     
+        let d = new frappe.ui.Dialog({
+            title: __("Assigning Emission Data"),
+            fields: [
+                {
+                    label: __("Installation"),
+                    fieldname: "installation",
+                    fieldtype: "Select",
+                    options: installationOptions,
+                    change: async () => {
+                        const selectedInstallation = d.get_value("installation");
+                        d.set_value("emission_data", null);
+    
+                        if (selectedInstallation) {
+                            d.set_df_property("emission_data", "read_only", 0);
+                            let emissionOptions = await cbam.utils.get_links("CBAM Emission Data", 
+                                { cbam_installation: selectedInstallation }, 
+                                ["label as label", "name as value"]);
+                            d.fields_dict.emission_data.df.options = emissionOptions;
+                            d.fields_dict.emission_data.refresh();
+                        } else {
+                            d.set_df_property("emission_data", "read_only", 1);
+                            d.fields_dict.emission_data.df.options = defaultEmissionOptions;
+                            d.fields_dict.emission_data.refresh();
+                        }
+                    }
+                },
+                {
+                    label: __("Emission"),
+                    fieldname: "emission_data",
+                    fieldtype: "Select",
+                    options: defaultEmissionOptions,
+                    read_only: 1,
+                },
+            ],
+            size: 'large',
+            primary_action_label: __('Assign Emission Data'),
+            primary_action(values) {
+                d.hide();
+                if (!Array.isArray(good)) {
+                    good = [good];
+                }
+                performGoodsAction("assign_emission", { goods: good, emission: values.emission_data }, d);
+            }
+        });
+    
+        // Ensure both fields are cleared before showing the dialog
+        d.set_value("installation", null);
+        d.set_value("emission_data", null);
+        d.show();
+        d.$wrapper.find('.modal-dialog').css("height", "350px");
     }
+    
+    
+    
+    
 
 
 
@@ -346,7 +349,7 @@ function executeJS() {
         let fields = split_fields(1);
         let no = 1;
         let d = new frappe.ui.Dialog({
-            title: `Spliting Goods`,
+            title: __('Spliting Goods'),
             fields: [
                 {
                     fieldtype: "Table",
@@ -400,7 +403,7 @@ function executeJS() {
                             fieldtype: "Column Break",
                         },
                         {
-                            label: __("Qty to Split"),
+                            label: __("Qty to Split [Kg]"),
                             fieldname: `qty`,
                             fieldtype: "Float",
                             in_list_view: 1,
@@ -422,7 +425,7 @@ function executeJS() {
                 {
                     fieldtype: "Float",
                     fieldname: "raw_mass",
-                    label: "Total Qty",
+                    label: __("Total Qty [Kg]"),
                     default: rawMass,
                     read_only: 1,
 
@@ -435,18 +438,18 @@ function executeJS() {
                 {
                     fieldtype: "Float",
                     fieldname: "total_raw_mass",
-                    label: "Total Qty to Split",
+                    label: __("Total Qty to Split [Kg]"),
                     read_only: 1,
                     default: "0.00"
                 }
             ],
             size: 'extra-large', // small, large, extra-large 
-            primary_action_label: 'Split Goods',
+            primary_action_label: __('Split Goods'),
             secondary_action_label: '',
             primary_action(values) {
                 let validation_flag = true
                 if(values.raw_mass != values.total_raw_mass){
-                    msgprint("Total Qty to Split must be equal to Total Qty.")
+                    msgprint(__("Total Qty to Split must be equal to Total Qty."))
                     validation_flag = false
                 }
                 else {

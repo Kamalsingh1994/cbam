@@ -20,8 +20,8 @@ def get_translations():
     from the Translation Doctype based on the current user's language.
     """
 
-    # Grab keys from hook
-    keys = frappe.get_hooks().get("web_translation_keys", [])
+    translations_key = frappe.db.get_list('Translation', pluck='source_text', ignore_permissions=True)
+    keys = list(set(translations_key))
 
     if not keys:
         # If no keys are provided, return an empty dictionary

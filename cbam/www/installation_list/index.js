@@ -362,10 +362,11 @@ function executeJS() {
                     fieldtype: "Section Break",
                 },
                 {
-                    label: __("Indirect Emission Factor"),
+                    label: __("Indirect Emission Factor [tCO2/MWh]"),
                     fieldname: "indirect_emission_factor",
                     fieldtype: "Float",
                     default: docData ? docData.indirect_emission_factor : "",
+                    description: "Your specific indirect emission factor. If not set the national indirect emission factor defined by the IEA is used",
                 },
                 {
                     label: __("Source of Indirect Emission Factor"),
@@ -481,8 +482,9 @@ function executeJS() {
                 });
             }
             
-            if(e.target.classList.contains("edit-emission")) {
-                const docName = container.querySelector(".edit-emission").dataset.emission;
+            if(e.target.classList.contains("edit-emission")) { 
+                // const docName = container.querySelector(".edit-emission").dataset.emission;
+                const docName = e.target.dataset.emission;
                 frappe.call({
                     method: "frappe.client.get",
                     args: {

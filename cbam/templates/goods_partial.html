@@ -20,7 +20,7 @@
             />
             </span>
         <span class="level-item bold ">
-        <span class="inv-name" id="doc-name" data-doctype="DocType" data-name="{{doc.name}}" data-installation="{{doc.installation}}" data-emission="{{doc.emission_data}}" title="Sales Invoice" >{{doc.article_number}}</span>
+            <span class="inv-name" id="doc-name" data-doctype="DocType" data-name="{{doc.name}}" data-installation-name="{{doc.installation_name or ''}}" data-installation="{{doc.installation or ''}}" data-emission="{{doc.emission_data or ''}}" data-emission-name="{{doc.emission_name or ''}}" title="Sales Invoice" >{{doc.article_number}}</span>
         </span>
     </div>
     <div class="list-row-col list-subject level tc-container gd">
@@ -148,12 +148,12 @@
     <div class="container responsive-md" style="width: 100%">
         <div class="tc-field-cont field-cont">
             <span class="field-label">{{_('Installation')}}</span>
-            <div class="field tc-field">{{_(doc.installation) or ""}}</div>
+            <div class="field tc-field">{{_(doc.installation_name) or ""}}</div>
         </div>
         
         <div class="tc-field-cont field-cont">
             <span class="field-label">{{_('Emission Data')}}</span>
-            <div class="field tc-field">{{_(doc.emission_data) or ""}}</div>
+            <div class="field tc-field">{{_(doc.emission_name) or ""}}</div>
         </div>
 
         <div class="tc-field-cont field-cont">
@@ -177,7 +177,7 @@
         </div>
 
         <div class="tc-field-cont field-cont">
-            <span class="field-label">{{_('Indirect Emission Factor')}}</span>
+            <span class="field-label">{{_('Indirect Emission Factor [tCO2/MWh]')}}</span>
             <div class="field tc-field">{{_(doc.indirect_emission_factor) or ""}}</div>
         </div>
 
