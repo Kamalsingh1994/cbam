@@ -286,7 +286,8 @@ function executeJS() {
     CreateEmissionDialog = async function(good, installation, emission) {
         const installationOptions = await cbam.utils.get_links("CBAM Installation", {}, ["name_of_the_installation as label", "name as value"]);
         const defaultEmissionOptions = await cbam.utils.get_links("CBAM Emission Data", {}, ["label as label", "name as value"]);
-    
+        console.log(emission)
+        console.log(installation)
         let d = new frappe.ui.Dialog({
             title: __("Assigning Emission Data"),
             fields: [
@@ -295,6 +296,7 @@ function executeJS() {
                     fieldname: "installation",
                     fieldtype: "Select",
                     options: installationOptions,
+                    default: installation,
                     change: async () => {
                         const selectedInstallation = d.get_value("installation");
                         d.set_value("emission_data", null);
@@ -319,6 +321,7 @@ function executeJS() {
                     fieldtype: "Select",
                     options: defaultEmissionOptions,
                     read_only: 1,
+                    default: emission
                 },
             ],
             size: 'large',
