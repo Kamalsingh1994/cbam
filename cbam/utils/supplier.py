@@ -14,7 +14,7 @@ def confirm_details(values):
     values = json.loads(values)
     doc = frappe.get_doc("Operating Company", get_supplier())
     doc.update(values)
-    if values.get('verify'):
+    if values.get('varify'):
         doc.status = "Company Verified"
     doc.save(ignore_permissions=True)
 

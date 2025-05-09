@@ -12,7 +12,7 @@ class OperatingCompany(Document):
 		if not frappe.db.exists("Operating Company", {"commercial_contact_user": self.main_contact_employee_email, "name": ["!=", self.name]}):
 			self.create_commercial_contact()
 			self.create_cbam_user()
-			self.status = "Pending Verification"
+			
 		else:
 			frappe.msgprint("User already exists for another Operating Company")
 			self.create_commercial_contact_user = 0
