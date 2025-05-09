@@ -352,7 +352,15 @@ function executeJS() {
                     label: __("Installation"),
                     fieldname: "cbam_installation",
                     fieldtype: "Data",
-                    default: docName,
+                    default: docData ? docData.cbam_installation : docName,
+                    hidden: 0,
+                    read_only: 1
+                },
+                {
+                    label: __("Name"),
+                    fieldname: "name",
+                    fieldtype: "Data",
+                   default : docData ? docData.name : "",
                     hidden: 0,
                     read_only: 1
                 },
@@ -441,8 +449,11 @@ function executeJS() {
 
         absBtn.forEach(btn => {
             btn.addEventListener("click", function() {
+                
                 const docName = container.querySelector(".inv-name").dataset.name;
+                console.log(docName)
                 CreateEmissionDialog(docName);
+                
                 
             })
         })

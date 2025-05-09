@@ -27,10 +27,11 @@ def get_installation_partial_html():
     return frappe.render_template("cbam/templates/installation_partial.html", context)
 
 def get_installations(context, re_render=False):
-    installations = frappe.get_list("CBAM Installation", fields=["*"])
+    from cbam.utils.supplier import get_supplier
+    installations = frappe.get_all("CBAM Installation", filters = {"operating_company": get_supplier()}, fields=["*"])
     for d in installations:
         emissions = [d["emission_data"] for d in frappe.db.get_all("CBAM Emission Data Item", filters={"parent": d.name}, fields=["emission_data"])]
-        d.emission_datas = frappe.get_list("CBAM Emission Data", filters= {"name": ["in", emissions]}, fields=['*'])
+        d.emission_datas = frappe.get_all("CBAM Emission Data", filters= {"name": ["in", emissions]}, fields=['*'])
         #context.installations.append(d)
     if re_render:
         context["installations"] = installations
