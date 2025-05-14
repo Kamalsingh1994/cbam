@@ -294,8 +294,9 @@ def send_data_request(goods):
 	for s in supp:
 		op = frappe.get_doc("Operating Company", s)
 		op.declarant = op.declarant
-		if not op.commercial_contact_user:
+		if op.cbam_representative_user:
 			op.commercial_contact_user = op.cbam_representative_user
+			op.main_contact_employee_last_name = op.cbam_representive_last_name
 		email.send(op)
 	for g in goods:
 		if g.get('status') == "Draft":
