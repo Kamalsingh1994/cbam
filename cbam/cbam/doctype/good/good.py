@@ -283,8 +283,9 @@ def send_data_request(goods):
 	goods = json.loads(goods)
 	supp = []
 	for g in goods:
-		if not g.get("operating_company") in supp:
-			supp.append(g.get("operating_company"))
+		if g.get('status') != "Data Submitted":
+			if not g.get("operating_company") in supp:
+				supp.append(g.get("operating_company"))
 
 	email = frappe.get_doc("Notification", frappe.db.get_single_value("CBAM Settings", "data_request_template"))
 	if not email:
@@ -293,8 +294,11 @@ def send_data_request(goods):
 	for s in supp:
 		op = frappe.get_doc("Operating Company", s)
 		op.declarant = op.declarant
+		if not op.commercial_contact_user:
+			op.commercial_contact_user = op.cbam_representative_user
 		email.send(op)
 	for g in goods:
-		frappe.db.set_value("Good", g.get("name"), "status", "Data Requested")
+		if g.get('status') == "Draft":
+			frappe.db.set_value("Good", g.get("name"), "status", "Data Requested")
 
 
