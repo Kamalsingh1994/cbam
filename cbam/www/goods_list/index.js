@@ -306,11 +306,13 @@ function executeJS() {
                             let emissionOptions = await cbam.utils.get_links("CBAM Emission Data", 
                                 { cbam_installation: selectedInstallation }, 
                                 ["label as label", "name as value"]);
+                                console.log(`emission ${emissionOptions}`)
                             d.fields_dict.emission_data.df.options = emissionOptions;
+                           
                             d.fields_dict.emission_data.refresh();
                         } else {
                             d.set_df_property("emission_data", "read_only", 1);
-                            d.fields_dict.emission_data.df.options = defaultEmissionOptions;
+                            
                             d.fields_dict.emission_data.refresh();
                         }
                     }
@@ -319,7 +321,6 @@ function executeJS() {
                     label: __("Emission"),
                     fieldname: "emission_data",
                     fieldtype: "Select",
-                    options: defaultEmissionOptions,
                     read_only: 1,
                     default: emission
                 },
