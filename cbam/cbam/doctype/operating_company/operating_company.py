@@ -32,6 +32,7 @@ class OperatingCompany(Document):
 				user = frappe.new_doc("User")
 				user.send_welcome_email = False
 				user.first_name = self.main_contact_employee_first_name or self.main_contact_employee_last_name
+				user.last_name = self.main_contact_employee_last_name if self.main_contact_employee_first_name else ""
 				user.email = self.main_contact_employee_email
 				user.append("roles",{
 					"role": frappe.db.get_single_value("CBAM Settings", "commercial_contact_user_role")
