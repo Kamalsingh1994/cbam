@@ -1,4 +1,5 @@
 frappe.listview_settings['Good'] = {
+    has_indicator_for_draft: true,
     onload(listview) {
         // add button to menu
         listview.page.add_action_item(__("Send Data Request"), function() {
@@ -17,3 +18,6 @@ frappe.listview_settings['Good'] = {
         });
     }
 };
+
+
+  
