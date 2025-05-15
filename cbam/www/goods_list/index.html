@@ -89,7 +89,7 @@
                     />
                   </span>
                 <span class="level-item bold ellipsis">
-                  <span class="invoice-title ellipsis" title="Sales Invoice">{{_('Article Nr')}}</span>
+                  <span class="invoice-title ellipsis" title="Sales Invoice">{{_('CN Code')}}</span>
                 </span>
               </div>
               
@@ -105,9 +105,7 @@
               <div class="list-row-col list-subject level status-title">
                 <span class="gt-text">{{_('Status')}}</span>
               </div>
-              <div class="list-row-col list-subject level gt-container ">
-                <span class="gt-text">{{_('Parts')}}</span>
-              </div>
+              
               <!-- <div class="list-row-col list-subject level prt-container">
                 <span class="prt-text">Actions</span>
               </div> -->
@@ -138,7 +136,7 @@
                         />
                       </span>
                     <span class="level-item bold ">
-                      <span class="inv-name" id="doc-name" data-doctype="DocType" data-name="{{doc.name}}" data-installation-name="{{doc.installation_name or ''}}" data-installation="{{doc.installation or ''}}" data-emission="{{doc.emission_data or ''}}" data-emission-name="{{doc.emission_name or ''}}" title="Sales Invoice" >{{doc.article_number}}</span>
+                      <span class="inv-name" id="doc-name" data-doctype="DocType" data-name="{{doc.name}}" data-installation-name="{{doc.installation_name or ''}}" data-installation="{{doc.installation or ''}}" data-emission="{{doc.emission_data or ''}}" data-emission-name="{{doc.emission_name or ''}}" title="Sales Invoice" >{{doc.customs_tariff_number}}</span>
                     </span>
                 </div>
                 <div class="list-row-col list-subject level tc-container gd">
@@ -229,10 +227,13 @@
             </div>
             <div class="container info-container hidden">
               <div class="container responsive-md" style="width: 100%">
+                
+                
                 <div class="tc-field-cont field-cont">
-                  <span class="field-label">{{_('Country of origin')}}</span>
-                  <div class="field tc-field">{{_(doc.country_of_origin)}}</div>
+                  <span class="field-label">{{_('Invoice No')}}</span>
+                  <div class="field tc-field">{{_(doc.invoice_number)}}</div>
                 </div>
+                
 
                 <div class="tc-field-cont field-cont">
                   <span class="field-label">{{_('Imported into EU on')}}</span>
@@ -244,10 +245,24 @@
                   <div class="field tc-field">{{_(doc.customs_tariff_number)}}</div>
                 </div>
 
+
+
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">{{_('Article No')}}</span>
+                  <div class="field tc-field">{{_(doc.article_number)}}</div>
+                </div>
+
                 <div class="tc-field-cont field-cont">
                   <span class="field-label">{{_('Good Description')}}</span>
                   <div class="field tc-field">{{_(doc.good_description)}}</div>
                 </div>
+
+
+                <div class="tc-field-cont field-cont">
+                  <span class="field-label">{{_('Country of origin')}}</span>
+                  <div class="field tc-field">{{_(doc.country_of_origin)}}</div>
+                </div>
+
                 <div class="prt-field-cont field-cont field-res" style="align-self: flex-end;">
                   <div class="tc-field prt-field print-btn">
                     <button class="btn btn-primary print-btn btn-sm primary-action">

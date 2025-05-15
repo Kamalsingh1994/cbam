@@ -20,7 +20,7 @@
             />
             </span>
         <span class="level-item bold ">
-            <span class="inv-name" id="doc-name" data-doctype="DocType" data-name="{{doc.name}}" data-installation-name="{{doc.installation_name or ''}}" data-installation="{{doc.installation or ''}}" data-emission="{{doc.emission_data or ''}}" data-emission-name="{{doc.emission_name or ''}}" title="Sales Invoice" >{{doc.article_number}}</span>
+            <span class="inv-name" id="doc-name" data-doctype="DocType" data-name="{{doc.name}}" data-installation-name="{{doc.installation_name or ''}}" data-installation="{{doc.installation or ''}}" data-emission="{{doc.emission_data or ''}}" data-emission-name="{{doc.emission_name or ''}}" title="Sales Invoice" >{{doc.customs_tariff_number}}</span>
         </span>
     </div>
     <div class="list-row-col list-subject level tc-container gd">
@@ -111,37 +111,54 @@
 </div>
 <div class="container info-container hidden">
     <div class="container responsive-md" style="width: 100%">
-    <div class="tc-field-cont field-cont">
-        <span class="field-label">{{_('Country of origin')}}</span>
-        <div class="field tc-field">{{_(doc.country_of_origin)}}</div>
-    </div>
+      
+      
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Invoice No')}}</span>
+        <div class="field tc-field">{{_(doc.invoice_number)}}</div>
+      </div>
+      
 
-    <div class="tc-field-cont field-cont">
+      <div class="tc-field-cont field-cont">
         <span class="field-label">{{_('Imported into EU on')}}</span>
         <div class="field tc-field">{{_(doc.hand_over_date)}}</div>
-    </div>
+      </div>
 
-    <div class="tc-field-cont field-cont">
+      <div class="tc-field-cont field-cont">
         <span class="field-label">{{_('Customs Tariff Number')}}</span>
         <div class="field tc-field">{{_(doc.customs_tariff_number)}}</div>
-    </div>
+      </div>
 
-    <div class="tc-field-cont field-cont">
+
+
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Article No')}}</span>
+        <div class="field tc-field">{{_(doc.article_number)}}</div>
+      </div>
+
+      <div class="tc-field-cont field-cont">
         <span class="field-label">{{_('Good Description')}}</span>
         <div class="field tc-field">{{_(doc.good_description)}}</div>
-    </div>
-    <div class="prt-field-cont field-cont field-res" style="align-self: flex-end;">
+      </div>
+
+
+      <div class="tc-field-cont field-cont">
+        <span class="field-label">{{_('Country of origin')}}</span>
+        <div class="field tc-field">{{_(doc.country_of_origin)}}</div>
+      </div>
+
+      <div class="prt-field-cont field-cont field-res" style="align-self: flex-end;">
         <div class="tc-field prt-field print-btn">
-        <button class="btn btn-primary print-btn btn-sm primary-action">
+          <button class="btn btn-primary print-btn btn-sm primary-action">
             <span class="print-btn prt-icon-cont">
-            <svg class="icon print-btn icon-sm" aria-hidden="true" style="width: 12px; height: 12px;">
+              <svg class="icon print-btn icon-sm" aria-hidden="true" style="width: 12px; height: 12px;">
                 <use class="print-btn" href="#icon-printer"></use>
-            </svg>
-            <span class="print-btn">{{_('Print')}}</span>
+              </svg>
+              <span class="print-btn">{{_('Print')}}</span>
             </span>
-        </button>
+          </button>
         </div>
-    </div>
+      </div>
     </div>
     {% if doc.installation %}
     <h2>{{_('Emission Details')}}</h2>
