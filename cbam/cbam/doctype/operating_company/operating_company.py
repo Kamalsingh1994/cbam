@@ -31,7 +31,7 @@ class OperatingCompany(Document):
 			if not username:
 				user = frappe.new_doc("User")
 				user.send_welcome_email = False
-				user.first_name = self.main_contact_employee_first_name or self.main_contact_employee_last_name
+				user.first_name = self.main_contact_employee_first_name if self.main_contact_employee_first_name else self.main_contact_employee_last_name
 				user.last_name = self.main_contact_employee_last_name if self.main_contact_employee_first_name else ""
 				user.email = self.main_contact_employee_email
 				user.append("roles",{
@@ -56,7 +56,7 @@ class OperatingCompany(Document):
 			if not username:
 				user = frappe.new_doc("User")
 				user.send_welcome_email = False
-				user.first_name = self.cbam_representive_last_name or self.cbam_representive_employee_first_name
+				user.first_name = self.cbam_representive_employee_first_name if self.cbam_representive_employee_first_name else self.cbam_representive_last_name
 				user.last_name = self.cbam_representive_last_name if self.cbam_representive_employee_first_name else ""
 				user.email = self.cbam_representive_employee_email
 				# user.append("roles",{
