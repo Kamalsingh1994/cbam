@@ -187,101 +187,7 @@ function executeJS() {
         d.show();
     }
 
-    const split_fields = function(no){
-        return [
-            {
-                label: __("Split with"),
-                fieldname: `split_with`,
-                fieldtype: "Select",
-                default: "Supplier",
-                options: "\nSupplier\nInstallation",
-                change: () =>{
-                    cur_dialog.refresh()
-                },
-                in_list_view: 1
-                
-            },
-            {
-               
-                fieldname: "cb1",
-                fieldtype: "Column Break",
-            },
-            {
-                label: __("Split with Name"),
-                fieldname: `split_with_name`,
-                fieldtype: "Autocomplete",
-                default: "",
-                
-                
-                in_list_view: 1
-            },
-            {
-              
-                fieldname: "cb1",
-                fieldtype: "Column Break",
-            },
-            {
-                label: __("Qty to Split"),
-                fieldname: `qty_${no}`,
-                fieldtype: "Float",
-                in_list_view: 1
-            },
-            
-            
-        ]
-        return [
-            {
-                label: __("Split with"),
-                fieldname: `forward_to_party_${no}`,
-                fieldtype: "Select",
-                default: "",
-                options: "\nSub Supplier\nInstallation",
-                change: () =>{
-                   
-                    cur_dialog.refresh()
-                },
-                in_list_view: 1
-                
-            },
-            {
-               
-                fieldname: "cb1",
-                fieldtype: "Column Break",
-            },
-            {
-                label: __("Supplier"),
-                fieldname: `supplier_${no}`,
-                fieldtype: "Link",
-                default: "",
-                //options: "Supplier",
-                depends_on: `eval:doc.forward_to_party_${no} == 'Sub Supplier'`,
-                in_list_view: 1
-            },
-            {
-                label: __("Installation"),
-                fieldname: `installation_${no}`,
-                fieldtype: "Link",
-                default: "",
-                //options: "Installation",
-                depends_on: `eval:doc.forward_to_party_${no} == 'Installation'`,
-                in_list_view: 1
-            },
-            {
-              
-                fieldname: "cb1",
-                fieldtype: "Column Break",
-            },
-            {
-                label: __("Qty to Split"),
-                fieldname: `qty_${no}`,
-                fieldtype: "Float",
-                depends_on: `eval:doc.forward_to_party_${no}`,
-                in_list_view: 1
-            },
-            
-            
-        ]
-    }
+    
 
     CreateEmissionDialog = async function(good, installation, emission) {
         const installationOptions = await cbam.utils.get_links("CBAM Installation", {}, ["name_of_the_installation as label", "name as value"]);
@@ -350,7 +256,7 @@ function executeJS() {
 
 
     const CreateSplitDialog = async function(docName, rawMass){
-        let fields = split_fields(1);
+       
         let no = 1;
         let d = new frappe.ui.Dialog({
             title: __('Spliting Goods'),
@@ -375,7 +281,7 @@ function executeJS() {
                                         row.columns.source_name.df.options= await cbam.supplier.get_child_suppliers();
                                     }
                                     else{
-                                        row.columns.source_name.df.options= await cbam.utils.get_links("CBAM Installation");
+                                        row.columns.source_name.df.options= await cbam.utils.get_links("CBAM Installation", {}, ["name_of_the_installation as label", "name as value"]);
                                     }
 
 									
@@ -394,10 +300,6 @@ function executeJS() {
                             label: __("Source_name"),
                             fieldname: `source_name`,
                             fieldtype: "Select",
-                            //read_only_depends_on: "eval:!doc.source",
-                            //options: await cbam.utils.get_links("Operating Company", ["supplier_name as label", "name as value"]),
-                            
-                            
                             reqd: 1,  
                             in_list_view: 1
                         },
@@ -473,9 +375,7 @@ function executeJS() {
             },
             secondary_action(values) {
                 
-                d.add_fields(split_fields(no+1))
-                d.refresh()
-                no+=1
+              
                 
             }
         });
@@ -493,7 +393,7 @@ function executeJS() {
             if (row.doc.source === "Supplier") {
                 row.columns.source_name.df.options= await cbam.supplier.get_child_suppliers();
             } else if (row.doc.source === "Installation") {
-                row.columns.source_name.df.options= await cbam.utils.get_links("CBAM Installation");
+                row.columns.source_name.df.options= await cbam.utils.get_links("CBAM Installation", {}, ["name_of_installation as label", "name as value"]);
             }
             // row.columns.source_name.df.options = options;
             d.fields_dict.table1.grid.refresh();
