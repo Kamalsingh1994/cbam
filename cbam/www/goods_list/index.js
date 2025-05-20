@@ -482,6 +482,22 @@ function executeJS() {
 
                    
         d.show();
+        // Patch click event on rows to update source_name options on click
+        d.fields_dict.table1.grid.wrapper.on('click', '.grid-row', async function (e) {
+            const name = $(this).attr('data-name');
+            const row = d.fields_dict.table1.grid.grid_rows_by_docname[name];
+
+            if (!row || !row.doc.source) return;
+
+            let options = [];
+            if (row.doc.source === "Supplier") {
+                row.columns.source_name.df.options= await cbam.supplier.get_child_suppliers();
+            } else if (row.doc.source === "Installation") {
+                row.columns.source_name.df.options= await cbam.utils.get_links("CBAM Installation");
+            }
+            // row.columns.source_name.df.options = options;
+            d.fields_dict.table1.grid.refresh();
+        });
     }
 
     const toggleDataBtn = function(toggle) {
