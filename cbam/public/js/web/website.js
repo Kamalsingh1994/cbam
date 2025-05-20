@@ -92,3 +92,27 @@ frappe.show_language_picker = function () {
 };
 
 frappe.show_language_picker();
+
+
+$(document).ready(() => {
+    const navList = $('.navbar-nav').first();
+  
+    // Check both navbar and dropdown existence
+    if (navList.length && !navList.find('#help-dropdown').length) {
+  
+      const dropdownHTML = `
+        <li class="nav-item dropdown" id="help-dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="helpMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Help
+          </a>
+          <div class="dropdown-menu" aria-labelledby="helpMenu">
+            <a class="dropdown-item" target="_blank" href="http://127.0.0.1:8005/helpdesk/tickets">Contact Myconet Support</a>
+
+          </div>
+        </li>
+      `;
+  
+      navList.prepend(dropdownHTML);
+    }
+});
+  
