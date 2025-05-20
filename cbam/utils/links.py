@@ -3,7 +3,7 @@ import frappe
 @frappe.whitelist()
 def get_links(doctype, filters={}, fields=[]):
     if not fields:
-        fields = ["name as value", "name_of_the_installation as label"]
+        fields = ["name as value", "name as label"]
     return frappe.get_list(doctype, fields=fields, filters=filters)
 
 @frappe.whitelist()
