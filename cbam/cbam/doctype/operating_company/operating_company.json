@@ -16,6 +16,7 @@
   "create_commercial_contact_user",
   "column_break_muwl",
   "parent_operating_company",
+  "user_conflict",
   "contact_details_section",
   "company_phone_number",
   "company_email",
@@ -55,7 +56,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Missing Commercial Contact\nVerification Needed\nPending Verification\nContact Verified\nCompany Verified"
+   "options": "Missing Commercial Contact\nCBAM Rep User Conflict\nVerification Needed\nPending Verification\nContact Verified\nCompany Verified"
   },
   {
    "fieldname": "column_break_xlzx",
@@ -266,12 +267,21 @@
    "fieldtype": "Link",
    "label": "Declarant",
    "options": "Declarant"
+  },
+  {
+   "default": "0",
+   "fieldname": "user_conflict",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "User Conflict?",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-11 21:56:40.188284",
+ "modified": "2025-05-20 16:27:56.485260",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Operating Company",
@@ -335,6 +345,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [

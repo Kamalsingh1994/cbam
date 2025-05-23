@@ -137,7 +137,7 @@ function executeJS() {
                     fieldname: "supplier",
                     fieldtype: "Autocomplete",
                     default: "",
-                    options: await cbam.supplier.get_child_suppliers(),
+                    options: await cbam.supplier.get_child_suppliers({"status": ["!=", "Missing Commercial Contact"]}),
                     //depends_on: "eval:doc.forward_to_party == 'Sub Supplier'"
                 },
                 
@@ -278,10 +278,11 @@ function executeJS() {
 									let name = $(event.currentTarget).closest(".grid-row").attr("data-name");
                                     let row = d.fields_dict.table1.grid.grid_rows_by_docname[name];
 									if(row.doc.source == "Supplier"){
-                                        row.columns.source_name.df.options= await cbam.supplier.get_child_suppliers();
+                                        row.columns.source_name.df.options= await cbam.supplier.get_child_suppliers({"status": ["!=", "Missing Commercial Contact"]});
                                     }
                                     else{
                                         row.columns.source_name.df.options= await cbam.utils.get_links("CBAM Installation", {}, ["name_of_the_installation as label", "name as value"]);
+                                        console.log(row.columns.source_name.df.options)
                                     }
 
 									
@@ -391,7 +392,7 @@ function executeJS() {
 
             let options = [];
             if (row.doc.source === "Supplier") {
-                row.columns.source_name.df.options= await cbam.supplier.get_child_suppliers();
+                row.columns.source_name.df.options= await cbam.supplier.get_child_suppliers({"status": ["!=", "Missing Commercial Contact"]});
             } else if (row.doc.source === "Installation") {
                 row.columns.source_name.df.options= await cbam.utils.get_links("CBAM Installation", {}, ["name_of_installation as label", "name as value"]);
             }
