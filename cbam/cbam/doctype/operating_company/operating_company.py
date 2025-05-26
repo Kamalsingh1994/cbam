@@ -9,25 +9,43 @@ from frappe.model.document import Document
 class OperatingCompany(Document):
 	def validate(self):
 		
-		if not frappe.db.exists("Operating Company", {"commercial_contact_user": self.main_contact_employee_email, "name": ["!=", self.name]}):
+		if not frappe.db.exists("Operating Company", {"commercial_contact_user": self.main_contact_employee_email, "name": ["!=", self.name]}) and not frappe.db.exists("Operating Company", {"cbam_representative_user": self.main_contact_employee_email, "name": ["!=", self.name]}):
 			self.create_commercial_contact()
+			
+			
+		else:
+			frappe.msgprint("The contact email provided already exists for another Operating Company. The System Manager will look into it and get back to you. Please wait before using this Supplier.")
+			self.create_commercial_contact_user = 0
+			self.commercial_contact_user = ""
+			
+			self.status = "Missing Commercial Contact"
+
+		if not frappe.db.exists("Operating Company", {"commercial_contact_user": self.cbam_representative_user, "name": ["!=", self.name]}) and not frappe.db.exists("Operating Company", {"cbam_representative_user": self.cbam_representative_user, "name": ["!=", self.name]}):
+			
 			self.create_cbam_user()
 			
 		else:
-			frappe.msgprint("User already exists for another Operating Company")
-			self.create_commercial_contact_user = 0
-			self.commercial_contact_user = ""
-			self.status = "Missing Commercial Contact"
+			frappe.msgprint("The contact email provided already exists for another Operating Company. The System Manager will look into it and get back to you. Please wait before using this Supplier.")
+			
+			self.cbam_representative_user = ""
+			self.status = "CBAM Rep User Conflict"
+
+
+		if self.status in ["CBAM Rep User Conflict", "Missing Commercial Contact"]:
+			self.user_conflict = 1
+		else:
+			self.user_conflict = 0
+
 		self.set_title()
 
 	def set_title(self):
 		self.title = f"{self.supplier_name}-{self.supplier_number}"
 
 	def create_commercial_contact(self):
-		username = self.commercial_contact_user
+		username = self.main_contact_employee_email
 		self.flags.new_flag = True
-		if self.create_commercial_contact_user and not username:
-			username = frappe.db.get_value("User", self.main_contact_employee_email, "name")
+		if username:
+			username = frappe.db.get_value("User", username, "name")
 			if not username:
 				user = frappe.new_doc("User")
 				user.send_welcome_email = False
@@ -48,9 +66,9 @@ class OperatingCompany(Document):
 			self.create_permissions(username)
 
 	def create_cbam_user(self):
-		username = self.cbam_representative_user
+		username = self.cbam_representive_employee_email
 		self.flags.new_flag = True
-		if self.cbam_representive_employee_email and not username:
+		if username:
 			username = frappe.db.get_value("User", self.cbam_representive_employee_email, "name")
 			user = None
 			if not username:
@@ -118,6 +136,28 @@ class OperatingCompany(Document):
 			aus_pem.is_default = 1
 			aus_pem.save(ignore_permissions=True)
     
+	@frappe.whitelist()
+	def update_contact(self, values):
+		#values = json.loads(values)
+		values = frappe._dict(values)
+		old_user = ''
+		if values.type == "Commercial Contact":
+			self.main_contact_employee_last_name = values.last_name
+			self.main_contact_employee_first_name = values.first_name
+			self.main_contact_employee_phone_number = values.phone_no
+			self.main_contact_employee_position = values.position
+			self.main_contact_employee_email = values.email
+			old_user = self.commercial_contact_user
+		elif values.type == "CBAM Representative":
+			self.cbam_representive_last_name = values.last_name
+			self.cbam_representive_employee_first_name = values.first_name
+			self.cbam_representive_employee_phone_number = values.phone_no
+			self.cbam_representive_employee_position = values.position
+			self.cbam_representive_employee_email = values.email
+			old_user = self.cbam_representative_user
+		self.save()
+		frappe.db.set_value("User", old_user, "enabled", 0)
+
 @frappe.whitelist()
 def send_bulk_signup_request(operating_companys):
 	operating_companys = json.loads(operating_companys)

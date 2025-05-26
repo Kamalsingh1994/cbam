@@ -12,7 +12,7 @@
  "is_standard": 1,
  "message": "<p>Following Operating Companies records for the user \"{{doc.name}}\" had duplicate Commercial Contact User due to which their values have not been set:</p><br>\n{% for i in doc.items %}\n    <p><strong><a href =\"{{frappe.utils.get_url()}}/app/operating-company/{{i.name}}\"> {{frappe.db.get_value(\"Operating Company\", i.name, \"title\")}}</a></strong></p><br>\n{% endfor %}\n",
  "message_type": "HTML",
- "modified": "2025-04-04 18:05:35.956794",
+ "modified": "2025-05-20 15:51:10.183429",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Duplicate Commercial Contact",
@@ -24,7 +24,7 @@
  ],
  "send_system_notification": 0,
  "send_to_all_assignees": 0,
- "sender": "Nasir Khan",
+ "sender": "myconet CBAM",
  "sender_email": "nasir.khan@phamos.eu",
  "subject": "User Conflict in Operating Company/ Supplier"
 }

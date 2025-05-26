@@ -157,12 +157,12 @@ $.extend(cbam.supplier, {
             
         });
     },
-    get_child_suppliers(){
+    get_child_suppliers(filters){
         return new Promise(function(resolve, reject) {
             frappe.call({
                 method: "cbam.utils.supplier.get_child_suppliers",
                 args:{
-                    
+                    filters: filters
                 },
                 callback(r){
                     if(r.message){
