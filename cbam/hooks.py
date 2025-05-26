@@ -62,7 +62,9 @@ web_include_js = [
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
 after_migrate = [
-    "cbam.utils.translation.remove_duplicate_translations"
+    "cbam.utils.translation.remove_duplicate_translations",
+    "cbam.utils.utils.update_workspace_for_helpdesk",
+    "cbam.utils.utils.add_helpdesk_navbar_item"
 ]
 # Svg Icons
 # ------------------

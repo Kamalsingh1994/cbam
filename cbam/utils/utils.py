@@ -1,0 +1,37 @@
+import frappe
+
+def update_workspace_for_helpdesk():
+    """
+    Updates the Workspace Doctype for Helpdesk entry if it exists.
+    Sets the field is_hidden to 1.
+    """
+    try:
+        # Check if the Workspace entry for Helpdesk exists
+        workspace = frappe.get_doc("Workspace", "Helpdesk")
+        if workspace and not workspace.is_hidden:
+            # Update the is_hidden field
+            workspace.is_hidden = 1
+            workspace.save()
+            frappe.db.commit()
+            frappe.msgprint("Workspace for Helpdesk updated successfully.")
+    except Exception as e:
+        frappe.log_error(f"Error updating Workspace for Helpdesk: {str(e)}", "Workspace Update Error")
+
+
+def add_helpdesk_navbar_item():
+	import frappe
+
+	navbar_settings = frappe.get_single("Navbar Settings")
+	help_item_exists = any(
+		item.item_label == "Helpdesk" or item.route == "/helpdesk"
+		for item in navbar_settings.help_dropdown or []
+	)
+
+	if not help_item_exists:
+		navbar_settings.append("help_dropdown", {
+			"item_label": "Helpdesk",
+			"route": "/helpdesk",
+			"item_type": "Route",
+		})
+		navbar_settings.save()
+		frappe.db.commit()
