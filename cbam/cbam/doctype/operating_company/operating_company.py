@@ -199,7 +199,8 @@ class OperatingCompany(Document):
 			self.cbam_representive_employee_email = values.email
 			old_user = self.cbam_representative_user
 		self.save()
-		frappe.db.set_value("User", old_user, "enabled", 0)
+		if old_user not in [self.cbam_representative_user, self.commercial_contact_user]:
+			frappe.db.set_value("User", old_user, "enabled", 0)
 
 @frappe.whitelist()
 def send_bulk_signup_request(operating_companys):
