@@ -1,0 +1,113 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:naming_series",
+ "creation": "2025-05-28 12:13:56.907372",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "cn_code",
+  "article_no",
+  "supplier",
+  "land",
+  "raw_mass",
+  "mass_per_article",
+  "column_break_ltwo",
+  "number_of_items",
+  "buying_price_per_mass",
+  "real_emissions_value",
+  "carbon_price_due"
+ ],
+ "fields": [
+  {
+   "fieldname": "cn_code",
+   "fieldtype": "Data",
+   "label": "CN Code"
+  },
+  {
+   "fieldname": "article_no",
+   "fieldtype": "Data",
+   "label": "Article No"
+  },
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Data",
+   "label": "Supplier"
+  },
+  {
+   "fieldname": "land",
+   "fieldtype": "Data",
+   "label": "Land"
+  },
+  {
+   "fieldname": "mass_per_article",
+   "fieldtype": "Data",
+   "label": "mass per article [kg]"
+  },
+  {
+   "fieldname": "column_break_ltwo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "number_of_items",
+   "fieldtype": "Data",
+   "label": "Number of items"
+  },
+  {
+   "fieldname": "buying_price_per_mass",
+   "fieldtype": "Data",
+   "label": "Buying price per mass"
+  },
+  {
+   "fieldname": "real_emissions_value",
+   "fieldtype": "Data",
+   "label": "real emissions value"
+  },
+  {
+   "fieldname": "carbon_price_due",
+   "fieldtype": "Data",
+   "label": "Carbon price due"
+  },
+  {
+   "default": "EX-G-",
+   "fieldname": "naming_series",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Naming Series",
+   "options": "EX-G-"
+  },
+  {
+   "fieldname": "raw_mass",
+   "fieldtype": "Data",
+   "label": "mass [kg]"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-29 12:13:18.516782",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "External Good",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

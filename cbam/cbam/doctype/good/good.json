@@ -25,6 +25,9 @@
   "raw_mass",
   "currency",
   "inward_processing",
+  "mass_per_article",
+  "buying_price",
+  "carbon_price_due",
   "column_break_jims",
   "customs_procedure",
   "customs_value",
@@ -592,18 +595,28 @@
    "hidden": 1,
    "label": "Emission Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "mass_per_article",
+   "fieldtype": "Data",
+   "label": "mass per article"
+  },
+  {
+   "fieldname": "buying_price",
+   "fieldtype": "Data",
+   "label": "Buying Price"
+  },
+  {
+   "fieldname": "carbon_price_due",
+   "fieldtype": "Data",
+   "label": "Carbon price due"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [
-  {
-   "link_doctype": "Additional Good Input",
-   "link_fieldname": "good"
-  }
- ],
- "modified": "2025-05-27 11:33:02.182961",
+ "links": [],
+ "modified": "2025-05-28 13:11:30.008661",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
