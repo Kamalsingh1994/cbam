@@ -394,7 +394,7 @@ function executeJS() {
             if (row.doc.source === "Supplier") {
                 row.columns.source_name.df.options= await cbam.supplier.get_child_suppliers({"status": ["!=", "Missing Commercial Contact"]});
             } else if (row.doc.source === "Installation") {
-                row.columns.source_name.df.options= await cbam.utils.get_links("CBAM Installation", {}, ["name_of_installation as label", "name as value"]);
+                row.columns.source_name.df.options= await cbam.utils.get_links("CBAM Installation", {}, ["name_of_the_installation as label", "name as value"]);
             }
             // row.columns.source_name.df.options = options;
             d.fields_dict.table1.grid.refresh();
