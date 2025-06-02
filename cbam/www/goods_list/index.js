@@ -310,7 +310,7 @@ function executeJS() {
                             fieldtype: "Column Break",
                         },
                         {
-                            label: __("Qty to Split [Kg]"),
+                            label: __("Qty to Split [kg]"),
                             fieldname: `qty`,
                             fieldtype: "Float",
                             in_list_view: 1,
@@ -321,6 +321,7 @@ function executeJS() {
                                     total_raw_mass += table[i].qty;
                                 }
                                 d.set_value("total_raw_mass", total_raw_mass)
+                                d.set_value("total_remaining_qty", flt(d.get_value("raw_mass")) - flt(total_raw_mass))
                             }
                         },
                     ],
@@ -332,7 +333,7 @@ function executeJS() {
                 {
                     fieldtype: "Float",
                     fieldname: "raw_mass",
-                    label: __("Total Qty [Kg]"),
+                    label: __("Total Qty [kg]"),
                     default: rawMass,
                     read_only: 1,
 
@@ -345,7 +346,19 @@ function executeJS() {
                 {
                     fieldtype: "Float",
                     fieldname: "total_raw_mass",
-                    label: __("Total Qty to Split [Kg]"),
+                    label: __("Split Qty [kg]"),
+                    read_only: 1,
+                    default: "0.00"
+                },
+                {
+                          
+                    fieldname: "cb1",
+                    fieldtype: "Column Break",
+                },
+                {
+                    fieldtype: "Float",
+                    fieldname: "total_remaining_qty",
+                    label: __("Remaining Qty to Split [kg]"),
                     read_only: 1,
                     default: "0.00"
                 }
