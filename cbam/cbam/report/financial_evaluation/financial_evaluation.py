@@ -29,7 +29,7 @@ def get_columns():
 			"label": "Supplier"
 		},
         {
-			"fieldname": "land",
+			"fieldname": "country",
 			"fieldtype": "Data",
 			"label": "Land"
 		},
@@ -41,13 +41,30 @@ def get_columns():
 		{
 		
 			"fieldname": "mass_per_article",
-			"fieldtype": "Small Text",
-			"label": "Good Description"
+			"fieldtype": "Data",
+			"label": "Mass per Article"
 		},
-		{
+        {
 			"fieldname": "buying_price",
 			"fieldtype": "Data",
-			"label": "Buying Price"
+			"label": "Buying Price per Mass"
+		},
+        {
+		
+			"fieldname": "emission_value",
+			"fieldtype": "Data",
+			"label": "Standard Emission Value"
+		},
+		{
+		
+			"fieldname": "real_emission_value",
+			"fieldtype": "Data",
+			"label": "Real Emission Value"
+		},
+        {
+			"fieldname": "bench_mark",
+			"fieldtype": "Data",
+			"label": "Benchmark"
 		},
 		{
 			"fieldname": "carbon_price_due",
@@ -64,25 +81,38 @@ def get_data():
             eg.cn_code AS cn_number,
             eg.article_no AS article_number,
             eg.supplier,
-            eg.land,
-            eg.mass_kg AS raw_mass,
+            eg.country,
+            eg.raw_mass AS raw_mass,
             eg.mass_per_article,
             eg.buying_price_per_mass AS buying_price,
-            eg.carbon_price_due
+            eg.carbon_price_due,
+                         eg.real_emissions_value as real_emission_value,
+			e.emission_value,
+        b.bench_mark
         FROM `tabExternal Good` eg
-
+		join `tabStandard Emission Value`
+		as e on eg.cn_code = e.cn_code and eg.country = e.country
+		join `tabCN Code Bench Mark` as b
+		on b.cn_code = eg.cn_code
         UNION ALL
 
         SELECT 
             g.customs_tariff_number AS cn_number,
             g.article_number,
             g.supplier_name AS supplier,
-            g.country_of_origin AS land,
+            g.country_of_origin AS country,
             g.raw_mass,
             g.mass_per_article,
             g.buying_price,
-            g.carbon_price_due
-        FROM `tabGood` g
+            g.carbon_price_due,
+			e.emission_value,
+                         g.specific_direct_embedded_emissions as real_emission_value,
+            b.bench_mark
+        FROM `tabGood` g 
+                         join `tabStandard Emission Value`
+                         as e on g.customs_tariff_number = e.cn_code and g.country_of_origin = e.country
+                         join `tabCN Code Bench Mark` as b
+                         on b.cn_code = g.customs_tariff_number
     """, as_dict=1)
 
     return data

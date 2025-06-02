@@ -17,7 +17,8 @@
   "number_of_items",
   "buying_price_per_mass",
   "real_emissions_value",
-  "carbon_price_due"
+  "carbon_price_due",
+  "country"
  ],
  "fields": [
   {
@@ -81,12 +82,18 @@
    "fieldname": "raw_mass",
    "fieldtype": "Data",
    "label": "mass [kg]"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-29 12:13:18.516782",
+ "modified": "2025-06-02 11:14:58.883331",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",
