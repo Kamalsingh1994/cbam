@@ -321,7 +321,7 @@ function executeJS() {
                                     total_raw_mass += table[i].qty;
                                 }
                                 d.set_value("total_raw_mass", total_raw_mass)
-                                d.set_value("total_remaining_qty", flt(d.get_value("raw_mass")) - flt(total_raw_mass))
+                                d.set_value("total_remaining_qty", flt(d.get_value("raw_mass")) - flt(total_raw_mass, 3))
                             }
                         },
                     ],
@@ -368,7 +368,7 @@ function executeJS() {
             secondary_action_label: '',
             primary_action(values) {
                 let validation_flag = true
-                if(values.raw_mass != values.total_raw_mass){
+                if(values.raw_mass != flt(values.total_raw_mass, 3)){
                     msgprint(__("Total Qty to Split must be equal to Total Qty."))
                     validation_flag = false
                 }
@@ -396,7 +396,7 @@ function executeJS() {
 
                    
         d.show();
-        // Patch click event on rows to update source_name options on click
+        //Patch click event on rows to update source_name options on click
         d.fields_dict.table1.grid.wrapper.on('click', '.grid-row', async function (e) {
             const name = $(this).attr('data-name');
             const row = d.fields_dict.table1.grid.grid_rows_by_docname[name];
@@ -412,6 +412,7 @@ function executeJS() {
             // row.columns.source_name.df.options = options;
             d.fields_dict.table1.grid.refresh();
         });
+        
     }
 
     const toggleDataBtn = function(toggle) {
