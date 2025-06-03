@@ -302,6 +302,21 @@ function executeJS() {
                             fieldname: `source_name`,
                             fieldtype: "Select",
                             reqd: 1,  
+                            in_list_view: 1,
+                            onchange: (event) => {
+                                const selectedOption = event.currentTarget.selectedOptions[0];
+                                const label = selectedOption?.label || "";
+                                const name = $(event.currentTarget).closest(".grid-row").attr("data-name");
+                                let row = d.fields_dict.table1.grid.grid_rows_by_docname[name];
+                                if (row) row.doc.name_ = label;
+                                d.fields_dict.table1.grid.refresh();
+                            }
+                        },
+                        {
+                            label: __("Name"),
+                            fieldname: "name_",
+                            fieldtype: "Data", 
+                            read_only: 1,
                             in_list_view: 1
                         },
                         {
