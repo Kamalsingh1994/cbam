@@ -310,7 +310,7 @@ function executeJS() {
                             fieldtype: "Column Break",
                         },
                         {
-                            label: __("Qty to Split [Kg]"),
+                            label: __("Qty to Split [kg]"),
                             fieldname: `qty`,
                             fieldtype: "Float",
                             in_list_view: 1,
@@ -321,6 +321,7 @@ function executeJS() {
                                     total_raw_mass += table[i].qty;
                                 }
                                 d.set_value("total_raw_mass", total_raw_mass)
+                                d.set_value("total_remaining_qty", flt(d.get_value("raw_mass")) - flt(total_raw_mass, 3))
                             }
                         },
                     ],
@@ -332,7 +333,7 @@ function executeJS() {
                 {
                     fieldtype: "Float",
                     fieldname: "raw_mass",
-                    label: __("Total Qty [Kg]"),
+                    label: __("Total Qty [kg]"),
                     default: rawMass,
                     read_only: 1,
 
@@ -345,7 +346,19 @@ function executeJS() {
                 {
                     fieldtype: "Float",
                     fieldname: "total_raw_mass",
-                    label: __("Total Qty to Split [Kg]"),
+                    label: __("Split Qty [kg]"),
+                    read_only: 1,
+                    default: "0.00"
+                },
+                {
+                          
+                    fieldname: "cb1",
+                    fieldtype: "Column Break",
+                },
+                {
+                    fieldtype: "Float",
+                    fieldname: "total_remaining_qty",
+                    label: __("Remaining Qty to Split [kg]"),
                     read_only: 1,
                     default: "0.00"
                 }
@@ -355,7 +368,7 @@ function executeJS() {
             secondary_action_label: '',
             primary_action(values) {
                 let validation_flag = true
-                if(values.raw_mass != values.total_raw_mass){
+                if(values.raw_mass != flt(values.total_raw_mass, 3)){
                     msgprint(__("Total Qty to Split must be equal to Total Qty."))
                     validation_flag = false
                 }
@@ -383,7 +396,7 @@ function executeJS() {
 
                    
         d.show();
-        // Patch click event on rows to update source_name options on click
+        //Patch click event on rows to update source_name options on click
         d.fields_dict.table1.grid.wrapper.on('click', '.grid-row', async function (e) {
             const name = $(this).attr('data-name');
             const row = d.fields_dict.table1.grid.grid_rows_by_docname[name];
@@ -394,11 +407,12 @@ function executeJS() {
             if (row.doc.source === "Supplier") {
                 row.columns.source_name.df.options= await cbam.supplier.get_child_suppliers({"status": ["!=", "Missing Commercial Contact"]});
             } else if (row.doc.source === "Installation") {
-                row.columns.source_name.df.options= await cbam.utils.get_links("CBAM Installation", {}, ["name_of_installation as label", "name as value"]);
+                row.columns.source_name.df.options= await cbam.utils.get_links("CBAM Installation", {}, ["name_of_the_installation as label", "name as value"]);
             }
             // row.columns.source_name.df.options = options;
             d.fields_dict.table1.grid.refresh();
         });
+        
     }
 
     const toggleDataBtn = function(toggle) {
