@@ -1,10 +1,12 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:naming_series",
  "creation": "2025-06-03 08:35:23.402476",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "naming_series",
   "date",
   "price",
   "ets_price_type"
@@ -25,15 +27,23 @@
    "fieldtype": "Select",
    "label": "ETS price Type",
    "options": "\nActual\nPrediction"
+  },
+  {
+   "default": "ETS-CP-",
+   "fieldname": "naming_series",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Naming Series"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-03 11:28:24.891656",
+ "modified": "2025-06-03 12:30:40.539393",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "ETS Carbon Price",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
