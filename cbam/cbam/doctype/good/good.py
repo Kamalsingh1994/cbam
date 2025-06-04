@@ -24,6 +24,18 @@ class Good(Document):
 		if self.operating_company:
 			self.supplier_number, self.supplier_name = frappe.db.get_values("Operating Company", self.operating_company, ['supplier_number', 'supplier_name'])[0]
 
+		self.update_name()
+
+	def update_name(self):
+		for row in self.split_details:
+			if not row.source_name:
+				continue
+
+			if row.source == "Operating Company":
+				row.name_ = frappe.db.get_value("Operating Company", row.source_name, "supplier_name")
+			elif row.source == "CBAM Installation":
+				row.name_ = frappe.db.get_value("CBAM Installation", row.source_name, "name_of_the_installation")
+
 	def set_countries(self):
 		self.country_of_origin = frappe.db.get_value("Country", {"code": self.country_of_origin_code}, "name")
 		self.shipping_country = frappe.db.get_value("Country", {"code": self.shipping_country_code}, "name")
