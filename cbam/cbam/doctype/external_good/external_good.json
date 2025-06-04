@@ -85,15 +85,14 @@
   },
   {
    "fieldname": "country",
-   "fieldtype": "Link",
-   "label": "Country",
-   "options": "Country"
+   "fieldtype": "Data",
+   "label": "Country"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-02 11:14:58.883331",
+ "modified": "2025-06-03 11:39:43.408297",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",

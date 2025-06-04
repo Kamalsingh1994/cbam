@@ -49,34 +49,38 @@ def get_columns():
 			"fieldtype": "Data",
 			"label": "Buying Price per Mass"
 		},
-        {
-		
-			"fieldname": "emission_value",
-			"fieldtype": "Data",
-			"label": "Standard Emission Value"
-		},
+       
 		{
 		
 			"fieldname": "real_emission_value",
 			"fieldtype": "Data",
 			"label": "Real Emission Value"
 		},
-        {
-			"fieldname": "bench_mark",
-			"fieldtype": "Data",
-			"label": "Benchmark"
-		},
+       
 		{
 			"fieldname": "carbon_price_due",
 			"fieldtype": "Data",
 			"label": "Carbon Price Due"
-		}
+		},
+        {
+			"fieldname": "ets_carbon_price",
+			"fieldtype": "Data",
+			"label": "ETS Carbon Price"
+		},
 	]
              
     return columns
 
 def get_data():
-    data = frappe.db.sql("""
+    
+    ets_carbon_price = frappe.db.get_value(
+        "ETS Carbon Price",
+        {"ets_price_type": "Actual"},
+        "price",
+        order_by="date desc"
+    ) or 0
+    
+    data = frappe.db.sql(f"""
         SELECT 
             eg.cn_code AS cn_number,
             eg.article_no AS article_number,
@@ -86,16 +90,16 @@ def get_data():
             eg.mass_per_article,
             eg.buying_price_per_mass AS buying_price,
             eg.carbon_price_due,
-                         eg.real_emissions_value as real_emission_value,
+            eg.real_emissions_value as real_emission_value,
 			e.emission_value,
-        b.bench_mark
+        	b.bench_mark,
+			{ets_carbon_price} AS ets_carbon_price
         FROM `tabExternal Good` eg
 		join `tabStandard Emission Value`
 		as e on eg.cn_code = e.cn_code and eg.country = e.country
 		join `tabCN Code Bench Mark` as b
-		on b.cn_code = eg.cn_code
+		on b.cn_code = eg.cn_code              
         UNION ALL
-
         SELECT 
             g.customs_tariff_number AS cn_number,
             g.article_number,
@@ -106,15 +110,17 @@ def get_data():
             g.buying_price,
             g.carbon_price_due,
 			e.emission_value,
-                         g.specific_direct_embedded_emissions as real_emission_value,
-            b.bench_mark
+            g.specific_direct_embedded_emissions as real_emission_value,
+            b.bench_mark,
+            {ets_carbon_price} AS ets_carbon_price
         FROM `tabGood` g 
-                         join `tabStandard Emission Value`
-                         as e on g.customs_tariff_number = e.cn_code and g.country_of_origin = e.country
-                         join `tabCN Code Bench Mark` as b
-                         on b.cn_code = g.customs_tariff_number
+			join `tabStandard Emission Value`
+			as e on g.customs_tariff_number = e.cn_code and g.country_of_origin = e.country
+			join `tabCN Code Bench Mark` as b
+			on b.cn_code = g.customs_tariff_number
     """, as_dict=1)
 
     return data
+
 
 
