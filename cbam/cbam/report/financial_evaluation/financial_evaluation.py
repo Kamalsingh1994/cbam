@@ -80,47 +80,67 @@ def get_data():
         order_by="date desc"
     ) or 0
     
+    user = frappe.session.user
+    declarants = get_declarant_for_user(user)
+    
+    # If user has Declarant restrictions
+    good_filter_clause = ""
+    if declarants:
+        # Safely format for SQL IN clause
+        declarant_list = ', '.join(f"'{d}'" for d in declarants)
+        good_filter_clause = f" where g.declarant in ({declarant_list})"
+        
     data = frappe.db.sql(f"""
-        SELECT 
-            eg.cn_code AS cn_number,
-            eg.article_no AS article_number,
-            eg.supplier,
-            eg.country,
-            eg.raw_mass AS raw_mass,
-            eg.mass_per_article,
-            eg.buying_price_per_mass AS buying_price,
-            eg.carbon_price_due,
-            eg.real_emissions_value as real_emission_value,
+		SELECT 
+			eg.cn_code AS cn_number,
+			eg.article_no AS article_number,
+			eg.supplier,
+			eg.country,
+			eg.raw_mass AS raw_mass,
+			eg.mass_per_article,
+			eg.buying_price_per_mass AS buying_price,
+			eg.carbon_price_due,
+			eg.real_emissions_value AS real_emission_value,
 			e.emission_value,
-        	b.bench_mark,
+			b.bench_mark,
 			{ets_carbon_price} AS ets_carbon_price
-        FROM `tabExternal Good` eg
-		join `tabStandard Emission Value`
-		as e on eg.cn_code = e.cn_code and eg.country = e.country
-		join `tabCN Code Bench Mark` as b
-		on b.cn_code = eg.cn_code              
-        UNION ALL
-        SELECT 
-            g.customs_tariff_number AS cn_number,
-            g.article_number,
-            g.supplier_name AS supplier,
-            g.country_of_origin AS country,
-            g.raw_mass,
-            g.mass_per_article,
-            g.buying_price,
-            g.carbon_price_due,
+		FROM `tabExternal Good` eg
+		JOIN `tabStandard Emission Value` e 
+			ON eg.cn_code = e.cn_code AND eg.country = e.country
+		JOIN `tabCN Code Bench Mark` b 
+			ON b.cn_code = eg.cn_code
+
+		UNION ALL
+
+		SELECT 
+			g.customs_tariff_number AS cn_number,
+			g.article_number,
+			g.supplier_name AS supplier,
+			g.country_of_origin AS country,	
+			g.raw_mass,
+			g.mass_per_article,
+			g.buying_price,
+			g.carbon_price_due,
+			g.specific_direct_embedded_emissions AS real_emission_value,
 			e.emission_value,
-            g.specific_direct_embedded_emissions as real_emission_value,
-            b.bench_mark,
-            {ets_carbon_price} AS ets_carbon_price
-        FROM `tabGood` g 
-			join `tabStandard Emission Value`
-			as e on g.customs_tariff_number = e.cn_code and g.country_of_origin = e.country
-			join `tabCN Code Bench Mark` as b
-			on b.cn_code = g.customs_tariff_number
-    """, as_dict=1)
+			b.bench_mark,
+			{ets_carbon_price} AS ets_carbon_price
+		FROM `tabGood` g
+		JOIN `tabStandard Emission Value` e 
+			ON g.customs_tariff_number = e.cn_code AND g.country_of_origin = e.country
+		JOIN `tabCN Code Bench Mark` b 
+			ON b.cn_code = g.customs_tariff_number
+		{good_filter_clause}
+	""", as_dict=1)
+
 
     return data
 
-
-
+def get_declarant_for_user(user):
+    result = frappe.db.get_all(
+        "Declarant User",
+        filters={"user": user},
+        fields=["parent"],
+        distinct=True
+    )
+    return [row.parent for row in result]  # List of declarant names
