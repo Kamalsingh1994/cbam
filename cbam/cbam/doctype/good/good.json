@@ -172,7 +172,6 @@
    "fieldtype": "Float",
    "label": "Raw mass in Kilograms",
    "non_negative": 1,
-   "precision": "2",
    "read_only_depends_on": "eval:doc.manufacture==\"I am NOT the manufacturer of the whole amount of the product\"",
    "reqd": 1
   },
@@ -616,7 +615,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-28 13:11:30.008661",
+ "modified": "2025-06-04 11:46:57.459785",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
