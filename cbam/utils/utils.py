@@ -35,3 +35,20 @@ def add_helpdesk_navbar_item():
 		})
 		navbar_settings.save()
 		frappe.db.commit()
+
+
+def remove_user_access_for_desk_user():
+    perms = frappe.get_all(
+        "Custom DocPerm",
+        filters={
+            "parent": "User",
+            "role": "Desk User"
+        },
+        fields=["name"]
+    )
+
+    for perm in perms:
+        frappe.delete_doc("Custom DocPerm", perm.name, force=1)
+        print(f"Removed permission: {perm.name}")
+
+    frappe.db.commit()
