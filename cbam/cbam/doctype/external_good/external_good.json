@@ -18,7 +18,8 @@
   "buying_price_per_mass",
   "real_emissions_value",
   "carbon_price_due",
-  "country"
+  "country",
+  "declarant"
  ],
  "fields": [
   {
@@ -87,12 +88,18 @@
    "fieldname": "country",
    "fieldtype": "Data",
    "label": "Country"
+  },
+  {
+   "fieldname": "declarant",
+   "fieldtype": "Link",
+   "label": "Declarant",
+   "options": "Declarant"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-03 11:39:43.408297",
+ "modified": "2025-06-05 13:28:26.259238",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",

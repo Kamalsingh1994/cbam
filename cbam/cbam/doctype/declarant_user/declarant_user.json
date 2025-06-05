@@ -10,6 +10,7 @@
  ],
  "fields": [
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "user",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -17,6 +18,7 @@
    "options": "User"
   },
   {
+   "allow_in_quick_entry": 1,
    "default": "0",
    "fieldname": "is_primary",
    "fieldtype": "Check",
@@ -28,7 +30,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-04 07:04:40.464811",
+ "modified": "2025-06-05 12:20:23.396927",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Declarant User",
