@@ -54,32 +54,36 @@ def remove_user_access_for_desk_user():
     frappe.db.commit()
 
 
-def update_helpdesk_workspace_roles():
-    # Check if "Helpdesk" workspace exists
-    if not frappe.db.exists("Workspace", "Helpdesk"):
+def update_workspace_roles():
+    update_roles("Helpdesk", ["System Manager", "Administrator"])
+    update_roles("Users", ["System Manager", "Administrator"])
+
+def update_user_workspace_roles():
+    update_workspace_roles("User", ["System Manager", "Administrator"])
+
+def update_roles(workspace_name, required_roles):
+    # Check if workspace exists
+    if not frappe.db.exists("Workspace", workspace_name):
         return
 
-    # Fetch the document
-    ws = frappe.get_doc("Workspace", "Helpdesk")
-
-    # Get current roles already assigned (as a set for fast lookup)
+    ws = frappe.get_doc("Workspace", workspace_name)
     existing_roles = {r.role for r in ws.roles}
 
-    # Define required roles
-    required_roles = ["System Manager", "Administrator"]
-
-    # Track if we make changes
-    updated = False
-
-    # Append roles only if not already present
+    # Append only missing roles
     for role in required_roles:
         if role not in existing_roles:
             ws.append("roles", {"role": role})
-            updated = True
 
-    # Save and commit only if any change
-    if updated:
+    # Always unhide the workspace if hidden
+    if ws.is_hidden:
         ws.is_hidden = 0
-        ws.save(ignore_permissions=True)
-        frappe.db.commit()
-        print("Updated roles in 'Helpdesk' workspace.")
+    
+    ws.save(ignore_permissions=True)
+    frappe.db.commit()
+
+def user_permission_query(user):
+    # Hide all user documents from everyone except admins
+    if "System Manager" in frappe.get_roles(user) or user == "Administrator":
+        return ""
+    return "1=0"  # deny all rows
+
