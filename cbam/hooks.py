@@ -57,12 +57,15 @@ web_include_js = [
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
-doctype_list_js = {"Good" : "public/js/doctype/good/good_list.js"}
+
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
 after_migrate = [
-    "cbam.utils.translation.remove_duplicate_translations"
+    "cbam.utils.translation.remove_duplicate_translations",
+    "cbam.utils.utils.update_workspace_for_helpdesk",
+    "cbam.utils.utils.add_helpdesk_navbar_item",
+    "cbam.utils.utils.remove_user_access_for_desk_user",
 ]
 # Svg Icons
 # ------------------

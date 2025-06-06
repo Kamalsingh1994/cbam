@@ -30,7 +30,11 @@ def get_supplier_details(sup=None):
 
 
 @frappe.whitelist()
-def get_child_suppliers():
+def get_child_suppliers(filters={}):
     parent_company = get_supplier()
-    return frappe.db.get_all("Operating Company", {"parent_operating_company": parent_company}, ["name as value", "supplier_name as label"])
+    _filters = {"parent_operating_company": parent_company}
+    if filters:
+        _filters.update(json.loads(filters))
+   
+    return frappe.db.get_all("Operating Company", _filters, ["name as value", "supplier_name as label"])
     

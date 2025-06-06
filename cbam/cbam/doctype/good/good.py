@@ -24,6 +24,18 @@ class Good(Document):
 		if self.operating_company:
 			self.supplier_number, self.supplier_name = frappe.db.get_values("Operating Company", self.operating_company, ['supplier_number', 'supplier_name'])[0]
 
+		self.update_name()
+
+	def update_name(self):
+		for row in self.split_details:
+			if not row.source_name:
+				continue
+
+			if row.source == "Operating Company":
+				row.name_ = frappe.db.get_value("Operating Company", row.source_name, "supplier_name")
+			elif row.source == "CBAM Installation":
+				row.name_ = frappe.db.get_value("CBAM Installation", row.source_name, "name_of_the_installation")
+
 	def set_countries(self):
 		self.country_of_origin = frappe.db.get_value("Country", {"code": self.country_of_origin_code}, "name")
 		self.shipping_country = frappe.db.get_value("Country", {"code": self.shipping_country_code}, "name")
@@ -283,8 +295,9 @@ def send_data_request(goods):
 	goods = json.loads(goods)
 	supp = []
 	for g in goods:
-		if not g.get("operating_company") in supp:
-			supp.append(g.get("operating_company"))
+		if g.get('status') != "Data Submitted":
+			if not g.get("operating_company") in supp:
+				supp.append(g.get("operating_company"))
 
 	email = frappe.get_doc("Notification", frappe.db.get_single_value("CBAM Settings", "data_request_template"))
 	if not email:
@@ -293,8 +306,12 @@ def send_data_request(goods):
 	for s in supp:
 		op = frappe.get_doc("Operating Company", s)
 		op.declarant = op.declarant
+		if op.cbam_representative_user:
+			op.commercial_contact_user = op.cbam_representative_user
+			op.main_contact_employee_last_name = op.cbam_representive_last_name
 		email.send(op)
 	for g in goods:
-		frappe.db.set_value("Good", g.get("name"), "status", "Data Requested")
+		if g.get('status') == "Draft":
+			frappe.db.set_value("Good", g.get("name"), "status", "Data Requested")
 
 

@@ -25,6 +25,9 @@
   "raw_mass",
   "currency",
   "inward_processing",
+  "mass_per_article",
+  "buying_price",
+  "carbon_price_due",
   "column_break_jims",
   "customs_procedure",
   "customs_value",
@@ -169,7 +172,6 @@
    "fieldtype": "Float",
    "label": "Raw mass in Kilograms",
    "non_negative": 1,
-   "precision": "2",
    "read_only_depends_on": "eval:doc.manufacture==\"I am NOT the manufacturer of the whole amount of the product\"",
    "reqd": 1
   },
@@ -592,13 +594,28 @@
    "hidden": 1,
    "label": "Emission Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "mass_per_article",
+   "fieldtype": "Data",
+   "label": "mass per article"
+  },
+  {
+   "fieldname": "buying_price",
+   "fieldtype": "Data",
+   "label": "Buying Price"
+  },
+  {
+   "fieldname": "carbon_price_due",
+   "fieldtype": "Data",
+   "label": "Carbon price due"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-16 07:49:14.658043",
+ "modified": "2025-06-04 11:46:57.459785",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
@@ -662,6 +679,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [

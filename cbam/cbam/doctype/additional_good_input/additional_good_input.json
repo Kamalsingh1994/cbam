@@ -1,0 +1,393 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:naming_series",
+ "creation": "2025-05-26 15:48:19.929521",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "good",
+  "cn_code",
+  "land",
+  "mass_per_articel",
+  "number_of_items",
+  "column_break_aekr",
+  "standard_emissions_value",
+  "real_emissions_value",
+  "benchmark",
+  "carbon_price_due",
+  "buying_price_per_mass",
+  "standard_emission_incuding_negative_values_section",
+  "total_mass_se",
+  "column_break_ldsf",
+  "ton_of_product_se",
+  "value_of_real_emission_including_negative_values_section",
+  "total_mass_re",
+  "per_ton_of_product_re",
+  "column_break_fzut",
+  "per_article_re",
+  "price_of_standard_emission_section",
+  "total_mass_sep",
+  "per_ton_of_product_sep",
+  "column_break_ehve",
+  "per_article_sep",
+  "price__real_emission_value_section",
+  "total_mass_rep",
+  "per_ton_of_product_rep",
+  "column_break_xbiu",
+  "per_article_rep",
+  "savings_due_to_real_emissions_section",
+  "total_mass_res",
+  "per_ton_of_product_res",
+  "column_break_aqys",
+  "per_article_res",
+  "purchasing_costs_section",
+  "per_ton_of_produkt_pc",
+  "column_break_hfns",
+  "per_article_pc",
+  "purchase_cbam_standard_section",
+  "per_ton_of_product_cbam",
+  "column_break_egqb",
+  "per_article_cbam",
+  "purchase_cbam_real_section",
+  "per_ton_of_product_cbamr",
+  "column_break_lxcx",
+  "per_article_cbamr",
+  "cbam_price_impact_in__section",
+  "live",
+  "emissions_in__t_co2_section",
+  "standard",
+  "column_break_nnrn",
+  "real",
+  "cbam_price_over_time_section",
+  "cbam_price_over_time",
+  "column_break_zzvz",
+  "real_cbam_price_over_the_years_section",
+  "real_cbam_price",
+  "column_break_wuzs"
+ ],
+ "fields": [
+  {
+   "fieldname": "good",
+   "fieldtype": "Link",
+   "label": "Good",
+   "options": "Good"
+  },
+  {
+   "fieldname": "cn_code",
+   "fieldtype": "Data",
+   "label": "CN Code"
+  },
+  {
+   "fieldname": "land",
+   "fieldtype": "Data",
+   "label": "Land"
+  },
+  {
+   "fieldname": "mass_per_articel",
+   "fieldtype": "Float",
+   "label": "mass per articel [kg]"
+  },
+  {
+   "fieldname": "number_of_items",
+   "fieldtype": "Int",
+   "label": "Number of items"
+  },
+  {
+   "fieldname": "buying_price_per_mass",
+   "fieldtype": "Float",
+   "label": "Buying price per mass "
+  },
+  {
+   "fieldname": "column_break_aekr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "standard_emissions_value",
+   "fieldtype": "Float",
+   "label": "Standard emissions value"
+  },
+  {
+   "fieldname": "real_emissions_value",
+   "fieldtype": "Float",
+   "label": "Real emissions value"
+  },
+  {
+   "fieldname": "benchmark",
+   "fieldtype": "Float",
+   "label": "Benchmark"
+  },
+  {
+   "fieldname": "carbon_price_due",
+   "fieldtype": "Float",
+   "label": "Carbon price due"
+  },
+  {
+   "fieldname": "standard_emission_incuding_negative_values_section",
+   "fieldtype": "Section Break",
+   "label": "Standard Emission (incuding negative values)"
+  },
+  {
+   "fieldname": "total_mass_se",
+   "fieldtype": "Float",
+   "label": "total mass"
+  },
+  {
+   "fieldname": "ton_of_product_se",
+   "fieldtype": "Float",
+   "label": "per ton of product"
+  },
+  {
+   "fieldname": "value_of_real_emission_including_negative_values_section",
+   "fieldtype": "Section Break",
+   "label": "value of real emission (including negative values)"
+  },
+  {
+   "fieldname": "total_mass_re",
+   "fieldtype": "Float",
+   "label": "total mass"
+  },
+  {
+   "fieldname": "per_ton_of_product_re",
+   "fieldtype": "Float",
+   "label": "per ton of product"
+  },
+  {
+   "fieldname": "per_article_re",
+   "fieldtype": "Float",
+   "label": "per article"
+  },
+  {
+   "fieldname": "price_of_standard_emission_section",
+   "fieldtype": "Section Break",
+   "label": "price of standard emission"
+  },
+  {
+   "fieldname": "total_mass_sep",
+   "fieldtype": "Float",
+   "label": "total mass"
+  },
+  {
+   "fieldname": "per_ton_of_product_sep",
+   "fieldtype": "Float",
+   "label": "per ton of product"
+  },
+  {
+   "fieldname": "per_article_sep",
+   "fieldtype": "Float",
+   "label": "per article"
+  },
+  {
+   "fieldname": "price__real_emission_value_section",
+   "fieldtype": "Section Break",
+   "label": "price  real emission value"
+  },
+  {
+   "fieldname": "total_mass_rep",
+   "fieldtype": "Float",
+   "label": "total mass"
+  },
+  {
+   "fieldname": "per_ton_of_product_rep",
+   "fieldtype": "Float",
+   "label": "per ton of product"
+  },
+  {
+   "fieldname": "per_article_rep",
+   "fieldtype": "Float",
+   "label": "per article"
+  },
+  {
+   "fieldname": "column_break_ldsf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_fzut",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ehve",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_xbiu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "savings_due_to_real_emissions_section",
+   "fieldtype": "Section Break",
+   "label": "savings due to real emissions"
+  },
+  {
+   "fieldname": "total_mass_res",
+   "fieldtype": "Float",
+   "label": "total mass"
+  },
+  {
+   "fieldname": "per_ton_of_product_res",
+   "fieldtype": "Float",
+   "label": "per ton of product"
+  },
+  {
+   "fieldname": "per_article_res",
+   "fieldtype": "Float",
+   "label": "per article"
+  },
+  {
+   "fieldname": "purchasing_costs_section",
+   "fieldtype": "Section Break",
+   "label": "purchasing costs"
+  },
+  {
+   "fieldname": "per_ton_of_produkt_pc",
+   "fieldtype": "Float",
+   "label": "per ton of product"
+  },
+  {
+   "fieldname": "per_article_pc",
+   "fieldtype": "Float",
+   "label": "per article"
+  },
+  {
+   "fieldname": "purchase_cbam_standard_section",
+   "fieldtype": "Section Break",
+   "label": "purchase + CBAM - standard"
+  },
+  {
+   "fieldname": "per_ton_of_product_cbam",
+   "fieldtype": "Float",
+   "label": "per ton of product"
+  },
+  {
+   "fieldname": "per_article_cbam",
+   "fieldtype": "Float",
+   "label": "per article"
+  },
+  {
+   "fieldname": "purchase_cbam_real_section",
+   "fieldtype": "Section Break",
+   "label": "purchase + CBAM - real"
+  },
+  {
+   "fieldname": "per_ton_of_product_cbamr",
+   "fieldtype": "Float",
+   "label": "per ton of product"
+  },
+  {
+   "fieldname": "per_article_cbamr",
+   "fieldtype": "Float",
+   "label": "per article"
+  },
+  {
+   "fieldname": "cbam_price_impact_in__section",
+   "fieldtype": "Section Break",
+   "label": "CBAM price impact in %"
+  },
+  {
+   "fieldname": "live",
+   "fieldtype": "Float",
+   "label": "live"
+  },
+  {
+   "fieldname": "emissions_in__t_co2_section",
+   "fieldtype": "Section Break",
+   "label": "emissions in  [t CO2]"
+  },
+  {
+   "fieldname": "standard",
+   "fieldtype": "Float",
+   "label": "standard"
+  },
+  {
+   "fieldname": "real",
+   "fieldtype": "Float",
+   "label": "real"
+  },
+  {
+   "fieldname": "column_break_aqys",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_hfns",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_egqb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_lxcx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cbam_price_over_time_section",
+   "fieldtype": "Section Break",
+   "label": "Standard CBAM Price over the years"
+  },
+  {
+   "fieldname": "cbam_price_over_time",
+   "fieldtype": "Table",
+   "label": "Standard CBAM Price",
+   "options": "Standard CBAM Price"
+  },
+  {
+   "fieldname": "real_cbam_price_over_the_years_section",
+   "fieldtype": "Section Break",
+   "label": "Real CBAM Price over the years"
+  },
+  {
+   "fieldname": "real_cbam_price",
+   "fieldtype": "Table",
+   "label": "Real CBAM Price",
+   "options": "Real CBAM Price"
+  },
+  {
+   "fieldname": "column_break_nnrn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "AG-",
+   "fieldname": "naming_series",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Naming Series",
+   "options": "AG-"
+  },
+  {
+   "fieldname": "column_break_zzvz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_wuzs",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-27 11:35:44.516542",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "Additional Good Input",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

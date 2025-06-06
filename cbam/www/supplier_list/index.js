@@ -55,6 +55,8 @@ function executeJS() {
             args: {
                 doc: values
             },
+            freeze: true,
+            freeze_message: "Adding new supplier....",
             callback: async function(r) {
                 if(r.message) {
                     const refreshed = await refreshElements(frappe);
@@ -72,6 +74,8 @@ function executeJS() {
             args: {
                 doc: values
             },
+            freeze: true,
+            freeze_message: "Updating supplier details....",
             callback: async function(r) {
                 if(r.message) {
                     const refreshed = await refreshElements(frappe);

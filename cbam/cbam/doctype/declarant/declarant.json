@@ -7,7 +7,8 @@
  "engine": "InnoDB",
  "field_order": [
   "declarant",
-  "email"
+  "email",
+  "declarant_user"
  ],
  "fields": [
   {
@@ -21,11 +22,20 @@
    "fieldtype": "Data",
    "label": "Declarant Name",
    "unique": 1
+  },
+  {
+   "allow_bulk_edit": 1,
+   "allow_in_quick_entry": 1,
+   "fieldname": "declarant_user",
+   "fieldtype": "Table",
+   "label": "Declarant User",
+   "options": "Declarant User"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-10 11:49:22.048586",
+ "modified": "2025-06-05 12:21:09.037519",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Declarant",
@@ -83,6 +93,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
