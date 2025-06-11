@@ -94,7 +94,7 @@ def get_declarant_for_user(doctype, txt, searchfield, start, page_len, filters):
 
     declarants = frappe.db.sql("""
         SELECT parent
-        FROM `tabDeclarant Users`
+        FROM `tabDeclarant User`
         WHERE user = %s
     """, (user,))
 

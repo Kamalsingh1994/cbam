@@ -1,9 +1,17 @@
 # Copyright (c) 2025, phamos GmbH and contributors
 # For license information, please see license.txt
 
-# import frappe
+import frappe
 from frappe.model.document import Document
 
 
 class ExternalGood(Document):
-	pass
+	def validate(self):
+		if self.declarant and not self.is_user_allowed_declarant(self.declarant, frappe.session.user):
+			self.declarant = None
+	
+	def is_user_allowed_declarant(self, declarant, user):
+		return frappe.db.exists("Declarant Users", {
+			"parent": declarant,
+			"user": user
+		})
