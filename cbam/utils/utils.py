@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 
 def update_workspace_for_helpdesk():
     """
@@ -87,3 +88,20 @@ def user_permission_query(user):
         return ""
     return "1=0"  # deny all rows
 
+@frappe.whitelist()
+def get_declarant_for_user(doctype, txt, searchfield, start, page_len, filters):
+    user = filters.get("user")
+
+    declarants = frappe.db.sql("""
+        SELECT parent
+        FROM `tabDeclarant User`
+        WHERE user = %s
+    """, (user,))
+
+    if not declarants:
+        return []
+
+    return [
+        (d[0],) for d in declarants
+        if txt.lower() in d[0].lower()
+    ]
