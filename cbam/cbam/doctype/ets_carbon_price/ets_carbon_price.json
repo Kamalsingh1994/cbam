@@ -7,20 +7,22 @@
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
+  "creation_date",
   "date",
   "price",
-  "ets_price_type"
+  "ets_price_type",
+  "carbon_price_source"
  ],
  "fields": [
   {
    "fieldname": "date",
    "fieldtype": "Date",
-   "label": "Date"
+   "label": "Price Date"
   },
   {
    "fieldname": "price",
    "fieldtype": "Currency",
-   "label": "Price"
+   "label": "ETS Carbon Price [\u20ac/tCO2]"
   },
   {
    "fieldname": "ets_price_type",
@@ -34,12 +36,23 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Naming Series"
+  },
+  {
+   "fieldname": "creation_date",
+   "fieldtype": "Date",
+   "label": "Creation Date"
+  },
+  {
+   "fieldname": "carbon_price_source",
+   "fieldtype": "Link",
+   "label": "ETS Carbon Price Source",
+   "options": "ETS Carbon Price Source"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-03 12:30:40.539393",
+ "modified": "2025-06-12 08:44:01.522236",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "ETS Carbon Price",

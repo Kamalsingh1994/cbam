@@ -92,14 +92,16 @@
   {
    "fieldname": "declarant",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Declarant",
-   "options": "Declarant"
+   "options": "Declarant",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-11 09:12:27.722736",
+ "modified": "2025-06-12 07:31:34.321015",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",
@@ -127,7 +129,6 @@
    "read": 1,
    "report": 1,
    "role": "Declarant",
-   "select": 1,
    "share": 1,
    "write": 1
   }
