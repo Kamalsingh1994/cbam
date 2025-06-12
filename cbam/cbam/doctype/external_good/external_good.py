@@ -11,7 +11,7 @@ class ExternalGood(Document):
 			self.declarant = None
 	
 	def is_user_allowed_declarant(self, declarant, user):
-		return frappe.db.exists("Declarant Users", {
+		return frappe.db.exists("Declarant User", {
 			"parent": declarant,
 			"user": user
 		})

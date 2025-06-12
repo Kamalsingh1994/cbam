@@ -89,19 +89,12 @@ def user_permission_query(user):
     return "1=0"  # deny all rows
 
 @frappe.whitelist()
-def get_declarant_for_user(doctype, txt, searchfield, start, page_len, filters):
-    user = filters.get("user")
+def get_declarant_for_user():
+    user = frappe.session.user
+    declarants = frappe.get_all(
+        "Declarant User",
+        filters={"user": user},
+        pluck="parent"
+    )
+    return declarants
 
-    declarants = frappe.db.sql("""
-        SELECT parent
-        FROM `tabDeclarant User`
-        WHERE user = %s
-    """, (user,))
-
-    if not declarants:
-        return []
-
-    return [
-        (d[0],) for d in declarants
-        if txt.lower() in d[0].lower()
-    ]
