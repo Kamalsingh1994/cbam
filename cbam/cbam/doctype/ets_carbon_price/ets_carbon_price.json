@@ -17,11 +17,13 @@
   {
    "fieldname": "price",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "label": "ETS Carbon Price [\u20ac/tCO2]"
   },
   {
    "fieldname": "ets_price_type",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "ETS price Type",
    "options": "\nActual\nPrediction",
    "set_only_once": 1
@@ -36,6 +38,7 @@
   {
    "fieldname": "creation_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Creation Date",
    "read_only": 1,
    "set_only_once": 1
@@ -43,12 +46,14 @@
   {
    "fieldname": "carbon_price_source",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "ETS Carbon Price Source",
    "options": "ETS Carbon Price Source"
   },
   {
    "fieldname": "price_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Price Date",
    "set_only_once": 1
   }
@@ -56,7 +61,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-12 09:54:30.429986",
+ "modified": "2025-06-12 12:08:04.050591",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "ETS Carbon Price",
