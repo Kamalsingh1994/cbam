@@ -31,7 +31,7 @@ def get_columns():
         {
 			"fieldname": "country",
 			"fieldtype": "Data",
-			"label": "Land"
+			"label": "Country"
 		},
 		{
 			"fieldname": "raw_mass",
@@ -95,7 +95,7 @@ def get_data():
 			eg.cn_code AS cn_number,
 			eg.article_no AS article_number,
 			eg.supplier,
-			eg.country,
+			eg.shipping_country_name,
 			eg.raw_mass AS raw_mass,
 			eg.mass_per_article,
 			eg.buying_price_per_mass AS buying_price,
@@ -105,8 +105,9 @@ def get_data():
 			b.bench_mark,
 			{ets_carbon_price} AS ets_carbon_price
 		FROM `tabExternal Good` eg
+        
 		JOIN `tabStandard Emission Value` e 
-			ON eg.cn_code = e.cn_code AND eg.country = e.country
+			ON eg.cn_code = e.cn_code AND eg.shipping_country_name = e.country
 		JOIN `tabCN Code Bench Mark` b 
 			ON b.cn_code = eg.cn_code
 
@@ -126,6 +127,7 @@ def get_data():
 			b.bench_mark,
 			{ets_carbon_price} AS ets_carbon_price
 		FROM `tabGood` g
+        
 		JOIN `tabStandard Emission Value` e 
 			ON g.customs_tariff_number = e.cn_code AND g.country_of_origin = e.country
 		JOIN `tabCN Code Bench Mark` b 
