@@ -10,14 +10,14 @@
   "cn_code",
   "article_no",
   "supplier",
-  "land",
   "raw_mass",
   "mass_per_article",
-  "column_break_ltwo",
   "number_of_items",
   "buying_price_per_mass",
+  "column_break_ltwo",
   "real_emissions_value",
   "carbon_price_due",
+  "shipping_country_name",
   "country",
   "declarant"
  ],
@@ -36,11 +36,6 @@
    "fieldname": "supplier",
    "fieldtype": "Data",
    "label": "Supplier"
-  },
-  {
-   "fieldname": "land",
-   "fieldtype": "Data",
-   "label": "Land"
   },
   {
    "fieldname": "mass_per_article",
@@ -87,7 +82,7 @@
   {
    "fieldname": "country",
    "fieldtype": "Data",
-   "label": "Country"
+   "label": "Shipping Country"
   },
   {
    "fieldname": "declarant",
@@ -96,12 +91,18 @@
    "label": "Declarant",
    "options": "Declarant",
    "reqd": 1
+  },
+  {
+   "fieldname": "shipping_country_name",
+   "fieldtype": "Link",
+   "label": "Shipping Country Name",
+   "options": "Country"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-12 07:31:34.321015",
+ "modified": "2025-06-13 08:15:17.235128",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",
@@ -129,6 +130,7 @@
    "read": 1,
    "report": 1,
    "role": "Declarant",
+   "select": 1,
    "share": 1,
    "write": 1
   }
