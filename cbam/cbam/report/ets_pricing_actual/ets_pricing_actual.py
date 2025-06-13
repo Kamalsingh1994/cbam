@@ -21,15 +21,19 @@ def get_columns():
     ]
 
 def get_data(filters):
+    conditions = {"ets_price_type": "Actual"}
+
+    # Apply date filter only if both from and to dates are provided
+    if filters.get("from_date") and filters.get("to_date"):
+        conditions["price_date"] = ["between", [filters["from_date"], filters["to_date"]]]
+
     return frappe.get_all(
         "ETS Carbon Price",
-        filters={
-            "ets_price_type": "Actual",
-            "price_date": ["between", [filters.get("from_date"), filters.get("to_date")]],
-        },
+        filters=conditions,
         fields=["name", "price_date", "price", "ets_price_type", "carbon_price_source", "creation_date"],
         order_by="price_date asc"
     )
+
 
 def get_chart(data):
     return {

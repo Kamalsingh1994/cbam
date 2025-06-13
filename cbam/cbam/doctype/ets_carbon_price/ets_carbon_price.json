@@ -61,7 +61,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-12 12:08:04.050591",
+ "modified": "2025-06-13 07:34:27.439096",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "ETS Carbon Price",
@@ -79,6 +79,16 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Declarant",
+   "select": 1,
+   "share": 1
   }
  ],
  "row_format": "Dynamic",
