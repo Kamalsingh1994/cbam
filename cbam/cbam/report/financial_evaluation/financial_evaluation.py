@@ -95,7 +95,7 @@ def get_data():
 			eg.cn_code AS cn_number,
 			eg.article_no AS article_number,
 			eg.supplier,
-			eg.shipping_country_name,
+			eg.shipping_country_name as country,
 			eg.raw_mass AS raw_mass,
 			eg.mass_per_article,
 			eg.buying_price_per_mass AS buying_price,
