@@ -39,7 +39,6 @@ def get_columns():
 			"label": "Mass [kg]"
 		},
 		{
-		
 			"fieldname": "mass_per_article",
 			"fieldtype": "Data",
 			"label": "Mass per Article"
@@ -49,24 +48,36 @@ def get_columns():
 			"fieldtype": "Data",
 			"label": "Buying Price per Mass"
 		},
-       
 		{
-		
 			"fieldname": "real_emission_value",
 			"fieldtype": "Data",
 			"label": "Real Emission Value"
 		},
-       
-		{
-			"fieldname": "carbon_price_due",
-			"fieldtype": "Data",
-			"label": "Carbon Price Due"
-		},
         {
+			"fieldname": "standard_emission_value",
+			"fieldtype": "Data",
+			"label": "Standard Emission Value"
+		},
+{
 			"fieldname": "ets_carbon_price",
 			"fieldtype": "Data",
 			"label": "ETS Carbon Price"
 		},
+		{
+			"fieldname": "real_emission_cost",
+			"fieldtype": "Data",
+			"label": "Real Emission Cost"
+		},
+        {
+			"fieldname": "standard_emission_cost",
+			"fieldtype": "Data",
+			"label": "Standard Emission Cost"
+		},
+		{
+			"fieldname": "carbon_price_due",
+			"fieldtype": "Data",
+			"label": "Carbon Price Due"
+		}
 	]
              
     return columns
@@ -90,22 +101,24 @@ def get_data():
         declarant_list = ', '.join(f"'{d}'" for d in declarants)
         good_filter_clause = f" where g.declarant in ({declarant_list})"
         
+    
     data = frappe.db.sql(f"""
 		SELECT 
 			eg.cn_code AS cn_number,
 			eg.article_no AS article_number,
 			eg.supplier,
-			eg.shipping_country_name as country,
-			eg.raw_mass AS raw_mass,
+			eg.shipping_country_name AS country,
+			eg.raw_mass,
 			eg.mass_per_article,
 			eg.buying_price_per_mass AS buying_price,
 			eg.carbon_price_due,
 			eg.real_emissions_value AS real_emission_value,
-			e.emission_value,
+			e.emission_value AS standard_emission_value,
 			b.bench_mark,
-			{ets_carbon_price} AS ets_carbon_price
+			{ets_carbon_price} AS ets_carbon_price,
+			(eg.raw_mass * eg.real_emissions_value * {ets_carbon_price}) AS real_emission_cost,
+			(eg.raw_mass * e.emission_value * {ets_carbon_price}) AS standard_emission_cost
 		FROM `tabExternal Good` eg
-        
 		LEFT JOIN `tabStandard Emission Value` e 
 			ON eg.cn_code = e.cn_code AND eg.shipping_country_name = e.country
 		LEFT JOIN `tabCN Code Bench Mark` b 
@@ -123,11 +136,12 @@ def get_data():
 			g.buying_price,
 			g.carbon_price_due,
 			g.specific_direct_embedded_emissions AS real_emission_value,
-			e.emission_value,
+			e.emission_value AS standard_emission_value,
 			b.bench_mark,
-			{ets_carbon_price} AS ets_carbon_price
+			{ets_carbon_price} AS ets_carbon_price,
+			(g.raw_mass * g.specific_direct_embedded_emissions * {ets_carbon_price}) AS real_emission_cost,
+			(g.raw_mass * e.emission_value * {ets_carbon_price}) AS standard_emission_cost
 		FROM `tabGood` g
-        
 		LEFT JOIN `tabStandard Emission Value` e 
 			ON g.customs_tariff_number = e.cn_code AND g.country_of_origin = e.country
 		LEFT JOIN `tabCN Code Bench Mark` b 
@@ -135,8 +149,8 @@ def get_data():
 		{good_filter_clause}
 	""", as_dict=1)
 
-
     return data
+
 
 def get_declarant_for_user(user):
     result = frappe.db.get_all(
