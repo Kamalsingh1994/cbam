@@ -106,9 +106,9 @@ def get_data():
 			{ets_carbon_price} AS ets_carbon_price
 		FROM `tabExternal Good` eg
         
-		JOIN `tabStandard Emission Value` e 
+		LEFT JOIN `tabStandard Emission Value` e 
 			ON eg.cn_code = e.cn_code AND eg.shipping_country_name = e.country
-		JOIN `tabCN Code Bench Mark` b 
+		LEFT JOIN `tabCN Code Bench Mark` b 
 			ON b.cn_code = eg.cn_code
 
 		UNION ALL
@@ -128,9 +128,9 @@ def get_data():
 			{ets_carbon_price} AS ets_carbon_price
 		FROM `tabGood` g
         
-		JOIN `tabStandard Emission Value` e 
+		LEFT JOIN `tabStandard Emission Value` e 
 			ON g.customs_tariff_number = e.cn_code AND g.country_of_origin = e.country
-		JOIN `tabCN Code Bench Mark` b 
+		LEFT JOIN `tabCN Code Bench Mark` b 
 			ON b.cn_code = g.customs_tariff_number
 		{good_filter_clause}
 	""", as_dict=1)
