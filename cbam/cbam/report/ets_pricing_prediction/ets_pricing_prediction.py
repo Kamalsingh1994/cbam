@@ -39,34 +39,27 @@ def get_chart(data):
     if not data:
         return {}
 
-    # Group prices by price_date for average line
+    from collections import defaultdict
+
+    # Group all prices per date
     date_map = defaultdict(list)
-    for d in data:
-        date_map[d["price_date"]].append(d["price"])
+    for row in data:
+        date_map[row["price_date"]].append(row["price"])
 
     sorted_dates = sorted(date_map.keys())
-    average_values = [sum(values) / len(values) for values in [date_map[date] for date in sorted_dates]]
+    average_values = [sum(v)/len(v) for v in [date_map[d] for d in sorted_dates]]
 
-    # Line: Average price per date
     avg_line = {
         "name": "Average Price",
         "type": "line",
         "values": average_values
     }
 
-    # Dots: All prediction points
-    dot_values = [d["price"] for d in data]
-    dot_labels = [d["price_date"] for d in data]
-    dots = {
-        "name": "Prediction Points",
-        "type": "scatter",
-        "values": dot_values
-    }
-
     return {
         "type": "axis-mixed",
         "data": {
             "labels": sorted_dates,
-            "datasets": [avg_line, dots]
-        }
+            "datasets": [avg_line]
+        },
+        "colors": ["#0066cc"]
     }
