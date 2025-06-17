@@ -16,7 +16,7 @@ def get_columns():
 		{
 			"fieldname": "cn_number",
 			"fieldtype": "Data",
-			"label": "CN Number"
+			"label": "CN Code"
 		},
 		{
 			"fieldname": "article_number",
@@ -127,7 +127,7 @@ def get_data():
 		UNION ALL
 
 		SELECT 
-			g.customs_tariff_number AS cn_number,
+			g.cn_code AS cn_number,
 			g.article_number,
 			g.supplier_name AS supplier,
 			g.country_of_origin AS country,	
@@ -143,9 +143,9 @@ def get_data():
 			(g.raw_mass * e.emission_value * {ets_carbon_price}) AS standard_emission_cost
 		FROM `tabGood` g
 		LEFT JOIN `tabStandard Emission Value` e 
-			ON g.customs_tariff_number = e.cn_code AND g.country_of_origin = e.country
+			ON g.cn_code = e.cn_code AND g.country_of_origin = e.country
 		LEFT JOIN `tabCN Code Bench Mark` b 
-			ON b.cn_code = g.customs_tariff_number
+			ON b.cn_code = g.cn_code
 		{good_filter_clause}
 	""", as_dict=1)
 

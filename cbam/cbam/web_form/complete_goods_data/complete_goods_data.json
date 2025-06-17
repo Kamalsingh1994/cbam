@@ -99,10 +99,10 @@
   },
   {
    "allow_read_on_all_link_options": 0,
-   "fieldname": "customs_tariff_number",
+   "fieldname": "cn_code",
    "fieldtype": "Data",
    "hidden": 0,
-   "label": "Customs tariff number",
+   "label": "CN Code",
    "max_length": 0,
    "max_value": 0,
    "precision": "",
