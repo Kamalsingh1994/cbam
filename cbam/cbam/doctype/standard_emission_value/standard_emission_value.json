@@ -14,8 +14,9 @@
  "fields": [
   {
    "fieldname": "cn_code",
-   "fieldtype": "Data",
-   "label": "CN Code"
+   "fieldtype": "Link",
+   "label": "CN Code",
+   "options": "CN Code"
   },
   {
    "fieldname": "country",
@@ -39,7 +40,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-17 07:05:19.389356",
+ "modified": "2025-06-17 07:56:15.044833",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Standard Emission Value",

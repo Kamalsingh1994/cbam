@@ -24,8 +24,9 @@
  "fields": [
   {
    "fieldname": "cn_code",
-   "fieldtype": "Data",
-   "label": "CN Code"
+   "fieldtype": "Link",
+   "label": "CN Code",
+   "options": "CN Code"
   },
   {
    "fieldname": "article_no",
@@ -102,7 +103,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-13 08:15:17.235128",
+ "modified": "2025-06-17 07:41:53.940516",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",

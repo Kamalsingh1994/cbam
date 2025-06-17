@@ -13,8 +13,9 @@
  "fields": [
   {
    "fieldname": "cn_code",
-   "fieldtype": "Data",
-   "label": "CN Code"
+   "fieldtype": "Link",
+   "label": "CN Code",
+   "options": "CN Code"
   },
   {
    "fieldname": "bench_mark",
@@ -32,7 +33,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-13 08:07:01.933511",
+ "modified": "2025-06-17 07:55:32.693825",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CN Code Bench Mark",

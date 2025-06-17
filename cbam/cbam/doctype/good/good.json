@@ -17,6 +17,7 @@
   "hand_over_date",
   "column_break_qjtl",
   "internal_customs_import_number",
+  "cn_code",
   "customs_tariff_number",
   "column_break_jhfv",
   "good_description",
@@ -125,14 +126,6 @@
    "fieldname": "article_number",
    "fieldtype": "Data",
    "label": "Article Number"
-  },
-  {
-   "fieldname": "customs_tariff_number",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Customs Tariff Number",
-   "non_negative": 1,
-   "reqd": 1
   },
   {
    "fieldname": "column_break_qjtl",
@@ -609,13 +602,28 @@
    "fieldname": "carbon_price_due",
    "fieldtype": "Data",
    "label": "Carbon price due"
+  },
+  {
+   "fieldname": "cn_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "CN Code",
+   "non_negative": 1,
+   "options": "CN Code",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customs_tariff_number",
+   "fieldtype": "Data",
+   "label": "Customs Tariff Number",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-04 11:46:57.459785",
+ "modified": "2025-06-17 12:11:15.599733",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
