@@ -18,6 +18,7 @@
   "column_break_qjtl",
   "internal_customs_import_number",
   "cn_code",
+  "customs_tariff_number",
   "column_break_jhfv",
   "good_description",
   "values_section",
@@ -610,13 +611,19 @@
    "non_negative": 1,
    "options": "CN Code",
    "reqd": 1
+  },
+  {
+   "fieldname": "customs_tariff_number",
+   "fieldtype": "Data",
+   "label": "Customs Tariff Number",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-17 08:02:50.685210",
+ "modified": "2025-06-17 12:11:15.599733",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
