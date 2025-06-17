@@ -19,8 +19,9 @@
   },
   {
    "fieldname": "country",
-   "fieldtype": "Data",
-   "label": "Country"
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country"
   },
   {
    "fieldname": "emission_value",
@@ -38,7 +39,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-13 08:06:45.612944",
+ "modified": "2025-06-17 07:05:19.389356",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Standard Emission Value",
