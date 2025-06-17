@@ -47,19 +47,37 @@ def get_chart(data):
         date_map[row["price_date"]].append(row["price"])
 
     sorted_dates = sorted(date_map.keys())
-    average_values = [sum(v)/len(v) for v in [date_map[d] for d in sorted_dates]]
+    average_values = []
+    max_values = []
+    min_values = []
 
-    avg_line = {
-        "name": "Average Price",
-        "type": "line",
-        "values": average_values
-    }
+    for date in sorted_dates:
+        prices = date_map[date]
+        average_values.append(sum(prices) / len(prices))
+        max_values.append(max(prices))
+        min_values.append(min(prices))
 
     return {
         "type": "axis-mixed",
         "data": {
             "labels": sorted_dates,
-            "datasets": [avg_line]
+            "datasets": [
+                {
+                    "name": "Average Price",
+                    "type": "line",
+                    "values": average_values
+                },
+                {
+                    "name": "Max Price",
+                    "type": "line",
+                    "values": max_values
+                },
+                {
+                    "name": "Min Price",
+                    "type": "line",
+                    "values": min_values
+                }
+            ]
         },
-        "colors": ["#0066cc"]
+        "colors": ["#0066cc", "#cc0000", "#00cc66"]  # Optional custom colors
     }
