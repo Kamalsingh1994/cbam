@@ -16,7 +16,8 @@ def get_columns():
 		{
 			"fieldname": "cn_number",
 			"fieldtype": "Data",
-			"label": "CN Code"
+			"label": "CN Code",
+			"width": 150	
 		},
 		{
 			"fieldname": "article_number",
@@ -26,17 +27,19 @@ def get_columns():
 		{
 			"fieldname": "supplier",
 			"fieldtype": "Data",
-			"label": "Supplier"
+			"label": "Supplier",
+            "width": 200
 		},
         {
-			"fieldname": "country",
+			"fieldname": "installation_country",
 			"fieldtype": "Data",
-			"label": "Country"
+			"label": "Installation Country"
 		},
 		{
 			"fieldname": "raw_mass",
 			"fieldtype": "Data",
-			"label": "Mass [kg]"
+			"label": "Mass [kg]",
+			"width": 150
 		},
 		{
 			"fieldname": "mass_per_article",
@@ -107,7 +110,7 @@ def get_data():
 			eg.cn_code AS cn_number,
 			eg.article_no AS article_number,
 			eg.supplier,
-			eg.shipping_country_name AS country,
+			eg.installation_country,
 			eg.raw_mass,
 			eg.mass_per_article,
 			eg.buying_price_per_mass AS buying_price,
@@ -120,7 +123,7 @@ def get_data():
 			(eg.raw_mass * e.emission_value * {ets_carbon_price}) AS standard_emission_cost
 		FROM `tabExternal Good` eg
 		LEFT JOIN `tabStandard Emission Value` e 
-			ON eg.cn_code = e.cn_code AND eg.shipping_country_name = e.country
+			ON eg.cn_code = e.cn_code AND eg.installation_country = e.country
 		LEFT JOIN `tabCN Code Bench Mark` b 
 			ON b.cn_code = eg.cn_code
 
@@ -130,7 +133,7 @@ def get_data():
 			g.cn_code AS cn_number,
 			g.article_number,
 			g.supplier_name AS supplier,
-			g.country_of_origin AS country,	
+			g.installation_country,	
 			g.raw_mass,
 			g.mass_per_article,
 			g.buying_price,
@@ -143,7 +146,7 @@ def get_data():
 			(g.raw_mass * e.emission_value * {ets_carbon_price}) AS standard_emission_cost
 		FROM `tabGood` g
 		LEFT JOIN `tabStandard Emission Value` e 
-			ON g.cn_code = e.cn_code AND g.country_of_origin = e.country
+			ON g.cn_code = e.cn_code AND g.installation_country = e.country
 		LEFT JOIN `tabCN Code Bench Mark` b 
 			ON b.cn_code = g.cn_code
 		{good_filter_clause}
