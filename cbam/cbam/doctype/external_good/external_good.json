@@ -17,8 +17,7 @@
   "column_break_ltwo",
   "real_emissions_value",
   "carbon_price_due",
-  "shipping_country_name",
-  "country",
+  "installation_country",
   "declarant"
  ],
  "fields": [
@@ -81,11 +80,6 @@
    "label": "mass [kg]"
   },
   {
-   "fieldname": "country",
-   "fieldtype": "Data",
-   "label": "Shipping Country"
-  },
-  {
    "fieldname": "declarant",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -94,16 +88,16 @@
    "reqd": 1
   },
   {
-   "fieldname": "shipping_country_name",
+   "fieldname": "installation_country",
    "fieldtype": "Link",
-   "label": "Shipping Country Name",
+   "label": "Installation Country",
    "options": "Country"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-17 07:41:53.940516",
+ "modified": "2025-06-17 14:53:09.401593",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",
