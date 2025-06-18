@@ -8,7 +8,10 @@
  "field_order": [
   "naming_series",
   "cn_code",
-  "bench_mark"
+  "valid_from",
+  "column_break_zmxu",
+  "bench_mark",
+  "valid_upto"
  ],
  "fields": [
   {
@@ -28,12 +31,26 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Naming Series"
+  },
+  {
+   "fieldname": "valid_from",
+   "fieldtype": "Date",
+   "label": "Valid From"
+  },
+  {
+   "fieldname": "column_break_zmxu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "valid_upto",
+   "fieldtype": "Date",
+   "label": "Valid Upto"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-17 07:55:32.693825",
+ "modified": "2025-06-18 07:44:33.238307",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CN Code Bench Mark",
