@@ -11,7 +11,9 @@
   "article_no",
   "supplier",
   "raw_mass",
+  "calculate",
   "mass_per_article",
+  "quantity_of_articles",
   "number_of_items",
   "buying_price_per_mass",
   "specific_direct_embedded_emissions",
@@ -51,9 +53,11 @@
    "label": "Supplier"
   },
   {
+   "depends_on": "eval:doc.calculate == \"Quantity of Articles\" || doc.calculate == \"Mass Per Article [kg]\"",
    "fieldname": "mass_per_article",
-   "fieldtype": "Data",
-   "label": "Mass per Article [kg]"
+   "fieldtype": "Float",
+   "label": "Mass Per Article [kg]",
+   "read_only_depends_on": "eval:doc.calculate == \"Mass Per Article [kg]\""
   },
   {
    "fieldname": "column_break_ltwo",
@@ -89,8 +93,9 @@
   },
   {
    "fieldname": "raw_mass",
-   "fieldtype": "Data",
-   "label": "Mass [kg]"
+   "fieldtype": "Float",
+   "label": "Raw Mass [kg]",
+   "reqd": 1
   },
   {
    "fetch_from": "report_id.declarant",
@@ -185,6 +190,21 @@
    "fieldname": "specific_indirect_embedded_emissions",
    "fieldtype": "Data",
    "label": "Specific (Indirect) Embedded Emissions"
+   },
+   {
+   "description": "Option to calculate <b>Article Quantity </b>or <b>Mass per Article</b>",
+   "fieldname": "calculate",
+   "fieldtype": "Select",
+   "label": "Calculate",
+   "options": "\nMass Per Article [kg]\nQuantity of Articles",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.calculate == \"Quantity of Articles\" || doc.calculate == \"Mass Per Article [kg]\"",
+   "fieldname": "quantity_of_articles",
+   "fieldtype": "Float",
+   "label": "Quantity of Articles",
+   "read_only_depends_on": "eval:doc.calculate == \"Quantity of Articles\""
   }
  ],
  "grid_page_length": 50,
