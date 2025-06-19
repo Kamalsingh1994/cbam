@@ -23,10 +23,8 @@
   "carbon_price_due",
   "installation_country",
   "customs_procedure",
-  "good_number",
-  "operator_name",
+  "position_number",
   "installation_name",
-  "quantity",
   "declarant_details_section",
   "report_id",
   "reporting_period",
@@ -48,6 +46,7 @@
    "label": "Article No"
   },
   {
+   "description": "Operator Name",
    "fieldname": "supplier",
    "fieldtype": "Data",
    "label": "Supplier"
@@ -66,7 +65,7 @@
   {
    "fieldname": "number_of_items",
    "fieldtype": "Data",
-   "label": "Number of Items"
+   "label": "Number of Articles"
   },
   {
    "fieldname": "buying_price_per_mass",
@@ -159,27 +158,9 @@
    "options": "Customs Procedure"
   },
   {
-   "description": "e.g. 1.1, 1.2, 2.1, 2.2",
-   "fieldname": "good_number",
-   "fieldtype": "Data",
-   "label": "Good Number"
-  },
-  {
-   "fieldname": "operator_name",
-   "fieldtype": "Link",
-   "label": "Operator Name",
-   "options": "Operating Company"
-  },
-  {
    "fieldname": "installation_name",
-   "fieldtype": "Link",
-   "label": "Installation Name",
-   "options": "CBAM Installation"
-  },
-  {
-   "fieldname": "quantity",
-   "fieldtype": "Float",
-   "label": "Quantity [tonnes]"
+   "fieldtype": "Data",
+   "label": "Installation Name"
   },
   {
    "fieldname": "specific_direct_embedded_emissions",
@@ -190,8 +171,8 @@
    "fieldname": "specific_indirect_embedded_emissions",
    "fieldtype": "Data",
    "label": "Specific (Indirect) Embedded Emissions"
-   },
-   {
+  },
+  {
    "description": "Option to calculate <b>Article Quantity </b>or <b>Mass per Article</b>",
    "fieldname": "calculate",
    "fieldtype": "Select",
@@ -205,12 +186,18 @@
    "fieldtype": "Float",
    "label": "Quantity of Articles",
    "read_only_depends_on": "eval:doc.calculate == \"Quantity of Articles\""
+  },
+  {
+   "description": "e.g. 1.1, 1.2, 2.1, 2.2",
+   "fieldname": "position_number",
+   "fieldtype": "Data",
+   "label": "Report Position Number"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-19 12:47:43.833992",
+ "modified": "2025-06-19 16:11:32.200895",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",
