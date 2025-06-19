@@ -16,10 +16,23 @@
   "quantity_of_articles",
   "number_of_items",
   "buying_price_per_mass",
+  "specific_direct_embedded_emissions",
+  "specific_indirect_embedded_emissions",
   "column_break_ltwo",
   "real_emissions_value",
   "carbon_price_due",
   "installation_country",
+  "customs_procedure",
+  "good_number",
+  "operator_name",
+  "installation_name",
+  "quantity",
+  "declarant_details_section",
+  "report_id",
+  "reporting_period",
+  "declarant_acts_as_importer",
+  "column_break_tcbb",
+  "importer",
   "declarant"
  ],
  "fields": [
@@ -53,22 +66,22 @@
   {
    "fieldname": "number_of_items",
    "fieldtype": "Data",
-   "label": "Number of items"
+   "label": "Number of Items"
   },
   {
    "fieldname": "buying_price_per_mass",
    "fieldtype": "Data",
-   "label": "Buying price per mass"
+   "label": "Buying Price per Mass"
   },
   {
    "fieldname": "real_emissions_value",
    "fieldtype": "Data",
-   "label": "real emissions value"
+   "label": "Real Emissions Value"
   },
   {
    "fieldname": "carbon_price_due",
    "fieldtype": "Data",
-   "label": "Carbon price due"
+   "label": "Carbon Price Due"
   },
   {
    "default": "EX-G-",
@@ -85,6 +98,8 @@
    "reqd": 1
   },
   {
+   "fetch_from": "report_id.declarant",
+   "fetch_if_empty": 1,
    "fieldname": "declarant",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -99,6 +114,84 @@
    "options": "Country"
   },
   {
+   "fieldname": "declarant_details_section",
+   "fieldtype": "Section Break",
+   "label": "Declarant Details"
+  },
+  {
+   "fieldname": "report_id",
+   "fieldtype": "Link",
+   "label": "Report ID",
+   "options": "CBAM Report"
+  },
+  {
+   "fetch_from": "report_id.reporting_period",
+   "fieldname": "reporting_period",
+   "fieldtype": "Link",
+   "label": "Reporting Period",
+   "options": "Customs Import",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "report_id.importer",
+   "fieldname": "importer",
+   "fieldtype": "Data",
+   "label": "Importer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_tcbb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.report_id",
+   "fetch_from": "report_id.declarant_acts_as_importer",
+   "fieldname": "declarant_acts_as_importer",
+   "fieldtype": "Check",
+   "label": "Declarant acts as Importer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "customs_procedure",
+   "fieldtype": "Link",
+   "label": "Customs Procedure",
+   "options": "Customs Procedure"
+  },
+  {
+   "description": "e.g. 1.1, 1.2, 2.1, 2.2",
+   "fieldname": "good_number",
+   "fieldtype": "Data",
+   "label": "Good Number"
+  },
+  {
+   "fieldname": "operator_name",
+   "fieldtype": "Link",
+   "label": "Operator Name",
+   "options": "Operating Company"
+  },
+  {
+   "fieldname": "installation_name",
+   "fieldtype": "Link",
+   "label": "Installation Name",
+   "options": "CBAM Installation"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Float",
+   "label": "Quantity [tonnes]"
+  },
+  {
+   "fieldname": "specific_direct_embedded_emissions",
+   "fieldtype": "Data",
+   "label": "Specific (Direct) Embedded Emissions"
+  },
+  {
+   "fieldname": "specific_indirect_embedded_emissions",
+   "fieldtype": "Data",
+   "label": "Specific (Indirect) Embedded Emissions"
+   },
+   {
    "description": "Option to calculate <b>Article Quantity </b>or <b>Mass per Article</b>",
    "fieldname": "calculate",
    "fieldtype": "Select",
@@ -117,7 +210,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-19 08:46:30.637315",
+ "modified": "2025-06-19 12:47:43.833992",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",
