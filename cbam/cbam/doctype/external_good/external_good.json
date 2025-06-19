@@ -11,7 +11,9 @@
   "article_no",
   "supplier",
   "raw_mass",
+  "calculate",
   "mass_per_article",
+  "quantity_of_articles",
   "number_of_items",
   "buying_price_per_mass",
   "column_break_ltwo",
@@ -38,9 +40,11 @@
    "label": "Supplier"
   },
   {
+   "depends_on": "eval:doc.calculate == \"Quantity of Articles\" || doc.calculate == \"Mass Per Article [kg]\"",
    "fieldname": "mass_per_article",
-   "fieldtype": "Data",
-   "label": "mass per article [kg]"
+   "fieldtype": "Float",
+   "label": "Mass Per Article [kg]",
+   "read_only_depends_on": "eval:doc.calculate == \"Mass Per Article [kg]\""
   },
   {
    "fieldname": "column_break_ltwo",
@@ -76,8 +80,9 @@
   },
   {
    "fieldname": "raw_mass",
-   "fieldtype": "Data",
-   "label": "mass [kg]"
+   "fieldtype": "Float",
+   "label": "Raw Mass [kg]",
+   "reqd": 1
   },
   {
    "fieldname": "declarant",
@@ -92,12 +97,27 @@
    "fieldtype": "Link",
    "label": "Installation Country",
    "options": "Country"
+  },
+  {
+   "description": "Option to calculate <b>Article Quantity </b>or <b>Mass per Article</b>",
+   "fieldname": "calculate",
+   "fieldtype": "Select",
+   "label": "Calculate",
+   "options": "\nMass Per Article [kg]\nQuantity of Articles",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.calculate == \"Quantity of Articles\" || doc.calculate == \"Mass Per Article [kg]\"",
+   "fieldname": "quantity_of_articles",
+   "fieldtype": "Float",
+   "label": "Quantity of Articles",
+   "read_only_depends_on": "eval:doc.calculate == \"Quantity of Articles\""
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-17 14:53:09.401593",
+ "modified": "2025-06-19 08:46:30.637315",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",

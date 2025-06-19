@@ -16,5 +16,27 @@ frappe.ui.form.on("External Good", {
         }
       });
     }
-  }
+  },
+  raw_mass: function (frm) {
+    calculate_quantity(frm);
+    calculate_mass_per_article(frm);
+  },
+  mass_per_article: function(frm) {
+    calculate_quantity(frm);
+  },
+  quantity_of_articles: function(frm) {
+    calculate_mass_per_article(frm);
+    },
 });
+
+function calculate_quantity(frm) {
+  if (frm.doc.raw_mass && frm.doc.mass_per_article) {
+    frm.set_value('quantity_of_articles', frm.doc.raw_mass / frm.doc.mass_per_article);
+  }
+}
+
+function calculate_mass_per_article(frm) {
+  if (frm.doc.raw_mass && frm.doc.quantity_of_articles) {
+    frm.set_value('mass_per_article', frm.doc.raw_mass / frm.doc.quantity_of_articles);
+  }
+}
