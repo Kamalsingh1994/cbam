@@ -1,0 +1,70 @@
+{
+ "actions": [],
+ "autoname": "format:{YYYY}-{####}",
+ "creation": "2025-06-20 12:09:10.096515",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "year",
+  "disable",
+  "naming_series",
+  "column_break_kxkf",
+  "cbam_factor"
+ ],
+ "fields": [
+  {
+   "fieldname": "cbam_factor",
+   "fieldtype": "Float",
+   "label": "CBAM Factor"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable",
+   "fieldtype": "Check",
+   "label": "Disable"
+  },
+  {
+   "fieldname": "column_break_kxkf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Link",
+   "label": "Year",
+   "options": "Year"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Naming Series"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-20 13:06:15.561143",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "CBAM Factor",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
