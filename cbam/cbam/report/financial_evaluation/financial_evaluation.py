@@ -61,7 +61,7 @@ def get_columns():
 			"fieldtype": "Data",
 			"label": "Standard Emission Value"
 		},
-{
+        {
 			"fieldname": "ets_carbon_price",
 			"fieldtype": "Data",
 			"label": "ETS Carbon Price"
@@ -124,7 +124,14 @@ def get_data(filters=None):
         article_number_list = ', '.join(f"'{s}'" for s in filters["article_number"])
         where_clauses.append(f"(g.article_number IN ({article_number_list}))")
         where_clauses_eg.append(f"(eg.article_no IN ({article_number_list}))")
-        
+    
+    # Reporting Period filter
+    if filters.get("reporting_period"):
+        reporting_period_list = ', '.join(f"'{s}'" for s in filters["reporting_period"])
+        where_clauses.append(f"(g.reporting_period IN ({reporting_period_list}))")
+        where_clauses_eg.append(f"(eg.reporting_period IN ({reporting_period_list}))")
+
+
     where_sql = ""
     if where_clauses:
         where_sql = "WHERE " + " AND ".join(where_clauses)
@@ -146,6 +153,7 @@ def get_data(filters=None):
             eg.real_emissions_value AS real_emission_value,
             e.emission_value AS standard_emission_value,
             b.bench_mark,
+            eg.reporting_period,
             {ets_carbon_price} AS ets_carbon_price,
             (eg.raw_mass * eg.real_emissions_value * {ets_carbon_price}) AS real_emission_cost,
             (eg.raw_mass * e.emission_value * {ets_carbon_price}) AS standard_emission_cost
@@ -170,6 +178,7 @@ def get_data(filters=None):
             g.specific_direct_embedded_emissions AS real_emission_value,
             e.emission_value AS standard_emission_value,
             b.bench_mark,
+            g.internal_customs_import_number as reporting_period,
             {ets_carbon_price} AS ets_carbon_price,
             (g.raw_mass * g.specific_direct_embedded_emissions * {ets_carbon_price}) AS real_emission_cost,
             (g.raw_mass * e.emission_value * {ets_carbon_price}) AS standard_emission_cost

@@ -49,6 +49,19 @@ frappe.query_reports["Financial Evaluation"] = {
 			limit: 20
 		  });
 		}
+	  },
+	  {
+		fieldname: "reporting_period",
+		label: __("Reporting Period"),
+		fieldtype: "MultiSelectList",
+		get_data(txt) {
+		  return frappe.db.get_list("Customs Import", {
+			fields: ["name as value" , "name as description"],
+			filters: [["name", "like", `%${txt}%`]],
+			distinct: true,
+			limit: 20
+		  });
+		}
 	  }
 	]
   };

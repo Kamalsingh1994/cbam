@@ -145,6 +145,7 @@
    "label": "Imported into EU on"
   },
   {
+   "description": "Reporting Period",
    "fieldname": "internal_customs_import_number",
    "fieldtype": "Link",
    "label": "Internal Customs Import Number",
@@ -623,7 +624,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-17 12:11:15.599733",
+ "modified": "2025-06-20 07:25:13.795829",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
