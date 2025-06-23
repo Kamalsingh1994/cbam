@@ -13,11 +13,10 @@
   "installation_name",
   "raw_mass",
   "calculate",
+  "quantity_of_articles",
   "mass_per_article",
   "buying_price_per_mass",
-  "quantity_of_articles",
   "column_break_ltwo",
-  "real_emissions_value",
   "carbon_price_due",
   "installation_country",
   "customs_procedure",
@@ -65,11 +64,6 @@
    "fieldname": "buying_price_per_mass",
    "fieldtype": "Data",
    "label": "Buying Price per Mass"
-  },
-  {
-   "fieldname": "real_emissions_value",
-   "fieldtype": "Data",
-   "label": "Real Emissions Value"
   },
   {
    "fieldname": "carbon_price_due",
@@ -157,6 +151,7 @@
    "label": "Installation Name"
   },
   {
+   "description": "Real / Actual Emission Value",
    "fieldname": "specific_direct_embedded_emissions",
    "fieldtype": "Data",
    "label": "Specific (Direct) Embedded Emissions"
@@ -175,7 +170,6 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval:doc.calculate == \"Quantity of Articles\" || doc.calculate == \"Mass Per Article [kg]\"",
    "fieldname": "quantity_of_articles",
    "fieldtype": "Float",
    "label": "Quantity of Articles",
@@ -191,7 +185,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-20 08:18:33.718976",
+ "modified": "2025-06-23 08:06:52.122032",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",
