@@ -5,11 +5,13 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "naming_series",
   "year",
   "disable",
-  "naming_series",
   "column_break_kxkf",
-  "cbam_factor"
+  "cbam_factor",
+  "section_break_qmyh",
+  "reporting_period"
  ],
  "fields": [
   {
@@ -38,12 +40,22 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Naming Series"
+  },
+  {
+   "fieldname": "section_break_qmyh",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "reporting_period",
+   "fieldtype": "Table",
+   "label": "Reporting Period",
+   "options": "Reporting Period"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-20 13:06:15.561143",
+ "modified": "2025-06-23 12:09:39.114659",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Factor",
