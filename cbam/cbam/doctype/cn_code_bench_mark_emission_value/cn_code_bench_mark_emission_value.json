@@ -42,7 +42,7 @@
   },
   {
    "fieldname": "reporting_period",
-   "fieldtype": "Table",
+   "fieldtype": "Table MultiSelect",
    "label": "Reporting Period",
    "options": "Reporting Period"
   }
@@ -50,7 +50,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-23 12:36:59.786916",
+ "modified": "2025-06-23 16:16:01.574201",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CN Code Bench Mark Emission Value",
