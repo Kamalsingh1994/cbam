@@ -23,7 +23,7 @@
   {
    "fieldname": "bench_mark",
    "fieldtype": "Data",
-   "label": "Bench Mark"
+   "label": "Bench Mark Emission Value [tCO2/tproduct]"
   },
   {
    "default": "CN-BM-",
@@ -50,10 +50,10 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-23 12:09:02.161705",
+ "modified": "2025-06-23 12:36:59.786916",
  "modified_by": "Administrator",
  "module": "CBAM",
- "name": "CN Code Bench Mark",
+ "name": "CN Code Bench Mark Emission Value",
  "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [

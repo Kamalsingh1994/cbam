@@ -162,7 +162,7 @@ def get_data(filters=None):
         FROM `tabExternal Good` eg
         LEFT JOIN `tabStandard Emission Value` e 
             ON eg.cn_code = e.cn_code AND eg.installation_country = e.country
-        LEFT JOIN `tabCN Code Bench Mark` b 
+        LEFT JOIN `tabCN Code Bench Mark Emission Value` b 
             ON b.cn_code = eg.cn_code
 		{where_sql_eg}
         
@@ -187,7 +187,7 @@ def get_data(filters=None):
         FROM `tabGood` g
         LEFT JOIN `tabStandard Emission Value` e 
             ON g.cn_code = e.cn_code AND g.installation_country = e.country
-        LEFT JOIN `tabCN Code Bench Mark` b 
+        LEFT JOIN `tabCN Code Bench Mark Emission Value` b 
             ON b.cn_code = g.cn_code
         {where_sql}
     """, as_dict=1)

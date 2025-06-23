@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestCNCodeBenchMark(FrappeTestCase):
+class TestCNCodeBenchMarkEmissionValue(FrappeTestCase):
 	pass
