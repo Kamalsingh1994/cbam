@@ -2,15 +2,61 @@
 // For license information, please see license.txt
 
 frappe.query_reports["Financial Evaluation"] = {
+	// onload: function (report) {
+	// 	const style = document.createElement('style');
+	// 	style.innerHTML = `
+	// 	  .dt-instance-1 .dt-cell__content--col-0 {
+	// 		width: auto !important;
+	// 	  }
+	// 	`;
+	// 	document.head.appendChild(style);
+
+	// 	const style1= document.createElement('style');
+	// 	document.head.appendChild(style1);
+	// },	
 	onload: function (report) {
-		const style = document.createElement('style');
+		const style = document.createElement("style");
 		style.innerHTML = `
-		  .dt-instance-1 .dt-cell__content--col-0 {
-			width: auto !important;
-		  }
+			/* Always allow scroll + space for Clear All */
+			ul.dropdown-menu.show {
+				max-height: 220px !important;
+				overflow-y: auto !important;
+				padding-bottom: 8px; /* fallback padding */
+			}
+
+			/* Optional: Ensure smooth rendering of items */
+			ul.dropdown-menu.show .selectable-items {
+				margin-bottom: 32px; /* space below list so button doesn't overlap */
+			}
+	
+			/* Clear All button placement */
+			ul.dropdown-menu.show > li.text-right {
+				/* only stick if dropdown scrolls */
+				position: relative;
+				bottom: auto;
+				background: white;
+				padding: 6px 12px;
+				border-top: 1px solid #f0f0f0;
+			}
+	
+			/* If you want it sticky only when needed */
+			ul.dropdown-menu.show.scrollable > li.text-right {
+				position: sticky;
+				bottom: -10px;
+				box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+			}
 		`;
 		document.head.appendChild(style);
-	},	  
+	
+		// Add 'scrollable' class dynamically if content overflows
+		new MutationObserver(() => {
+			document.querySelectorAll("ul.dropdown-menu.show").forEach(ul => {
+				const isScrollable = ul.scrollHeight > ul.clientHeight;
+				ul.classList.toggle("scrollable", isScrollable);
+			});
+		}).observe(document.body, { childList: true, subtree: true });
+	},	
+	  
 	filters: [
 	  {
 		fieldname: "cn_code",
