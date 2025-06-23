@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Your Company and contributors
+# Copyright (c) 2025, phamos GmbH and contributors
 # For license information, please see license.txt
 
 import frappe
@@ -7,9 +7,11 @@ from frappe.utils import flt, getdate
 from collections import defaultdict
 
 def execute(filters=None):
+    filters = filters or {}
     columns = get_columns()
-    data = get_data(filters=filters)
-    return columns, data, None
+    data = get_data(filters)
+    chart = get_chart(data)
+    return columns, data, None, chart
 
 def get_columns():
     columns =  [
@@ -201,3 +203,56 @@ def get_declarant_for_user(user):
         distinct=True
     )
     return [row.parent for row in result]  # List of declarant names
+
+
+def get_chart(data, filters=None):
+    if not data:
+        return {}
+
+    filters = filters or {}
+
+    def to_float(value):
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return 0.0
+
+    # Always group by article + supplier
+    real_emission_map = defaultdict(float)
+    standard_emission_map = defaultdict(float)
+
+    for row in data:
+        article = row.get("article_number") or "Unknown"
+        supplier = row.get("supplier") or "Unknown"
+
+        if filters.get("supplier") and filters.get("supplier").strip():
+            if supplier != filters.get("supplier").strip():
+                continue  # only include rows matching selected supplier
+
+        label = f"{article} ({supplier})"
+        real_emission_map[label] += to_float(row.get("real_emission_cost"))
+        standard_emission_map[label] += to_float(row.get("standard_emission_cost"))
+
+    labels = list(real_emission_map.keys())
+    real_values = [real_emission_map[label] for label in labels]
+    standard_values = [standard_emission_map[label] for label in labels]
+
+    return {
+        "type": "bar",
+        "data": {
+            "labels": labels,
+            "datasets": [
+                {
+                    "name": "Real Emission Cost",
+                    "values": real_values
+                },
+                {
+                    "name": "Standard Emission Cost",
+                    "values": standard_values
+                }
+            ]
+        },
+        "colors": ["#5e64ff", "#ff5858"]
+    }
+
+
