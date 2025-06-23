@@ -9,7 +9,8 @@
   "naming_series",
   "cn_code",
   "country",
-  "emission_value"
+  "emission_value",
+  "reporting_period"
  ],
  "fields": [
   {
@@ -35,12 +36,20 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Naming Series"
+  },
+  {
+   "allow_bulk_edit": 1,
+   "allow_in_quick_entry": 1,
+   "fieldname": "reporting_period",
+   "fieldtype": "Table",
+   "label": "Reporting Period",
+   "options": "Reporting Period"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-17 07:56:15.044833",
+ "modified": "2025-06-23 12:07:12.918282",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Standard Emission Value",
