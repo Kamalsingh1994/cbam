@@ -55,6 +55,31 @@ frappe.query_reports["Financial Evaluation"] = {
 				ul.classList.toggle("scrollable", isScrollable);
 			});
 		}).observe(document.body, { childList: true, subtree: true });
+
+
+		frappe.call({
+			method: "cbam.cbam.report.financial_evaluation.financial_evaluation.get_ets_prices",  // use your actual path
+			callback: function(r) {
+			  frappe.after_ajax(() => {
+				if (r.message && r.message.length) {
+				  const options = r.message.map(row => row.price.toString());
+				  const filter = frappe.query_report.get_filter('ets_price');
+		
+				  if (filter) {
+					filter.df.options = options;
+					filter.refresh();
+		
+					// Optional: set default value
+					frappe.query_report.set_filter_value('ets_price', options[0]);
+				  } else {
+					console.warn("Filter 'ets_price' not found");
+				  }
+				} else {
+				  console.warn("No ETS prices returned from backend");
+				}
+			  });
+			}
+		});
 	},	
 	  
 	filters: [
@@ -108,6 +133,13 @@ frappe.query_reports["Financial Evaluation"] = {
 			limit: 20
 		  });
 		}
+	  },
+	  {
+		fieldname: "ets_price",
+		label: __("ETS Price"),
+		fieldtype: "Select",
+		options: [], // dynamically populated
+		reqd: 0
 	  }
 	]
   };
