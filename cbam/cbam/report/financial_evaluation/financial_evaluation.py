@@ -6,6 +6,10 @@ from frappe import _
 from frappe.utils import flt, getdate
 from collections import defaultdict
 
+@frappe.whitelist()
+def get_ets_prices():
+    return frappe.get_all("ETS Carbon Price", fields=["price"], order_by="creation desc")
+
 def execute(filters=None):
     filters = filters or {}
     columns = get_columns()
@@ -56,27 +60,22 @@ def get_columns():
 		{
 			"fieldname": "real_emission_value",
 			"fieldtype": "Data",
-			"label": "Real Emission Value"
+			"label": "Specific (Direct) Emission Value"
 		},
         {
 			"fieldname": "standard_emission_value",
 			"fieldtype": "Data",
 			"label": "Standard Emission Value"
 		},
-        {
-			"fieldname": "ets_carbon_price",
-			"fieldtype": "Data",
-			"label": "ETS Carbon Price"
-		},
 		{
 			"fieldname": "real_emission_cost",
 			"fieldtype": "Data",
-			"label": "Real Emission Cost"
+			"label": "Emission Cost based on Actual Emission Value"
 		},
         {
 			"fieldname": "standard_emission_cost",
 			"fieldtype": "Data",
-			"label": "Standard Emission Cost"
+			"label": "Emission Cost based on Standard Emission Value"
 		},
 		{
 			"fieldname": "carbon_price_due",
@@ -90,12 +89,7 @@ def get_columns():
 def get_data(filters=None):
     filters = filters or {}
 
-    ets_carbon_price = frappe.db.get_value(
-        "ETS Carbon Price",
-        {"ets_price_type": "Actual"},
-        "price",
-        order_by="date desc"
-    ) or 0
+    ets_carbon_price = filters.get('ets_price') or 0
 
     user = frappe.session.user
     declarants = get_declarant_for_user(user)
@@ -152,18 +146,34 @@ def get_data(filters=None):
             eg.mass_per_article,
             eg.buying_price_per_mass AS buying_price,
             eg.carbon_price_due,
-            eg.real_emissions_value AS real_emission_value,
+            eg.specific_direct_embedded_emissions AS real_emission_value,
             e.emission_value AS standard_emission_value,
             b.bench_mark,
             eg.reporting_period,
-            {ets_carbon_price} AS ets_carbon_price,
-            (eg.raw_mass * eg.real_emissions_value * {ets_carbon_price}) AS real_emission_cost,
-            (eg.raw_mass * e.emission_value * {ets_carbon_price}) AS standard_emission_cost
+            cbam.cbam_factor,
+            (
+                eg.specific_direct_embedded_emissions - ( cbam.cbam_factor * b.bench_mark)
+                - ((eg.specific_direct_embedded_emissions * eg.carbon_price_due) / {ets_carbon_price})
+            ) * eg.raw_mass * {ets_carbon_price} AS real_emission_cost,
+
+            (
+                (e.emission_value - b.bench_mark)
+                - ((e.emission_value * eg.carbon_price_due) / {ets_carbon_price})
+            ) * eg.raw_mass * {ets_carbon_price} AS standard_emission_cost
+
+
         FROM `tabExternal Good` eg
         LEFT JOIN `tabStandard Emission Value` e 
             ON eg.cn_code = e.cn_code AND eg.installation_country = e.country
         LEFT JOIN `tabCN Code Bench Mark Emission Value` b 
             ON b.cn_code = eg.cn_code
+
+        LEFT JOIN `tabReporting Period` rp
+            ON rp.reporting_period = eg.reporting_period
+
+        LEFT JOIN `tabCBAM Factor` cbam
+            ON cbam.name = rp.parent AND rp.parenttype = 'CBAM Factor'
+
 		{where_sql_eg}
         
         UNION ALL
@@ -181,14 +191,31 @@ def get_data(filters=None):
             e.emission_value AS standard_emission_value,
             b.bench_mark,
             g.internal_customs_import_number as reporting_period,
-            {ets_carbon_price} AS ets_carbon_price,
-            (g.raw_mass * g.specific_direct_embedded_emissions * {ets_carbon_price}) AS real_emission_cost,
-            (g.raw_mass * e.emission_value * {ets_carbon_price}) AS standard_emission_cost
+            cbam.cbam_factor,
+           (
+                g.specific_direct_embedded_emissions - (cbam.cbam_factor * b.bench_mark)
+                - ((g.specific_direct_embedded_emissions * g.carbon_price_due) / {ets_carbon_price})
+            ) * g.raw_mass * {ets_carbon_price} AS real_emission_cost,
+
+            (
+                (e.emission_value - b.bench_mark)
+                - ((e.emission_value * g.carbon_price_due) / {ets_carbon_price})
+            ) * g.raw_mass * {ets_carbon_price} AS standard_emission_cost
+
+            
         FROM `tabGood` g
+
         LEFT JOIN `tabStandard Emission Value` e 
             ON g.cn_code = e.cn_code AND g.installation_country = e.country
         LEFT JOIN `tabCN Code Bench Mark Emission Value` b 
             ON b.cn_code = g.cn_code
+
+            
+        LEFT JOIN `tabReporting Period` rp
+            ON rp.reporting_period = g.internal_customs_import_number
+        LEFT JOIN `tabCBAM Factor` cbam
+            ON cbam.name = rp.parent AND rp.parenttype = 'CBAM Factor'
+
         {where_sql}
     """, as_dict=1)
 
@@ -243,7 +270,7 @@ def get_chart(data, filters=None):
             "labels": labels,
             "datasets": [
                 {
-                    "name": "Real Emission Cost",
+                    "name": "Emission Cost based on Actual Emission Value",
                     "values": real_values
                 },
                 {
