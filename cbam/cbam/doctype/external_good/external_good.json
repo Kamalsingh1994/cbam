@@ -13,11 +13,10 @@
   "installation_name",
   "raw_mass",
   "calculate",
+  "quantity_of_articles",
   "mass_per_article",
   "buying_price_per_mass",
-  "quantity_of_articles",
   "column_break_ltwo",
-  "real_emissions_value",
   "carbon_price_due",
   "installation_country",
   "customs_procedure",
@@ -51,11 +50,10 @@
    "label": "Supplier"
   },
   {
-   "depends_on": "eval:doc.calculate == \"Quantity of Articles\" || doc.calculate == \"Mass Per Article [kg]\"",
    "fieldname": "mass_per_article",
    "fieldtype": "Float",
    "label": "Mass Per Article [kg]",
-   "read_only_depends_on": "eval:doc.calculate == \"Mass Per Article [kg]\""
+   "read_only_depends_on": "eval:doc.calculate == \"Quantity of Articles\""
   },
   {
    "fieldname": "column_break_ltwo",
@@ -64,17 +62,12 @@
   {
    "fieldname": "buying_price_per_mass",
    "fieldtype": "Data",
-   "label": "Buying Price per Mass"
-  },
-  {
-   "fieldname": "real_emissions_value",
-   "fieldtype": "Data",
-   "label": "Real Emissions Value"
+   "label": "Buying Price per Mass [\u20ac] or [\u20ac/kg]/[\u20ac/tproduct]"
   },
   {
    "fieldname": "carbon_price_due",
    "fieldtype": "Data",
-   "label": "Carbon Price Due"
+   "label": "Carbon Price Due [\u20ac] or [\u20ac/tCO2]"
   },
   {
    "default": "EX-G-",
@@ -157,14 +150,15 @@
    "label": "Installation Name"
   },
   {
+   "description": "Real/Actual Emission Value",
    "fieldname": "specific_direct_embedded_emissions",
    "fieldtype": "Data",
-   "label": "Specific (Direct) Embedded Emissions"
+   "label": "Specific (Direct) Embedded Emissions [tCO2/tproduct]"
   },
   {
    "fieldname": "specific_indirect_embedded_emissions",
    "fieldtype": "Data",
-   "label": "Specific (Indirect) Embedded Emissions"
+   "label": "Specific (Indirect) Embedded Emissions [tCO2/tproduct]"
   },
   {
    "description": "Option to calculate <b>Article Quantity </b>or <b>Mass per Article</b>",
@@ -175,11 +169,10 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval:doc.calculate == \"Quantity of Articles\" || doc.calculate == \"Mass Per Article [kg]\"",
    "fieldname": "quantity_of_articles",
    "fieldtype": "Float",
    "label": "Quantity of Articles",
-   "read_only_depends_on": "eval:doc.calculate == \"Quantity of Articles\""
+   "read_only_depends_on": "eval:doc.calculate == \"Mass Per Article [kg]\""
   },
   {
    "description": "e.g. 1.1, 1.2, 2.1, 2.2",
@@ -191,7 +184,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-20 08:18:33.718976",
+ "modified": "2025-06-24 15:10:11.480430",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",
