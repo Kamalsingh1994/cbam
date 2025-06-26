@@ -1,0 +1,90 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-06-25 07:44:58.206742",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "contact_email",
+  "contact_type",
+  "first_name",
+  "last_name",
+  "phone_no",
+  "position",
+  "contact_person"
+ ],
+ "fields": [
+  {
+   "fieldname": "contact_person",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Contact Person",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fetch_from": "contact_person.first_name",
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "First Name"
+  },
+  {
+   "columns": 1,
+   "fetch_from": "contact_person.last_name",
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Last Name"
+  },
+  {
+   "columns": 1,
+   "fetch_from": "contact_person.phone",
+   "fetch_if_empty": 1,
+   "fieldname": "phone_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Phone No"
+  },
+  {
+   "columns": 1,
+   "fieldname": "position",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Position"
+  },
+  {
+   "columns": 2,
+   "fieldname": "contact_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Contact Type",
+   "options": "\nCommercial Contact\nCBAM Representative",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "contact_person.email",
+   "fetch_if_empty": 1,
+   "fieldname": "contact_email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Contact Email"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-06-25 12:13:04.987073",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "Contact Person",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

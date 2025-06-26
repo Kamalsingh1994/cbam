@@ -9,198 +9,140 @@ MISSING_CONTACT_MESSAGE = """The contact email provided already exists for anoth
 		The System Manager will look into it and get back to you. Please wait before using this Supplier."""
 
 class OperatingCompany(Document):
-	
-	def check_user_exists(self, user):
-		cc_filters = {
-			"commercial_contact_user": user, 
-			"name": ["!=", self.name]
-		}
-		cr_filters = {
-			"cbam_representative_user": user, 
-			"name": ["!=", self.name]
-		}
-		
-		if (not frappe.db.exists("Operating Company", cc_filters) 
-	  		and not frappe.db.exists("Operating Company", cr_filters)):
-			return True
-		return False
-
-
-
-
-	def validate_cc_user(self):
-		if self.main_contact_employee_email:
-			if self.check_user_exists(self.main_contact_employee_email):
-				self.create_commercial_contact()
-				self.status = "Pending Verification"		
-			else:
-				frappe.msgprint(MISSING_CONTACT_MESSAGE)
-				self.create_commercial_contact_user = 0
-				self.commercial_contact_user = ""
-				self.status = "Missing Commercial Contact"
-
 
 	def validate(self):
-		self.validate_cc_user()
-		self.validate_cr_user()
+		self.validate_duplicate_contacts()
+		self.validate_contact_users()
 		self.validate_conflict()
-
-
-	
-
-
-	def validate_cr_user(self):
-		if self.cbam_representive_employee_email:	
-			if self.check_user_exists(self.cbam_representive_employee_email):
-				
-				self.create_cbam_user()
-				self.status = "Pending Verification"
-			else:
-				frappe.msgprint(MISSING_CONTACT_MESSAGE)
-				
-				self.cbam_representative_user = ""
-				self.status = "CBAM Rep User Conflict"
-
-
-
-	def validate_conflict(self):
-	
-		if self.status in [
-			"CBAM Rep User Conflict", 
-			"Missing Commercial Contact"
-		]:
-			self.user_conflict = 1
-		else:
-			self.user_conflict = 0
-
 		self.set_title()
 
-	def set_title(self):
-		self.title = f"{self.supplier_name}-{self.supplier_number}"
-
-	def create_commercial_contact(self):
-		username = self.main_contact_employee_email
-		self.flags.new_flag = True
-		if username:
-			username = frappe.db.get_value("User", username, "name")
-			if not username:
-				user = frappe.new_doc("User")
-				user.send_welcome_email = False
-				user.first_name = self.main_contact_employee_first_name if (
-					self.main_contact_employee_first_name) else self.main_contact_employee_last_name
-				user.last_name = self.main_contact_employee_last_name if (
-					self.main_contact_employee_first_name) else ""
-				user.email = self.main_contact_employee_email
-				
-				user.append("roles",{
-					"role": frappe.db.get_single_value("CBAM Settings", "commercial_contact_user_role")
-				})
-				user.save(ignore_permissions=True)
-				
-				username = user.name
-
-
-			self.commercial_contact_user = username
-		if not self.is_new():
-			self.flags.new_flag = False
-			self.create_permissions(username)
-
-
-
-	def create_cbam_user(self):
-		user = None
-		if self.cbam_representive_employee_email == self.commercial_contact_user:
-			user = frappe.get_doc("User", self.commercial_contact_user)
-		
-			
-		elif frappe.db.exists("User", self.cbam_representive_employee_email):
-			existing_username = frappe.db.get_value("User", self.cbam_representive_employee_email, "name")
-			user = frappe.get_doc("User", existing_username)
-
-		else:
-			user = frappe.new_doc("User")
-			user.send_welcome_email = False
-			user.first_name = self.cbam_representive_employee_first_name if (
-				self.cbam_representive_employee_first_name) else self.cbam_representive_last_name
-			user.last_name = self.cbam_representive_last_name if (
-				self.cbam_representive_employee_first_name) else ""
-			user.email = self.cbam_representive_employee_email
-			user.enabled = 1
-
-		if user:
-			user.append("roles",{
-				"role": frappe.db.get_single_value("CBAM Settings", "cbam_representative_user_role")
-			})
-			user.save(ignore_permissions=True)
-					
-			self.cbam_representative_user = user.name
-			self.create_permissions(user.name)
-
-
 	def after_insert(self):
-		if self.flags.new_flag:
-			if self.commercial_contact_user:
-				self.create_permissions(self.commercial_contact_user)
-
+		for contact in self.contact_persons:
+			if contact.contact_person:
+				self.create_permissions(contact.contact_person)
 		if self.parent_operating_company:
 			self.send_signup_request()
+
+	def validate_contact_users(self):
+		for contact in self.contact_persons:
+			if not contact.contact_email or not contact.contact_type:
+				continue
+
+			if not self.check_user_exists(contact.contact_email):
+				frappe.msgprint(MISSING_CONTACT_MESSAGE)
+				
+			if contact.contact_type == "Commercial Contact":
+				self.status = "Missing Commercial Contact"
+			elif contact.contact_type == "CBAM Representative":
+				self.status = "CBAM Rep User Conflict"
+
+			user = self.create_or_update_user(contact)
+			contact.contact_person = user.name
+
+			# Always reassign roles and permissions even if updated later
+			self.create_permissions(user.name)
+
+	def check_user_exists(self, user_email):
+		contact_exists = frappe.db.exists(
+			"Contact Person",
+			{
+				"contact_email": user_email,
+				"parenttype": "Operating Company",
+				"parent": ["!=", self.name]
+			}
+		)
+		return not contact_exists
+
+	def create_or_update_user(self, contact):
+		existing_user = frappe.db.exists("User", {"email": contact.contact_email})
+		if existing_user:
+			user = frappe.get_doc("User", existing_user)
+		else:
+			user = frappe.new_doc("User")
+			user.first_name = contact.first_name or ""
+			user.last_name = contact.last_name or ""
+			user.email = contact.contact_email
+			user.enabled = 1
+			user.send_welcome_email = False
+
+		role_key = (
+			"commercial_contact_user_role"
+			if contact.contact_type == "Commercial Contact"
+			else "cbam_representative_user_role"
+		)
+		role_name = frappe.db.get_single_value("CBAM Settings", role_key)
+
+		if role_name and role_name not in [r.role for r in user.roles]:
+			user.append("roles", {"role": role_name})
+
+		user.save(ignore_permissions=True)
+		return user
+
+	def create_permissions(self, user):
+		if not user or not self.name or self.name.startswith("New"):
+			return
+
+		# Operating Company permission
+		if not frappe.db.exists("User Permission", {
+			"user": user,
+			"allow": "Operating Company",
+			"for_value": self.name
+		}):
+			frappe.get_doc({
+				"doctype": "User Permission",
+				"user": user,
+				"allow": "Operating Company",
+				"for_value": self.name,
+				"is_default": 1
+			}).insert(ignore_permissions=True)
+
+		# Declarant(s) permission
+		for declarant in self.get("declarants", []):
+			if declarant.declarant and not frappe.db.exists("User Permission", {
+				"user": user,
+				"allow": "Declarant",
+				"for_value": declarant.declarant
+			}):
+				frappe.get_doc({
+					"doctype": "User Permission",
+					"user": user,
+					"allow": "Declarant",
+					"for_value": declarant.declarant,
+					"is_default": 1
+				}).insert(ignore_permissions=True)
 
 	@frappe.whitelist()
 	def send_signup_request(self):
 		email = frappe.get_doc("Notification", frappe.db.get_single_value("CBAM Settings", "signup_template"))
-		
-		
 		email.send(self)
 		self.status = "Pending Verification"
 		self.save(ignore_permissions=True)
 
+	def validate_conflict(self):
+		if self.status not in [
+			"Missing Commercial Contact",
+			"CBAM Rep User Conflict",
+			"Verification Needed",
+			"Pending Verification",
+			"Contact Verified",
+			"Company Verified"
+		]:
+			raise frappe.ValidationError("Invalid status. Please use a valid status value.")
 
-	def create_permissions(self, user):
-		if not user:
-			return
-		if not frappe.db.exists("User Permission", {"user": user, "allow":"Operating Company"}):
-			us_pem = frappe.new_doc("User Permission")
-			us_pem.user = user 
-			us_pem.allow = "Operating Company"
-			us_pem.for_value = self.name
-			us_pem.is_default = 1
-			us_pem.save(ignore_permissions=True)
+		self.user_conflict = 1 if self.status == "Verification Needed" else 0
 
-		if not frappe.db.exists("User Permission", {"user":user, "allow":"Declarant"}):
-			aus_pem = frappe.new_doc("User Permission")
-			aus_pem.user = user
-			aus_pem.allow = "Declarant"
-			aus_pem.for_value = self.declarant
-			aus_pem.is_default = 1
-			aus_pem.save(ignore_permissions=True)
-	
-	@frappe.whitelist()
-	def update_contact(self, values):
-		values = frappe._dict(values)
-		old_user = ''
-		if values.type == "Commercial Contact":
-			if not self.check_user_exists(values.email):
-				frappe.throw("This user is already associated with another Operating Company.")
-			self.main_contact_employee_last_name = values.last_name
-			self.main_contact_employee_first_name = values.first_name
-			self.main_contact_employee_phone_number = values.phone_no
-			self.main_contact_employee_position = values.position
-			self.main_contact_employee_email = values.email
-			old_user = self.commercial_contact_user
-		elif values.type == "CBAM Representative":
-			
-			if not self.check_user_exists(values.email):
-				frappe.throw("This user is already associated with another Operating Company.")
-				return
-			self.cbam_representive_last_name = values.last_name
-			self.cbam_representive_employee_first_name = values.first_name
-			self.cbam_representive_employee_phone_number = values.phone_no
-			self.cbam_representive_employee_position = values.position
-			self.cbam_representive_employee_email = values.email
-			old_user = self.cbam_representative_user
-		self.save()
-		if old_user not in [self.cbam_representative_user, self.commercial_contact_user]:
-			frappe.db.set_value("User", old_user, "enabled", 0)
+	def set_title(self):
+		self.title = f"{self.supplier_name}-{self.supplier_number}"
+
+	def validate_duplicate_contacts(self):
+		seen = set()
+		for row in self.contact_persons:
+			key = (row.contact_person, row.contact_type)
+			if key in seen:
+				frappe.throw(
+					f"Duplicate entry: User <b>{row.contact_person}</b> already exists as <b>{row.contact_type}</b>."
+				)
+			seen.add(key)
 
 @frappe.whitelist()
 def send_bulk_signup_request(operating_companys):

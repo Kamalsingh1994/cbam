@@ -26,6 +26,10 @@
   "column_break_noxo",
   "city",
   "country",
+  "declarants_section",
+  "declarants",
+  "contact_person_section",
+  "contact_persons",
   "main_contact_section",
   "main_contact_employee_last_name",
   "main_contact_employee_first_name",
@@ -276,12 +280,34 @@
    "in_standard_filter": 1,
    "label": "User Conflict?",
    "read_only": 1
+  },
+  {
+   "fieldname": "contact_person_section",
+   "fieldtype": "Section Break",
+   "label": "Contact Persons"
+  },
+  {
+   "fieldname": "declarants_section",
+   "fieldtype": "Section Break",
+   "label": "Declarants"
+  },
+  {
+   "fieldname": "declarants",
+   "fieldtype": "Table",
+   "label": "Declarant Users",
+   "options": "Declarants"
+  },
+  {
+   "fieldname": "contact_persons",
+   "fieldtype": "Table",
+   "label": "Commercial Contact / CBAM Representative",
+   "options": "Contact Person"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-20 16:27:56.485260",
+ "modified": "2025-06-25 13:08:08.932947",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Operating Company",
