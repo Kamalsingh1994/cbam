@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.sessions import datetime
 from frappe.utils import flt, getdate
 from collections import defaultdict
 
@@ -11,7 +12,7 @@ from collections import defaultdict
 #     return frappe.get_all("ETS Carbon Price", fields=["price"], order_by="creation desc")
 
 @frappe.whitelist()
-def get_ets_prices(price_type=None, from_date=None, to_date=None):
+def get_ets_prices(price_type=None, month=None, year=None):
     conditions = []
     values = []
 
@@ -19,18 +20,19 @@ def get_ets_prices(price_type=None, from_date=None, to_date=None):
         conditions.append("ets_price_type = %s")
         values.append(price_type)
 
-    if from_date:
-        conditions.append("price_date >= %s")
-        values.append(from_date)
-
-    if to_date:
-        conditions.append("price_date <= %s")
-        values.append(to_date)
+    if month and year:
+        try:
+            month_number = datetime.strptime(month, "%B").month
+            conditions.append("MONTH(price_date) = %s")
+            conditions.append("YEAR(price_date) = %s")
+            values.extend([month_number, year])
+        except ValueError:
+            frappe.throw("Invalid month format")
 
     where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
-    
+
     data = frappe.db.sql(f"""
-        SELECT DISTINCT price FROM `tabETS Carbon Price`
+        SELECT DISTINCT price, price_date FROM `tabETS Carbon Price`
         {where_clause}
         ORDER BY price_date DESC
     """, values, as_dict=True)
@@ -210,11 +212,12 @@ def get_data(filters=None):
         FROM `tabExternal Good` eg
         LEFT JOIN `tabStandard Emission Value` e 
             ON eg.cn_code = e.cn_code AND eg.installation_country = e.country
+            
         LEFT JOIN `tabCN Code Bench Mark Emission Value` b 
             ON b.cn_code = eg.cn_code
 
         LEFT JOIN `tabReporting Period` rp
-            ON rp.reporting_period = eg.reporting_period
+            ON rp.reporting_period = eg.reporting_period AND rp.parent IS NOT NULL
 
         LEFT JOIN `tabCBAM Factor` cbam
             ON cbam.name = rp.parent AND rp.parenttype = 'CBAM Factor'
@@ -257,8 +260,8 @@ def get_data(filters=None):
         LEFT JOIN `tabCN Code Bench Mark Emission Value` b 
             ON b.cn_code = g.cn_code
  
-        LEFT JOIN `tabReporting Period` rp
-            ON rp.reporting_period = g.internal_customs_import_number
+        LEFT JOIN `tabReporting Period` rp 
+            ON rp.reporting_period = g.internal_customs_import_number AND rp.parent IS NOT NULL
         LEFT JOIN `tabCBAM Factor` cbam
             ON cbam.name = rp.parent AND rp.parenttype = 'CBAM Factor'
 

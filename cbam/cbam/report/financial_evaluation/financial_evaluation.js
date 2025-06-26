@@ -4,13 +4,16 @@
 
 frappe.query_reports["Financial Evaluation"] = {
 	onload: function () {
-		// const current_type = frappe.query_report.get_filter_value("ets_price_type");
-		// const show_dates = current_type === "Actual" || current_type === "Prediction";
 
-		// frappe.query_report.toggle_filter_display("from_date", show_dates);
-		// frappe.query_report.toggle_filter_display("to_date", show_dates);
-
-		// ✅ Trigger price fetch on load if type is set
+		["month", "year", "ets_price_type"].forEach(fieldname => {
+			const field = frappe.query_report.get_filter(fieldname);
+			if (field) {
+				field.df.onchange = updateETSPriceOptions;
+				field.refresh();
+			}
+		});
+		
+		// ✅ Trigger price fetch on load
 		updateETSPriceOptions();
 
 		// Setup onchange ETS Price Type filter
@@ -139,21 +142,26 @@ frappe.query_reports["Financial Evaluation"] = {
 		},
 		{
 			fieldname: "ets_price_type",
-			label: "ETS Price Type",
+			label: __("ETS Price Type"),
 			fieldtype: "Select",
 			options: ["", "Actual", "Prediction"]
 		},
 		{
-			fieldname: "from_date",
-			label: "From Date",
-			fieldtype: "Date",
-			hidden: true,  // Initially hidden, will be shown based on ets_price_type
-		},
+			fieldname: "year",
+			label: __("Year"),
+			fieldtype: "Link",
+			options: "Year",
+			default: frappe.datetime.get_today().split("-")[0]
+		},	
 		{
-			fieldname: "to_date",
-			label: "To Date",
-			fieldtype: "Date",
-			hidden: true  // Initially hidden, will be shown based on ets_price_type
+			fieldname: "month",
+			label: __("Month"),
+			fieldtype: "Select",
+			options: [
+				"January", "February", "March", "April", "May", "June",
+				"July", "August", "September", "October", "November", "December"
+			],
+			default: frappe.datetime.str_to_obj(frappe.datetime.get_today()).toLocaleString('default', { month: 'long' })
 		},
 		{
 			fieldname: "ets_price",
@@ -167,35 +175,46 @@ frappe.query_reports["Financial Evaluation"] = {
 
 function updateETSPriceOptions() {
 	const price_type = frappe.query_report.get_filter_value("ets_price_type");
-	const from_date = frappe.query_report.get_filter_value("from_date");
-	const to_date = frappe.query_report.get_filter_value("to_date");
+	const month = frappe.query_report.get_filter_value("month");
+	const year = frappe.query_report.get_filter_value("year");
 
 	frappe.call({
-		method: "cbam.cbam.report.financial_evaluation.financial_evaluation.get_ets_prices",  // use your actual path
+		method: "cbam.cbam.report.financial_evaluation.financial_evaluation.get_ets_prices",
 		args: {
 			price_type,
-			from_date,
-			to_date
+			month,
+			year
 		},
 		callback: function(r) {
 			frappe.after_ajax(() => {
-			if (r.message && r.message.length) {
-				const options = r.message.map(row => row.price.toString());
 				const filter = frappe.query_report.get_filter('ets_price');
-	
-				if (filter) {
-				filter.df.options = options;
-				filter.refresh();
-	
-				// Optional: set default value
-				frappe.query_report.set_filter_value('ets_price', options[0]);
+				if (r.message && r.message.length > 0) {
+					// const options = r.message.map(row => row.price.toString());
+					const options = r.message.map(row => ({
+						label: `${row.price} (${frappe.datetime.str_to_user(row.price_date)})`,
+						value: row.price.toString()
+					}));
+
+					if (filter) {
+						filter.df.options = options;
+						filter.refresh();
+
+						// frappe.query_report.set_filter_value('ets_price', options[0]);
+						if (options.length > 0) {
+							frappe.query_report.set_filter_value("ets_price", options[0].value);
+						}
+						
+					} else {
+						console.log("Filter 'ets_price' not found");
+					}
 				} else {
-				console.warn("Filter 'ets_price' not found");
+					filter.df.options = [];
+					filter.refresh();
+					frappe.query_report.set_filter_value('ets_price', []);
+					console.log("No ETS prices returned from backend");
 				}
-			} else {
-				console.warn("No ETS prices returned from backend");
-			}
 			});
 		}
 	});
 }
+
