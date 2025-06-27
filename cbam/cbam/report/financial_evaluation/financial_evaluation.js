@@ -13,7 +13,7 @@ frappe.query_reports["Financial Evaluation"] = {
 			}
 		});
 		
-		// ✅ Trigger price fetch on load
+		//ETS price fetch on load
 		updateETSPriceOptions();
 
 		// Setup onchange ETS Price Type filter
@@ -144,7 +144,8 @@ frappe.query_reports["Financial Evaluation"] = {
 			fieldname: "ets_price_type",
 			label: __("ETS Price Type"),
 			fieldtype: "Select",
-			options: ["", "Actual", "Prediction"]
+			options: ["", "Actual", "Prediction"],
+			default: "Actual"
 		},
 		{
 			fieldname: "year",

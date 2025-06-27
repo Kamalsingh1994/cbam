@@ -7,10 +7,6 @@ from frappe.sessions import datetime
 from frappe.utils import flt, getdate
 from collections import defaultdict
 
-# @frappe.whitelist()
-# def get_ets_prices():
-#     return frappe.get_all("ETS Carbon Price", fields=["price"], order_by="creation desc")
-
 @frappe.whitelist()
 def get_ets_prices(price_type=None, month=None, year=None):
     conditions = []
@@ -217,10 +213,10 @@ def get_data(filters=None):
             ON b.cn_code = eg.cn_code
 
         LEFT JOIN `tabReporting Period` rp
-            ON rp.reporting_period = eg.reporting_period AND rp.parent IS NOT NULL
+            ON rp.reporting_period = eg.reporting_period AND rp.parent IS NOT NULL AND rp.parenttype = 'CBAM Factor'
 
         LEFT JOIN `tabCBAM Factor` cbam
-            ON cbam.name = rp.parent AND rp.parenttype = 'CBAM Factor'
+            ON cbam.name = rp.parent
 
 		{where_sql_eg}
         
