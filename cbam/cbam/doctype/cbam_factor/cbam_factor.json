@@ -17,12 +17,14 @@
   {
    "fieldname": "cbam_factor",
    "fieldtype": "Float",
+   "in_list_view": 1,
    "label": "CBAM Factor"
   },
   {
    "default": "0",
    "fieldname": "disable",
    "fieldtype": "Check",
+   "in_list_view": 1,
    "label": "Disable"
   },
   {
@@ -55,7 +57,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-23 16:16:29.001794",
+ "modified": "2025-06-27 06:43:28.421940",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Factor",
