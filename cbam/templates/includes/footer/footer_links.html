@@ -12,6 +12,7 @@
 		<div class="footer-col-left col-sm-6">
 			<a class="footer-link" href="/imprint" rel="noreferrer">{{_('Impressum')}}</a>
 			<a class="footer-link" href="/privacy-policy" rel="noreferrer">{{_('Privacy Policy')}}</a>
+			<p style="font-size: 11px;">GALLEHR+PARTNER® is a registered trademark of Sebastian Gallehr in Germany and refers to the services of the network of companies to which Gallehr Sustainable Risk Management GmbH also belongs.</p>
 			<!-- <a class="footer-link" href="/terms" rel="noreferrer">Terms & Conditions</a> -->
 		</div>
 
@@ -29,3 +30,73 @@
 		</div>
 	</div> -->
 </div>
+<div id="cookieConsentBanner" style="display: none; position: fixed; bottom: 0; background: #222; color: white; width: 100%; padding: 15px; text-align: center; z-index: 9999;">
+	We only use functional cookies to ensure that the website functions optimally from a technical point of view. No tracking takes place. If you visit this site, we assume that you agree to this conditions.
+	  <button onclick="acceptCookies()" style="margin-left: 10px;">Accept</button>
+</div>
+<script>
+	 var currentUser = "{{ frappe.session.user or '' }}";
+		if (!currentUser) currentUser = "guest";
+
+		var consentKey = "cookie_consent_" + currentUser;
+
+		function acceptCookies() {
+			localStorage.setItem(consentKey, "accepted");
+			document.getElementById('cookieConsentBanner').style.display = 'none';
+			document.body.style.paddingBottom = "0";
+		}
+		// Hide immediately if it's an admin page
+  if (window.location.pathname.startsWith("/app") || window.location.pathname.startsWith("/desk")) {
+    const banner = document.getElementById('cookieConsentBanner');
+    if (banner) {
+      banner.style.display = 'none';
+      document.body.style.paddingBottom = "0";
+    }
+  }
+
+  function setCookie(name, value, days) {
+    const expires = new Date(Date.now() + days*24*60*60*1000).toUTCString();
+    document.cookie = `${name}=${value}; expires=${expires}; path=/`;
+  }
+
+  function getCookie(name) {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? match[2] : null;
+  }
+
+  function acceptCookies() {
+  var currentUser = "{{ frappe.session.user or '' }}";
+  if (!currentUser) currentUser = "guest";
+
+  var consentKey = "cookie_consent_" + currentUser;
+
+  console.log("Saving consent key:", consentKey);
+
+  localStorage.setItem(consentKey, "accepted");
+  document.getElementById('cookieConsentBanner').style.display = 'none';
+  document.body.style.paddingBottom = "0";
+}
+
+
+  window.addEventListener('load', function () {
+    if (window.location.pathname.startsWith("/app") || window.location.pathname.startsWith("/desk")) {
+      console.log("Skipping cookie banner for admin page");
+      return;
+    }
+
+    var currentUser = "{{ frappe.session.user or 'guest' }}";
+    var consentKey = "cookie_consent_" + currentUser;
+
+    if (!localStorage.getItem(consentKey)) {
+      setTimeout(function () {
+        console.log("Showing cookie banner for:", currentUser);
+        document.getElementById('cookieConsentBanner').style.display = 'block';
+        document.body.style.paddingBottom = "70px";
+      }, 500);
+    } else {
+      document.getElementById('cookieConsentBanner').style.display = 'none';
+    }
+  });
+</script>
+
+
