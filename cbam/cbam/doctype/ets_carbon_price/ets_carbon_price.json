@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "naming_series:naming_series",
  "creation": "2025-06-03 08:35:23.402476",
@@ -61,7 +62,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-13 07:34:27.439096",
+ "modified": "2025-06-27 12:23:35.728407",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "ETS Carbon Price",
@@ -73,6 +74,7 @@
    "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
