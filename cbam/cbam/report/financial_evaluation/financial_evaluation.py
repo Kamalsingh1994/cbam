@@ -7,10 +7,6 @@ from frappe.sessions import datetime
 from frappe.utils import flt, getdate
 from collections import defaultdict
 
-# @frappe.whitelist()
-# def get_ets_prices():
-#     return frappe.get_all("ETS Carbon Price", fields=["price"], order_by="creation desc")
-
 @frappe.whitelist()
 def get_ets_prices(price_type=None, month=None, year=None):
     conditions = []
