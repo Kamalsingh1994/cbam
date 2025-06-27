@@ -19,13 +19,12 @@
    "fieldname": "contact_person",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Contact Person",
+   "label": "Contact User",
    "options": "User",
    "read_only": 1
   },
   {
    "columns": 1,
-   "fetch_from": "contact_person.first_name",
    "fieldname": "first_name",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -33,7 +32,6 @@
   },
   {
    "columns": 1,
-   "fetch_from": "contact_person.last_name",
    "fieldname": "last_name",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -41,7 +39,6 @@
   },
   {
    "columns": 1,
-   "fetch_from": "contact_person.phone",
    "fetch_if_empty": 1,
    "fieldname": "phone_no",
    "fieldtype": "Data",
@@ -77,7 +74,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-25 12:13:04.987073",
+ "modified": "2025-06-27 07:43:01.850553",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Contact Person",

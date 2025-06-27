@@ -119,6 +119,18 @@
 
 frappe.ui.form.on("Operating Company", {
 	refresh(frm) {
+		if(frm.doc.status != "CBAM Rep User Conflict" ){
+			frm.add_custom_button(__("Send Signup Request"), function(){
+				frappe.call({
+					method: "send_signup_request",
+					doc: frm.doc,
+					callback(r){
+						msgprint("request sent successfully")
+					}
+				})
+			})
+		}
+
 		if (frappe.user.has_role("System Manager")) {
 			frm.add_custom_button("Update Contact", function () {
 				show_contact_update_dialog(frm);
@@ -137,7 +149,7 @@ function show_contact_update_dialog(frm) {
 	];
 
 	let dialog = new frappe.ui.Dialog({
-        size: 'large',
+        size: 'extra-large',
 		title: "Update Contact Details",
 		fields: [
 			{
@@ -181,17 +193,22 @@ function show_contact_update_dialog(frm) {
 				if (row.contact_type === selected_type) {
 					let updated = updated_contacts.find(u => u.idx === row.idx);
 					if (updated) {
-						row.contact_email = updated.contact_email;
-						row.first_name = updated.first_name;
-						row.last_name = updated.last_name;
-						row.phone_no = updated.phone_no;
-						row.position = updated.position;
+						frappe.model.set_value(row.doctype, row.name, "contact_email", updated.contact_email);
+						frappe.model.set_value(row.doctype, row.name, "first_name", updated.first_name);
+						frappe.model.set_value(row.doctype, row.name, "last_name", updated.last_name);
+						frappe.model.set_value(row.doctype, row.name, "phone_no", updated.phone_no);
+						frappe.model.set_value(row.doctype, row.name, "position", updated.position);
 					}
 				}
 			});
 
+			
 			frm.save().then(() => {
-				frappe.msgprint("Contacts updated.");
+				frappe.show_alert({
+					message:__('Contact person updated successfully'),
+					indicator:'green'
+				}, 5);
+				
 				frm.refresh_field("contact_persons");
 				dialog.hide();
 			});

@@ -136,13 +136,18 @@ class OperatingCompany(Document):
 
 	def validate_duplicate_contacts(self):
 		seen = set()
+
 		for row in self.contact_persons:
-			key = (row.contact_person, row.contact_type)
+			email = (row.contact_email or "").strip().lower()
+			contact_type = (row.contact_type or "").strip().lower()
+
+			key = (email, contact_type)
 			if key in seen:
 				frappe.throw(
-					f"Duplicate entry: User <b>{row.contact_person}</b> already exists as <b>{row.contact_type}</b>."
+					f"Duplicate entry: <b>{row.contact_email}</b> is already assigned as <b>{row.contact_type}</b>."
 				)
 			seen.add(key)
+
 
 @frappe.whitelist()
 def send_bulk_signup_request(operating_companys):
