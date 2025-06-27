@@ -3,12 +3,42 @@
 
 import frappe
 from frappe import _
+from frappe.sessions import datetime
 from frappe.utils import flt, getdate
 from collections import defaultdict
 
+# @frappe.whitelist()
+# def get_ets_prices():
+#     return frappe.get_all("ETS Carbon Price", fields=["price"], order_by="creation desc")
+
 @frappe.whitelist()
-def get_ets_prices():
-    return frappe.get_all("ETS Carbon Price", fields=["price"], order_by="creation desc")
+def get_ets_prices(price_type=None, month=None, year=None):
+    conditions = []
+    values = []
+
+    if price_type:
+        conditions.append("ets_price_type = %s")
+        values.append(price_type)
+
+    if month and year:
+        try:
+            month_number = datetime.strptime(month, "%B").month
+            conditions.append("MONTH(price_date) = %s")
+            conditions.append("YEAR(price_date) = %s")
+            values.extend([month_number, year])
+        except ValueError:
+            frappe.throw("Invalid month format")
+
+    where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
+
+    data = frappe.db.sql(f"""
+        SELECT DISTINCT price, price_date FROM `tabETS Carbon Price`
+        {where_clause}
+        ORDER BY price_date DESC
+    """, values, as_dict=True)
+
+    return data
+
 
 def execute(filters=None):
     filters = filters or {}
@@ -81,7 +111,22 @@ def get_columns():
 			"fieldname": "carbon_price_due",
 			"fieldtype": "Data",
 			"label": "Carbon Price Due"
-		}
+		},
+        {
+            "fieldname": "cbam_factor",
+			"fieldtype": "Data",
+			"label": "CBAM Factor",
+        },
+        {
+            "fieldname": "bench_mark",
+            "fieldtype": "Data",
+            "label": "Bench Mark",
+        },
+        {
+            "fieldname": "ets_carbon_price",
+            "fieldtype": "Data",
+            "label": "ETS Carbon Price",
+        }
 	]
              
     return columns
@@ -124,7 +169,7 @@ def get_data(filters=None):
     # Reporting Period filter
     if filters.get("reporting_period"):
         reporting_period_list = ', '.join(f"'{s}'" for s in filters["reporting_period"])
-        where_clauses.append(f"(g.reporting_period IN ({reporting_period_list}))")
+        where_clauses.append(f"(g.internal_customs_import_number IN ({reporting_period_list}))")
         where_clauses_eg.append(f"(eg.reporting_period IN ({reporting_period_list}))")
 
 
@@ -142,84 +187,103 @@ def get_data(filters=None):
             eg.article_no AS article_number,
             eg.supplier,
             eg.installation_country,
-            eg.raw_mass,
-            eg.mass_per_article,
-            eg.buying_price_per_mass AS buying_price,
-            eg.carbon_price_due,
-            eg.specific_direct_embedded_emissions AS real_emission_value,
-            e.emission_value AS standard_emission_value,
-            b.bench_mark,
+            IFNULL(eg.raw_mass,0.0) AS raw_mass,
+            IFNULL(eg.mass_per_article,0.0) AS mass_per_article,
+            IFNULL(eg.buying_price_per_mass,0.0) AS buying_price,
+            IFNULL(eg.carbon_price_due,0.0) as carbon_price_due,
+            IFNULL(eg.specific_direct_embedded_emissions,0.0) AS real_emission_value,
+            IFNULL(e.emission_value,0.0) AS standard_emission_value,
+            IFNULL(b.bench_mark,0.0) AS bench_mark,
             eg.reporting_period,
-            cbam.cbam_factor,
-            (
-                eg.specific_direct_embedded_emissions - ( cbam.cbam_factor * b.bench_mark)
-                - ((eg.specific_direct_embedded_emissions * eg.carbon_price_due) / {ets_carbon_price})
-            ) * eg.raw_mass * {ets_carbon_price} AS real_emission_cost,
+            IFNULL(cbam.cbam_factor,0.0) AS cbam_factor,
+            {ets_carbon_price} as ets_carbon_price,
+            ((
+                IFNULL(eg.specific_direct_embedded_emissions,0) - (IFNULL(cbam.cbam_factor,0) * IFNULL(b.bench_mark,0))
+                - ((IFNULL(eg.specific_direct_embedded_emissions,0) * IFNULL(eg.carbon_price_due, 0)) / {ets_carbon_price})
+            ) * IFNULL(eg.raw_mass, 0) * {ets_carbon_price}) AS real_emission_cost,
 
-            (
-                (e.emission_value - b.bench_mark)
-                - ((e.emission_value * eg.carbon_price_due) / {ets_carbon_price})
-            ) * eg.raw_mass * {ets_carbon_price} AS standard_emission_cost
-
+            ((
+                IFNULL(e.emission_value, 0.0) 
+                - (IFNULL(b.bench_mark, 0.0) * IFNULL(cbam.cbam_factor, 0.0))
+                - ((IFNULL(e.emission_value, 0.0) * IFNULL(eg.carbon_price_due, 0.0)) / {ets_carbon_price})
+            ) 
+            * IFNULL(eg.raw_mass, 0.0) * {ets_carbon_price}) AS standard_emission_cost
 
         FROM `tabExternal Good` eg
         LEFT JOIN `tabStandard Emission Value` e 
             ON eg.cn_code = e.cn_code AND eg.installation_country = e.country
+            
         LEFT JOIN `tabCN Code Bench Mark Emission Value` b 
             ON b.cn_code = eg.cn_code
 
         LEFT JOIN `tabReporting Period` rp
-            ON rp.reporting_period = eg.reporting_period
+            ON rp.reporting_period = eg.reporting_period AND rp.parent IS NOT NULL
 
         LEFT JOIN `tabCBAM Factor` cbam
             ON cbam.name = rp.parent AND rp.parenttype = 'CBAM Factor'
 
 		{where_sql_eg}
         
-        UNION ALL
+        UNION
 
         SELECT 
             g.cn_code,
             g.article_number,
             g.supplier_name AS supplier,
             g.installation_country,	
-            g.raw_mass,
-            g.mass_per_article,
-            g.buying_price,
-            g.carbon_price_due,
-            g.specific_direct_embedded_emissions AS real_emission_value,
-            e.emission_value AS standard_emission_value,
-            b.bench_mark,
+            IFNULL(g.raw_mass,0.0) AS raw_mass,
+            IFNULL(g.mass_per_article,0.0) AS mass_per_article,
+            IFNULL(g.buying_price,0.0) AS buying_price,
+            IFNULL(g.carbon_price_due,0.0) AS carbon_price_due,
+            IFNULL(g.specific_direct_embedded_emissions,0) AS real_emission_value,
+            IFNULL(e.emission_value,0.0) AS standard_emission_value,
+            IFNULL(b.bench_mark,0.0) AS bench_mark,
             g.internal_customs_import_number as reporting_period,
-            cbam.cbam_factor,
-           (
-                g.specific_direct_embedded_emissions - (cbam.cbam_factor * b.bench_mark)
-                - ((g.specific_direct_embedded_emissions * g.carbon_price_due) / {ets_carbon_price})
-            ) * g.raw_mass * {ets_carbon_price} AS real_emission_cost,
+            IFNULL(cbam.cbam_factor,0.0) AS cbam_factor,
+            {ets_carbon_price} as ets_carbon_price,
+            ((
+                IFNULL(g.specific_direct_embedded_emissions,0.0) - (IFNULL(cbam.cbam_factor,0.0) * IFNULL(b.bench_mark,0.0))
+                - ((IFNULL(g.specific_direct_embedded_emissions,0.0) * IFNULL(g.carbon_price_due,0.0)) / {ets_carbon_price})
+            ) * IFNULL(g.raw_mass,0.0) * {ets_carbon_price}) AS real_emission_cost,
 
-            (
-                (e.emission_value - b.bench_mark)
-                - ((e.emission_value * g.carbon_price_due) / {ets_carbon_price})
-            ) * g.raw_mass * {ets_carbon_price} AS standard_emission_cost
+            ((
+                IFNULL(e.emission_value, 0.0)
+                - (IFNULL(b.bench_mark, 0.0) * IFNULL(cbam.cbam_factor, 0.0))
+                - ((IFNULL(e.emission_value, 0.0) * IFNULL(g.carbon_price_due, 0.0)) / {ets_carbon_price})
+            )
+            * IFNULL(g.raw_mass, 0.0) * {ets_carbon_price}) AS standard_emission_cost
 
-            
         FROM `tabGood` g
 
         LEFT JOIN `tabStandard Emission Value` e 
             ON g.cn_code = e.cn_code AND g.installation_country = e.country
         LEFT JOIN `tabCN Code Bench Mark Emission Value` b 
             ON b.cn_code = g.cn_code
-
-            
-        LEFT JOIN `tabReporting Period` rp
-            ON rp.reporting_period = g.internal_customs_import_number
+ 
+        LEFT JOIN `tabReporting Period` rp 
+            ON rp.reporting_period = g.internal_customs_import_number AND rp.parent IS NOT NULL
         LEFT JOIN `tabCBAM Factor` cbam
             ON cbam.name = rp.parent AND rp.parenttype = 'CBAM Factor'
 
         {where_sql}
     """, as_dict=1)
 
-    return data
+    unique_keys = set()
+    final_data = []
+
+    for row in data:
+        key = (
+            row["cn_code"], row["article_number"], row["supplier"], row["installation_country"]
+        )
+
+        if key not in unique_keys:
+            # Optional: skip rows that have mostly blanks
+            if any([row.get("real_emission_value"), row.get("standard_emission_value"), row.get("buying_price")]):
+                final_data.append(row)
+                unique_keys.add(key)
+
+    return final_data
+
 
 
 def get_declarant_for_user(user):
