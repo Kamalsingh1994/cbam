@@ -74,142 +74,69 @@
                   </button>
                 </div>
               </div>
-              
-              <h2>{{_('Commercial Contact')}}</h2>
-              <div class="container responsive-md" id="commerical" style="width: 100%">
-                
-                <div class="tc-field-cont field-cont">
-                  <span class="field-label">{{_('First Name')}}</span>
-                  <div class="field tc-field">{{doc.main_contact_employee_first_name or ""}}</div>
-                </div>
+            
+              <h2>{{ _('Contact Persons') }}</h2>
+              {# Check if a CBAM Representative is present #}
+              {% set cbam_representative_exists = doc.contact_persons | selectattr("contact_type", "equalto", "CBAM Representative") | list | length > 0 %}
 
-                
-                <div class="tc-field-cont field-cont">
-                  <span class="field-label">{{_('Last Name')}}</span>
-                  <div class="field tc-field">{{doc.main_contact_employee_last_name or ""}}</div>
-                </div>
-                
-                <div class="tc-field-cont field-cont">
-                  <span class="field-label">{{_('Email')}}</span>
-                  <div class="field tc-field">{{doc.main_contact_employee_email or ""}}</div>
-                </div>
-                
-                <div class="tc-field-cont field-cont">
-                  <span class="field-label">{{_('Phone Number')}}</span>
-                  <div class="field tc-field">{{doc.main_contact_employee_phone_number or ""}}</div>
-                </div>
-                
-                <div class="tc-field-cont field-cont">
-                  <span class="field-label">{{_('Position')}}</span>
-                  <div class="field tc-field">{{doc.main_contact_employee_position or ""}}</div>
-                </div>
-                {% if "Commercial Contact" in roles %}
-                <div class="tc-field-cont field-cont btn-div">
-                  <button class="btn btn-primary btn-sm primary-action" id="commerical_contact">
-                    <span> 
-                      <span><a href = "#" class="ex-pay-link add-newemission">{{_('Update Commercial Contact Details')}}</a></span>
-                    </span>
+              {# Show "Add CBAM Representative" button if not present #}
+              {% if not cbam_representative_exists %}
+                <div style="margin-bottom: 16px;">
+                  <button onclick="create_cbam_representative()" class="btn btn-sm btn-primary">
+                    ➕ {{ _('Add CBAM Representative') }}
                   </button>
                 </div>
-                {% endif %}
-              </div>
-              
-              <!-- <h2>{{_('CBAM Representative Details')}}</h2>
-              <div class="container responsive-md" id="cbam_representive" style="width: 100%">
-                
-                <div class="tc-field-cont field-cont">
-                  <span class="field-label">{{_('First Name')}}</span>
-                  <div class="field tc-field">{{doc.cbam_representive_employee_first_name or ""}}</div>
-                </div>
+              {% endif %}
+                <div class="container responsive-md" style="display: flex; flex-wrap: wrap; gap: 12px;">
+                  {% for row in doc.contact_persons %}
+                    <div style="
+                      position: relative;
+                      width: 350px;
+                      padding: 12px 14px;
+                      background: #fff;
+                      border: 1px solid #ddd;
+                      border-radius: 8px;
+                      font-size: 13px;
+                      line-height: 1.5;
+                      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+                      word-wrap: break-word;
+                    ">
+                      <!-- Edit icon -->
+                      <a href="javascript:void(0);" 
+                        title="Edit"
+                        onclick="edit_contact_person('{{ row.idx }}')"
+                        style="position: absolute; top: 8px; right: 10px; font-size: 13px; color: #555;">
+                        ✏️
+                      </a>
+                      
 
-                <div class="tc-field-cont field-cont">
-                  <span class="field-label">{{_('Last Name')}}</span>
-                  <div class="field tc-field">{{doc.cbam_representive_last_name or ""}}</div>
-                </div>
-                
-                <div class="tc-field-cont field-cont">
-                  <span class="field-label">{{_('Email')}}</span>
-                  <div class="field tc-field">{{doc.cbam_representive_employee_email or ""}}</div>
-                </div>
-                
-                <div class="tc-field-cont field-cont">
-                  <span class="field-label">{{_('Phone Number')}}</span>
-                  <div class="field tc-field">{{doc.cbam_representive_employee_phone_number or ""}}</div>
-                </div>
-                
-                <div class="tc-field-cont field-cont">
-                  <span class="field-label">{{_('Position')}}</span>
-                  <div class="field tc-field">{{doc.cbam_representive_employee_position or ""}}</div>
-                </div>
+                      <!-- Contact Type -->
+                      <div style="font-weight: 600; font-size: 14px; color: #005bac;">
+                        {{ row.contact_type or 'Unknown Type' }}
+                      </div>
 
-                {% if "Commercial Contact" in roles and not doc.cbam_representative_user %}
-                  <div class="tc-field-cont field-cont btn-div cbam-btn-container">
-                    <button class="btn btn-primary btn-sm primary-action" id="cbam_rep">
-                      <span> 
-                        <span><a href = "#" class="ex-pay-link add-newemission">{{_('Create CBAM Representive Details')}}</a></span>
-                      </span>
-                    </button>
-                  </div>
-                {% endif %}
+                      <!-- Name -->
+                      <div style="font-weight: 600; font-size: 14px; color: #222;">
+                        {{ row.first_name or '' }} {{ row.last_name or '' }}
+                      </div>
 
-                {% if "CBAM Representative" in roles %}
-                <div class="tc-field-cont field-cont btn-div cbam-btn-container">
-                  <button class="btn btn-primary btn-sm primary-action" id="cbam_rep">
-                    <span> 
-                      <span><a href = "#" class="ex-pay-link add-newemission">{{_('Update CBAM Representive Details')}}</a></span>
-                    </span>
-                  </button>
-                </div>
-                {% endif %}
-              </div> -->
-
-              <h2>{{ _('CBAM Representative Details') }}</h2>
-              <div class="container responsive-md" style="display: flex; flex-wrap: wrap; gap: 12px;">
-                {% set cbam_contacts = doc.contact_persons | selectattr("contact_type", "equalto", "CBAM Representative") | list %}
-
-                {% for row in cbam_contacts %}
-                  <div style="
-                    position: relative;
-                    width: 360px;
-                    padding: 12px 14px;
-                    background: #fff;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                    font-size: 13px;
-                    line-height: 1.5;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-                    word-wrap: break-word;
-                  ">
-                    <!-- Edit icon -->
-                    <a href="/app/contact/{{ row.contact_person }}" title="Edit"
-                      style="position: absolute; top: 8px; right: 10px; font-size: 14px; color: #666;">
-                      ✏️
-                    </a>
-
-                    <!-- Name -->
-                    <div style="font-weight: 600; font-size: 14px; color: #222;">
-                      {{ row.first_name or '' }} {{ row.last_name or '' }}
+                      <!-- Fields with icons only if value exists -->
+                      <div style="margin-top: 6px; color: #444;">
+                        {% if row.contact_email %}
+                          <div style="margin-top: 2px;">📧 {{ row.contact_email }}</div>
+                        {% endif %}
+                        {% if row.phone_no %}
+                          <div style="margin-top: 2px;">📞 {{ row.phone_no }}</div>
+                        {% endif %}
+                        {% if row.position %}
+                          <div style="margin-top: 2px;">💼 {{ row.position }}</div>
+                        {% endif %}
+                      </div>
                     </div>
-
-                    <!-- Fields with icons only if value exists -->
-                    <div style="margin-top: 6px; color: #444;">
-                      {% if row.contact_email %}
-                        <div style="margin-top: 2px;">📧 {{ row.contact_email }}</div>
-                      {% endif %}
-                      {% if row.phone_no %}
-                        <div style="margin-top: 2px;">📞 {{ row.phone_no }}</div>
-                      {% endif %}
-                      {% if row.position %}
-                        <div style="margin-top: 2px;">💼 {{ row.position }}</div>
-                      {% endif %}
-                    </div>
-                  </div>
-                {% else %}
-                  <p>No CBAM Representatives found.</p>
-                {% endfor %}
-              </div>
-
-
+                  {% else %}
+                    <p>No Contact Persons found.</p>
+                  {% endfor %}
+                </div>
 
               <!-- <h2>Goods List</h2>
               <div class="table-responsive" style="width: 100%;">
@@ -240,6 +167,7 @@
           {% endif %}
         </div>
       {% endif %}
+      
     <!-- {% else %}
       <div class="page-card">
         <h5 class="page-card-head">

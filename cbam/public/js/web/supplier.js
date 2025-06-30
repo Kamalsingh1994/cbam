@@ -102,7 +102,6 @@ $.extend(cbam.supplier, {
                     default: supplier_details.country
                     
                 }
-                
 
             ],
             size: 'extra-large', // small, large, extra-large 
@@ -113,11 +112,7 @@ $.extend(cbam.supplier, {
                 return true
             },
             secondary_action(values) {
-                
-                
-                
                 no+=1
-                
             }
         });
         d.show()
@@ -136,7 +131,6 @@ $.extend(cbam.supplier, {
                     }
                 }
             })
-            
             
         });
     },

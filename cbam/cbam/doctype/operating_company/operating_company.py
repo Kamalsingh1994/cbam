@@ -55,28 +55,62 @@ class OperatingCompany(Document):
 
 	def create_or_update_user(self, contact):
 		existing_user = frappe.db.exists("User", {"email": contact.contact_email})
+		user_changed = False
+
 		if existing_user:
 			user = frappe.get_doc("User", existing_user)
 		else:
 			user = frappe.new_doc("User")
-			user.first_name = contact.first_name or ""
-			user.last_name = contact.last_name or ""
 			user.email = contact.contact_email
 			user.enabled = 1
 			user.send_welcome_email = False
+			user_changed = True
 
-		role_key = (
-			"commercial_contact_user_role"
-			if contact.contact_type == "Commercial Contact"
-			else "cbam_representative_user_role"
+		# Always update name fields if needed
+		first_name = contact.first_name or ""
+		last_name = contact.last_name or ""
+
+		if user.first_name != first_name:
+			user.first_name = first_name
+			user_changed = True
+
+		if user.last_name != last_name:
+			user.last_name = last_name
+			user_changed = True
+
+		# Determine roles from settings
+		commercial_role = frappe.db.get_single_value("CBAM Settings", "commercial_contact_user_role")
+		cbam_role = frappe.db.get_single_value("CBAM Settings", "cbam_representative_user_role")
+
+		new_role = (
+			commercial_role if contact.contact_type == "Commercial Contact"
+			else cbam_role
 		)
-		role_name = frappe.db.get_single_value("CBAM Settings", role_key)
 
-		if role_name and role_name not in [r.role for r in user.roles]:
-			user.append("roles", {"role": role_name})
+		existing_roles = {r.role for r in user.roles}
 
-		user.save(ignore_permissions=True)
+		# Remove role if contact_type changed
+		roles_to_remove = {commercial_role, cbam_role} - {new_role}
+		remaining_roles = []
+		for r in user.roles:
+			if r.role in roles_to_remove:
+				user_changed = True
+				continue
+			remaining_roles.append(r)
+		user.set("roles", remaining_roles)
+
+		# Add new role if not present
+		if new_role and new_role not in existing_roles:
+			user.append("roles", {"role": new_role})
+			user_changed = True
+
+		# Save only if any changes
+		if user_changed:
+			user.save(ignore_permissions=True)
+
 		return user
+
+
 
 	def create_permissions(self, user):
 		if not user or not self.name or self.name.startswith("New"):
@@ -134,19 +168,39 @@ class OperatingCompany(Document):
 	def set_title(self):
 		self.title = f"{self.supplier_name}-{self.supplier_number}"
 
+	# def validate_duplicate_contacts(self):
+	# 	seen = set()
+
+	# 	for row in self.contact_persons:
+	# 		email = (row.contact_email or "").strip().lower()
+	# 		contact_type = (row.contact_type or "").strip().lower()
+
+	# 		key = (email, contact_type)
+	# 		if key in seen:
+	# 			frappe.throw(
+	# 				f"Duplicate entry: <b>{row.contact_email}</b> is already assigned as <b>{row.contact_type}</b>."
+	# 			)
+	# 		seen.add(key)
+
 	def validate_duplicate_contacts(self):
-		seen = set()
+		seen_commercial = set()
+		cbam_count = 0
 
 		for row in self.contact_persons:
 			email = (row.contact_email or "").strip().lower()
 			contact_type = (row.contact_type or "").strip().lower()
 
-			key = (email, contact_type)
-			if key in seen:
-				frappe.throw(
-					f"Duplicate entry: <b>{row.contact_email}</b> is already assigned as <b>{row.contact_type}</b>."
-				)
-			seen.add(key)
+			if contact_type == "cbam representative":
+				cbam_count += 1
+				if cbam_count > 1:
+					frappe.throw("Only one CBAM Representative is allowed.")
+			
+			elif contact_type == "commercial contact":
+				if email in seen_commercial:
+					frappe.throw(
+						f"Duplicate Commercial Contact: <b>{row.contact_email}</b> is already assigned."
+					)
+				seen_commercial.add(email)
 
 
 @frappe.whitelist()
