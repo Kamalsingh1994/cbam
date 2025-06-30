@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "autoname": "field:report_id",
  "creation": "2025-06-19 12:01:43.978473",
  "doctype": "DocType",
@@ -57,7 +58,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-19 16:13:17.850569",
+ "modified": "2025-06-27 12:23:49.760396",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Report",
@@ -69,6 +70,7 @@
    "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,

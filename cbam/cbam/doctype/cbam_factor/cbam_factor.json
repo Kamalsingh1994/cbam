@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "autoname": "format:{YYYY}-{####}",
  "creation": "2025-06-20 12:09:10.096515",
  "doctype": "DocType",
@@ -57,7 +58,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-27 06:43:28.421940",
+ "modified": "2025-06-27 12:38:15.360931",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Factor",
@@ -69,6 +70,7 @@
    "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
