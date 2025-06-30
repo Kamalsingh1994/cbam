@@ -13,10 +13,10 @@
   "supplier",
   "installation_name",
   "raw_mass",
+  "buying_price_per_mass",
   "calculate",
   "quantity_of_articles",
   "mass_per_article",
-  "buying_price_per_mass",
   "column_break_ltwo",
   "carbon_price_due",
   "installation_country",
@@ -63,12 +63,12 @@
   {
    "fieldname": "buying_price_per_mass",
    "fieldtype": "Data",
-   "label": "Buying Price per Mass [\u20ac] or [\u20ac/kg]/[\u20ac/tproduct]"
+   "label": "Customs Value of Imported Raw Mass [\u20ac]"
   },
   {
    "fieldname": "carbon_price_due",
    "fieldtype": "Data",
-   "label": "Carbon Price Due [\u20ac] or [\u20ac/tCO2]"
+   "label": "Carbon Price Due [\u20ac/tCO2]"
   },
   {
    "default": "EX-G-",
@@ -151,7 +151,7 @@
    "label": "Installation Name"
   },
   {
-   "description": "Real/Actual Emission Value",
+   "description": "Real/Actual Emission",
    "fieldname": "specific_direct_embedded_emissions",
    "fieldtype": "Data",
    "label": "Specific (Direct) Embedded Emissions [tCO2/tproduct]"
@@ -185,7 +185,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-27 12:24:06.281683",
+ "modified": "2025-06-30 08:17:58.927526",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",
