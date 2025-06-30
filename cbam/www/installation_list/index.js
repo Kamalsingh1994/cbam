@@ -406,7 +406,7 @@ function executeJS() {
                     label: __("Emission Notes (Sent to Declarant When Submitting Goods)"),
                     fieldname: "emission_notes",
                     fieldtype: "Small Text",
-                    mandatory_depends_on: "eval:!doc.specific_direct_embedded_emissions",
+                    mandatory_depends_on: "eval:!doc.specific_direct_embedded_emissions || !doc.electricity_consumed",
                     description: __("Explanation mandatory if no emission data entered"),
                     default: docData ? docData.emission_notes : "",
                 },
