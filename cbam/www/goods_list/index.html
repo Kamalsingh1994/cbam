@@ -254,7 +254,7 @@
 
                 <div class="tc-field-cont field-cont">
                   <span class="field-label">{{_('Good Description')}}</span>
-                  <div class="field tc-field">{{_(doc.good_description)}}</div>
+                  <div class="field tc-field" style="height: auto !important; white-space: pre-wrap; overflow-wrap: break-word;">{{_(doc.good_description)}}</div>
                 </div>
 
 
@@ -301,7 +301,7 @@
 
                   <div class="tc-field-cont field-cont">
                       <span class="field-label">{{_('Specific (direct) embedded emissions [tCO2/t]')}}</span>
-                      <div class="field tc-field">{{_(doc.direct_emission_data) or ""}}</div>
+                      <div class="field tc-field">{{_(doc.specific_direct_embedded_emissions) or ""}}</div>
                   </div>
 
                   <div class="tc-field-cont field-cont">
