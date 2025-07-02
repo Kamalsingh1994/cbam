@@ -54,7 +54,7 @@
    "fieldname": "mass_per_article",
    "fieldtype": "Float",
    "label": "Mass Per Article [kg]",
-   "read_only_depends_on": "eval:doc.calculate == \"Quantity of Articles\""
+   "read_only_depends_on": "eval:doc.calculate == \"Mass Per Article [kg]\""
   },
   {
    "fieldname": "column_break_ltwo",
@@ -173,7 +173,7 @@
    "fieldname": "quantity_of_articles",
    "fieldtype": "Float",
    "label": "Quantity of Articles",
-   "read_only_depends_on": "eval:doc.calculate == \"Mass Per Article [kg]\""
+   "read_only_depends_on": "eval:doc.calculate == \"Quantity of Articles\""
   },
   {
    "description": "e.g. 1.1, 1.2, 2.1, 2.2",
@@ -185,7 +185,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-30 08:17:58.927526",
+ "modified": "2025-07-02 12:58:41.625026",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",
