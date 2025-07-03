@@ -9,10 +9,10 @@
  "field_order": [
   "naming_series",
   "cn_code",
+  "reporting_period",
   "column_break_zmxu",
   "bench_mark",
-  "section_break_mnmo",
-  "reporting_period"
+  "year"
  ],
  "fields": [
   {
@@ -38,20 +38,22 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "section_break_mnmo",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "reporting_period",
    "fieldtype": "Table MultiSelect",
    "label": "Reporting Period",
    "options": "Reporting Period"
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Link",
+   "label": "Year",
+   "options": "Year"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-27 12:28:21.848050",
+ "modified": "2025-07-02 08:44:13.517268",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CN Code Bench Mark Emission Value",

@@ -9,9 +9,11 @@
  "field_order": [
   "naming_series",
   "cn_code",
-  "country",
   "emission_value",
-  "reporting_period"
+  "reporting_period",
+  "column_break_rjvl",
+  "country",
+  "year"
  ],
  "fields": [
   {
@@ -45,12 +47,22 @@
    "fieldtype": "Table MultiSelect",
    "label": "Reporting Period",
    "options": "Reporting Period"
+  },
+  {
+   "fieldname": "column_break_rjvl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Link",
+   "label": "Year",
+   "options": "Year"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-27 12:41:13.989800",
+ "modified": "2025-07-02 08:42:00.049344",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Standard Emission Value",

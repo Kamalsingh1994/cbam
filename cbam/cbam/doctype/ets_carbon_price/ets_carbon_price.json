@@ -10,6 +10,7 @@
   "naming_series",
   "creation_date",
   "price_date",
+  "column_break_moht",
   "price",
   "ets_price_type",
   "carbon_price_source"
@@ -57,12 +58,16 @@
    "in_list_view": 1,
    "label": "Price Date",
    "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_moht",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-27 12:23:35.728407",
+ "modified": "2025-07-02 11:53:16.039881",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "ETS Carbon Price",
