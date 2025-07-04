@@ -97,6 +97,13 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
                     .dt-cell__content--col-0 {
                         width: unset !important;
                     }
+					/* Checkbox column alignment fix */
+					.dt-cell--col-0, .dt-header__cell--col-0 {
+						min-width: 40px !important;
+						max-width: 40px !important;
+						width: 40px !important;
+						text-align: center;
+					}
 				</style>
 			`);
 		}
@@ -447,6 +454,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
 								scrollY: '500px',
 								scrollX: true,
 								className: 'frappe-datatable',
+								checkboxColumn: true, 
 							});
 						} else {
 							datatable.refresh(all_data);
