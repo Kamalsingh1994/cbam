@@ -7,9 +7,9 @@
  "modified": "2025-07-01 13:19:42.161029",
  "modified_by": "Administrator",
  "module": "CBAM",
- "name": "financial-evaluation",
+ "name": "financial-evaluation-report",
  "owner": "Administrator",
- "page_name": "financial-evaluation",
+ "page_name": "financial-evaluation-report",
  "roles": [
   {
    "role": "Declarant"

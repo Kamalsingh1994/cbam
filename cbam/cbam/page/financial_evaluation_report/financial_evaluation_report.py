@@ -171,59 +171,45 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
         LIMIT {page_length} OFFSET {start}
     """
     data = frappe.db.sql(data_query, as_dict=1)
-    frappe.log_error("121test",{
-        "data_length": len(data),
-        "total_count": total_count,
-        "start": start,
-        "page_length": page_length
-    })
     return data, total_count
 
 
 def get_chart_data(data):
-    """Process data to create chart data grouped by year"""
-    year_data = {}
-    
+    """Process data to create chart data grouped by article and supplier for bar chart"""
+    # If data contains article_number and supplier, use those for x-axis
+    articles = []
+    suppliers = []
+    actual_costs = []
+    standard_costs = []
+    labels = []
+
     for row in data:
-        # Extract year from reporting_period or use current year as fallback
-        year = None
-        if row.get('reporting_period'):
-            try:
-                # Try to extract year from reporting_period field
-                year = str(row['reporting_period'])[:4]  # Take first 4 characters as year
-            except:
-                pass
-        
-        if not year:
-            # Fallback to current year if no reporting_period
-            from datetime import datetime
-            year = str(datetime.now().year)
-        
-        if year not in year_data:
-            year_data[year] = {
-                'actual_cost': 0.0,
-                'standard_cost': 0.0,
-                'count': 0
-            }
-        
-        # Sum up the costs for each year
-        year_data[year]['actual_cost'] += float(row.get('real_emission_cost', 0.0) or 0.0)
-        year_data[year]['standard_cost'] += float(row.get('standard_emission_cost', 0.0) or 0.0)
-        year_data[year]['count'] += 1
-    
-    # Convert to chart format
-    chart_data = {
-        'labels': [],
-        'actual_costs': [],
-        'standard_costs': []
+        article = row.get('article_number', '')
+        supplier = row.get('supplier', '')
+        articles.append(article)
+        suppliers.append(supplier)
+        labels.append(f"{article} ({supplier})")
+        # Ensure costs are numbers, not objects
+        actual_cost = row.get('real_emission_cost', 0.0)
+        standard_cost = row.get('standard_emission_cost', 0.0)
+        try:
+            actual_cost = float(actual_cost)
+        except Exception:
+            actual_cost = 0.0
+        try:
+            standard_cost = float(standard_cost)
+        except Exception:
+            standard_cost = 0.0
+        actual_costs.append(actual_cost)
+        standard_costs.append(standard_cost)
+
+    chart_data = { 
+        'labels': labels,
+        'articles': articles,
+        'suppliers': suppliers,
+        'actual_costs': actual_costs,
+        'standard_costs': standard_costs
     }
-    
-    # Sort by year
-    for year in sorted(year_data.keys()):
-        chart_data['labels'].append(year)
-        chart_data['actual_costs'].append(year_data[year]['actual_cost'])
-        chart_data['standard_costs'].append(year_data[year]['standard_cost'])
-    
     return chart_data
 
 
@@ -261,4 +247,5 @@ def get_cards_value(filters=None):
 
     result = frappe.db.sql(sql, filters, as_dict=True)
     return result[0] if result else {}
+
 

@@ -94,6 +94,9 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
 							max-width: 100%;
 						}
 					}
+                    .dt-cell__content--col-0 {
+                        width: unset !important;
+                    }
 				</style>
 			`);
 		}
@@ -103,13 +106,14 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
 		 * @returns {Object}
 		 */
 		function setup_filters() {
+			const currentYear = frappe.datetime.get_today().split('-')[0];
 			return {
 				cn_code: create_filter('CN Code', 'MultiSelectList', 'cn_code', '#filter-section-group-1'),
 				supplier: create_filter('Supplier', 'MultiSelectList', 'supplier', '#filter-section-group-1'),
 				article_number: create_filter('Article Number', 'MultiSelectList', 'article_number', '#filter-section-group-1'),
 				reporting_period: create_filter('Reporting Period', 'MultiSelectList', 'reporting_period', '#filter-section-group-1'),
-				year: create_filter('Year', 'Link', 'year', '#filter-section-group-2', null, 'Year', frappe.datetime.get_today().split('-')[0]),
-				ets_price_type: create_filter('ETS Price Type', 'Select', 'ets_price_type', '#filter-section-group-2', ['', 'Actual', 'Prediction']),
+				year: create_filter('Year', 'Link', 'year', '#filter-section-group-2', null, 'Year', currentYear),
+				ets_price_type: create_filter('ETS Price Type', 'Select', 'ets_price_type', '#filter-section-group-2', ['', 'Actual', 'Prediction'], null, 'Actual'),
 				ets_price: create_filter('ETS Price', 'Select', 'ets_price', '#filter-section-group-2'),
 			};
 		}
@@ -317,6 +321,10 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
 			const $col = $('<div class="col mb-2"></div>').appendTo(parentSelector);
 			const control = frappe.ui.form.make_control({ parent: $col, df });
 			control.refresh();
+			// Set default value in UI if provided
+			if (default_val !== undefined && default_val !== null && default_val !== "") {
+				control.set_value(default_val);
+			}
 			return control;
 		}
 
@@ -347,20 +355,40 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
 				$('#chart-section').html('<div class="text-center text-muted p-4">No data available for chart</div>');
 				return;
 			}
+
+			// Custom: Concatenate article and supplier for x-axis labels if available
+			let labels = chart_data.labels;
+			let label_map = {};
+			if (chart_data.articles && chart_data.suppliers && Array.isArray(chart_data.articles) && Array.isArray(chart_data.suppliers)) {
+				labels = chart_data.articles.map((article, idx) => {
+					const supplier = chart_data.suppliers[idx] || '';
+					const label = `${article} (${supplier})`;
+					label_map[idx] = label;
+					return label;
+				});
+			} else {
+				labels = chart_data.labels;
+				labels.forEach((l, idx) => { label_map[idx] = l; });
+			}
+
 			frappe.utils.make_chart('#chart-section', {
-				title: __('Standard vs Actual Cost (by Year)'),
+				title: __('Standard vs Actual Cost'),
 				data: {
-					labels: chart_data.labels,
+					labels: labels,
 					datasets: [
-						{ name: __('Actual Cost'), values: chart_data.actual_costs },
-						{ name: __('Standard Cost'), values: chart_data.standard_costs },
+						{ name: __('Emission Cost based on Actual Emission Value'), values: chart_data.actual_costs, chartType: 'bar' },
+						{ name: __('Standard Emission Cost'), values: chart_data.standard_costs, chartType: 'bar' },
 					],
 				},
 				type: 'bar',
 				height: 300,
 				barOptions: { stacked: false, spaceRatio: 0.7 },
-				colors: ['#004080', '#e67300'],
+				colors: ['#3b5bdb', '#fa5252'], // blue, red
 				axisOptions: { xAxisMode: 'tick', yAxisMode: 'tick', showAxes: true },
+				legendOptions: {
+					showLegend: true,
+					position: 'bottom',
+				}
 			});
 		}
 
@@ -396,7 +424,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
 							name: col.label,
 							width: col.width || 150,
 							resizable: true,
-							editable: false,
+							editable: false
 						}));
 						if (!datatable) {
 							$('#table-section').empty();
