@@ -1,5 +1,6 @@
 import frappe
 import json
+from datetime import datetime
 
 @frappe.whitelist()
 def get_report_data(filters=None, selected_filters=None, start=0, page_length=50):
@@ -224,9 +225,9 @@ def get_declarant_for_user(user):
 
 @frappe.whitelist()
 def get_cards_value(filters=None):
-    filters = json.loads(filters)
+    import json
 
-    filters = filters or {}
+    filters = json.loads(filters) if filters else {}
 
     sql = """
         SELECT 

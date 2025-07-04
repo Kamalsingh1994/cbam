@@ -214,11 +214,21 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
 						const y = frappe.datetime.str_to_obj(row.price_date).getFullYear();
 						return y == year;
 					})
-					.map(row => row.price);
+					.map(row => {
+						let dateStr = '';
+						if (row.price_date) {
+							const d = frappe.datetime.str_to_obj(row.price_date);
+							dateStr = ` (${d.getDate().toString().padStart(2, '0')}-${(d.getMonth()+1).toString().padStart(2, '0')}-${d.getFullYear()})`;
+						}
+						return {
+							label: `${row.price}${dateStr}`,
+							value: String(row.price)
+						};
+					});
 				filters.ets_price.df.options = prices;
 				filters.ets_price.refresh();
 				if (prices.length) {
-					filters.ets_price.set_value(String(prices[0]));
+					filters.ets_price.set_value(prices[0].value);
 				}
 			}).catch(() => {
 				filters.ets_price.df.options = [];
