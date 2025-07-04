@@ -1,6 +1,7 @@
 window.addEventListener("DOMContentLoaded", executeJS);
 
 function executeJS() {
+    injectCountryDropdownCSS();
     const contentContainer = document.querySelectorAll(".content-container");
     const infoContainer = document.querySelector(".info-container");
     const cbamSection = document.querySelector("#cbam_representive");
@@ -304,4 +305,24 @@ function executeJS() {
         e.preventDefault();
         UpdateRepresentativeDetails();
     })
+}
+function injectCountryDropdownCSS() {
+    const style = document.createElement("style");
+    style.innerHTML = `
+        .frappe-control[data-fieldname="country"] .awesomplete > ul {
+            top: auto !important;
+            bottom: calc(50% + 5px) !important; 
+            max-height: 160px;
+            overflow-y: auto;
+            z-index: 1051;
+            background: white;
+            border: 1px solid #d1d8dd;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .modal-dialog {
+                overflow-y: auto !important;
+        }
+    `;
+    document.head.appendChild(style);
 }
