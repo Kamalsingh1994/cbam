@@ -214,6 +214,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
 			frappe.db.get_list('ETS Carbon Price', {
 				fields: ['name', 'price', 'price_date'],
 				filters: { ets_price_type },
+				order_by: 'price_date desc',
 				limit: 100,
 			}).then(res => {
 				const prices = res
@@ -368,6 +369,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
 		 */
 		function update_chart(chart_data) {
 			$('#chart-section').empty();
+
 			if (!chart_data || !chart_data.labels || chart_data.labels.length === 0) {
 				$('#chart-section').html('<div class="text-center text-muted p-4">No data available for chart</div>');
 				return;
@@ -388,25 +390,53 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
 				labels.forEach((l, idx) => { label_map[idx] = l; });
 			}
 
-			frappe.utils.make_chart('#chart-section', {
-				title: __('Standard vs Actual Cost'),
-				data: {
-					labels: labels,
-					datasets: [
-						{ name: __('Emission Cost based on Actual Emission Value'), values: chart_data.actual_costs, chartType: 'bar' },
-						{ name: __('Standard Emission Cost'), values: chart_data.standard_costs, chartType: 'bar' },
-					],
-				},
-				type: 'bar',
-				height: 300,
-				barOptions: { stacked: false, spaceRatio: 0.7 },
-				colors: ['#3b5bdb', '#fa5252'], // blue, red
-				axisOptions: { xAxisMode: 'tick', yAxisMode: 'tick', showAxes: true },
-				legendOptions: {
-					showLegend: true,
-					position: 'bottom',
-				}
-			});
+			// Highcharts integration: create a scrollable container and chart div
+			const minWidth = Math.max(600, labels.length * 80); // 80px per label as a heuristic
+			$('#chart-section').append('<div id="highchart-scroll-inner" style="overflow-x: auto; width: 100%;"><div id="highchart-bar" style="min-width: ' + minWidth + 'px; max-height: 350px;"></div></div>');
+
+			function renderHighChart() {
+				Highcharts.chart('highchart-bar', {
+					chart: {
+						type: 'column',
+						height: 350
+					},
+					title: { text: __('Standard vs Actual Cost') },
+					xAxis: {
+						categories: labels,
+						labels: {
+							rotation: 45,
+							style: { fontSize: '12px' }
+						}
+					},
+					yAxis: {
+						min: 0,
+						title: { text: __('Cost') }
+					},
+					legend: { align: 'center', verticalAlign: 'bottom', layout: 'horizontal' },
+					series: [
+						{
+							name: __('Actual Cost'),
+							data: chart_data.actual_costs,
+							color: '#3b5bdb'
+						},
+						{
+							name: __('Standard Cost'),
+							data: chart_data.standard_costs,
+							color: '#fa5252'
+						}
+					]
+				});
+			}
+
+			if (typeof window.Highcharts === 'undefined') {
+				// Dynamically load Highcharts from CDN if not already loaded
+				const script = document.createElement('script');
+				script.src = 'https://code.highcharts.com/highcharts.js';
+				script.onload = () => renderHighChart();
+				document.head.appendChild(script);
+			} else {
+				renderHighChart();
+			}
 		}
 
 		/**
