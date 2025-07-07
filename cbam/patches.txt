@@ -10,3 +10,4 @@ cbam.patches.set_dup_commercial_cont_notification
 cbam.patches.v15_4_3.update_nav_bar_items
 cbam.patches.v15_4_3.copy_customs_tariff_to_cn_code
 cbam.patches.v15_4_3.create_cn_code
+cbam.patches.v15_4_3.disable_report
