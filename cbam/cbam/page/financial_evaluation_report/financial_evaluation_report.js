@@ -40,6 +40,66 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
         // Setup table toggle functionality
         setup_table_toggle();
 
+        // --- Show Selected Rows Toggle Logic ---
+        function get_selected_rows_data() {
+            if (!datatable) return [];
+            const selectedIndexes = datatable.rowmanager.getCheckedRows();
+            return selectedIndexes.map(idx => all_data[idx]);
+        }
+
+        // Listen for toggle event
+        $('#selected-rows-toggle').on('change', function() {
+            const showSelected = $(this).is(':checked');
+            let chart_data;
+            if (showSelected) {
+                const selectedData = get_selected_rows_data();
+                chart_data = get_chart_data(selectedData);
+            } else {
+                chart_data = get_chart_data(all_data);
+            }
+            update_chart(chart_data);
+        });
+
+		function get_chart_data(data) {
+			// data: array of row objects
+			const labels = [];
+			const actual_costs = [];
+			const standard_costs = [];
+			if (!data) return { labels: [], actual_costs: [], standard_costs: [] };
+		
+			data.forEach(row => {
+				const article = row.article_number || '';
+				const supplier = row.supplier || '';
+				labels.push(`${article} (${supplier})`);
+				actual_costs.push(Number(row.real_emission_cost) || 0);
+				standard_costs.push(Number(row.standard_emission_cost) || 0);
+			});
+		
+			return {
+				labels,
+				actual_costs,
+				standard_costs
+			};
+		}
+		
+
+        // Update chart live when selection changes if toggle is ON
+        function bind_datatable_selection_events() {
+            if (!datatable) return;
+            datatable.on('onCheckRow', function() {
+                if ($('#selected-rows-toggle').is(':checked')) {
+                    const selectedData = get_selected_rows_data();
+                    update_chart(get_chart_data(selectedData));
+                }
+            });
+            datatable.on('onUncheckRow', function() {
+                if ($('#selected-rows-toggle').is(':checked')) {
+                    const selectedData = get_selected_rows_data();
+                    update_chart(get_chart_data(selectedData));
+                }
+            });
+        }
+
         /**
          * Render the main page layout.
          * @param {HTMLElement} body
@@ -69,7 +129,21 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
                         <div class="row gx-3" id="compact-stat-row"></div>
                     </div>
                     <div class="frappe-card mb-4" id="chart-section"></div>
-                    
+                    <div class="frappe-card mb-4" id="table-toggle-section">
+                        <div class="p-2 d-flex align-items-center gap-5">
+                            <span class="ms-2 small">Show Cost per tonne</span>&nbsp;
+                            <label class="switch-compact mb-0 me-4 ms-2">
+                                <input type="checkbox" id="table-toggle">
+                                <span class="slider-compact round"></span>
+                            </label>
+                            <span class="vr mx-3"></span>
+                            <span class="ms-2 small">Show Selected rows</span>&nbsp;
+                            <label class="switch-compact mb-0 ms-2">
+                                <input type="checkbox" id="selected-rows-toggle">
+                                <span class="slider-compact round"></span>
+                            </label>
+                        </div>
+                    </div>
                     <div class="frappe-card mb-4" id="table-scroll-container" style="overflow-x: auto;">
                         <div id="table-section"></div>
                     </div>
@@ -562,6 +636,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
                                 className: 'frappe-datatable',
                                 checkboxColumn: true, 
                             });
+                            bind_datatable_selection_events();
                         } else {
                             datatable.refresh(all_data);
                         }
@@ -653,21 +728,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
                 console.log('Table toggle changed:', isVisible);
                 
                 // Example: Show/hide table
-                if (isVisible) {
-                    $('#table-scroll-container').show();
-                    $('#pagination-controls').show();
-                } else {
-                    $('#table-scroll-container').hide();
-                    $('#pagination-controls').hide();
-                }
-                
-                // Add your custom logic here
-                // For example:
-                // - Trigger different data loading
-                // - Change chart display
-                // - Update filters
-                // - Show/hide other sections
-                // - etc.
+              
             });
         }
     })();
