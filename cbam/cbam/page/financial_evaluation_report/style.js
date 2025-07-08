@@ -71,11 +71,11 @@ cbam.inject_custom_styles = function inject_custom_styles(body) {
             }
             
             input:checked + .slider-compact {
-                background-color: #2196F3;
+                background-color: black;
             }
             
             input:focus + .slider-compact {
-                box-shadow: 0 0 1px #2196F3;
+                box-shadow: 0 0 1px black;
             }
             
             input:checked + .slider-compact:before {
