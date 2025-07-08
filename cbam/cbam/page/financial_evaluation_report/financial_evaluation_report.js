@@ -22,8 +22,8 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
 
         // Filters
         const filters = setup_filters();
-        setup_filter_clear_buttons(filters);
-        setup_filter_listeners(filters);
+        cbam.setup_filter_clear_buttons(filters, load_report_table);
+        cbam.setup_filter_listeners(filters, load_report_table, update_stat_card_values, (ets_price_type, year) => cbam.refresh_ets_price_options(filters, ets_price_type, year));
 
         // Pagination state
         let start = 0;
@@ -179,134 +179,79 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
          */
         function setup_filters() {
             const currentYear = frappe.datetime.get_today().split('-')[0];
-            return {
-                cn_code: create_filter('CN Code', 'MultiSelectList', 'cn_code', '#filter-section-group-1'),
-                supplier: create_filter('Supplier', 'MultiSelectList', 'supplier', '#filter-section-group-1'),
-                article_number: create_filter('Article Number', 'MultiSelectList', 'article_number', '#filter-section-group-1'),
-                reporting_period: create_filter('Reporting Period', 'MultiSelectList', 'reporting_period', '#filter-section-group-1'),
-                year: create_filter('Year', 'Link', 'year', '#filter-section-group-2', null, 'Year', currentYear),
-                ets_price_type: create_filter('ETS Price Type', 'Select', 'ets_price_type', '#filter-section-group-2', ['', 'Actual', 'Prediction'], null, 'Actual'),
-                ets_price: create_filter('ETS Price', 'Select', 'ets_price', '#filter-section-group-2'),
+            const filters = {
+                cn_code: cbam.create_filter('CN Code', 'MultiSelectList', 'cn_code', '#filter-section-group-1', []),
+                supplier: cbam.create_filter('Supplier', 'MultiSelectList', 'supplier', '#filter-section-group-1', []),
+                article_number: cbam.create_filter('Article Number', 'MultiSelectList', 'article_number', '#filter-section-group-1', []),
+                reporting_period: cbam.create_filter('Reporting Period', 'MultiSelectList', 'reporting_period', '#filter-section-group-1', []),
+                year: cbam.create_filter('Year', 'Link', 'year', '#filter-section-group-2', null, 'Year', currentYear),
+                ets_price_type: cbam.create_filter('ETS Price Type', 'Select', 'ets_price_type', '#filter-section-group-2', ['', 'Actual', 'Prediction'], null, 'Actual'),
+                ets_price: cbam.create_filter('ETS Price', 'Select', 'ets_price', '#filter-section-group-2', []),
             };
-        }
 
-        /**
-         * Setup clear buttons for filter groups.
-         * @param {Object} filters
-         */
-        function setup_filter_clear_buttons(filters) {
-            $('#clear-group-1').on('click', () => {
-                ['cn_code', 'supplier', 'article_number', 'reporting_period'].forEach(key => {
-                    filters[key]?.set_value([]);
+            // CN Code: no dependencies
+            filters.cn_code.df.get_data = function(txt) {
+                return frappe.db.get_list('CN Code', {
+                    fields: ['cn_code as value', 'cn_code as description'],
+                    filters: [['cn_code', 'like', `%${txt}%`]],
+                    limit: 20,
                 });
-                load_report_table(true);
-            });
-            $('#clear-group-2').on('click', () => {
-                ['ets_price_type', 'year', 'month', 'ets_price'].forEach(key => {
-                    if (filters[key]) {
-                        if (filters[key].df.fieldtype === 'MultiSelectList') {
-                            filters[key].set_value([]);
-                        } else {
-                            filters[key].set_value(null);
-                        }
-                    }
+            };
+
+            // Supplier: depends on selected CN Code(s)
+            filters.supplier.df.get_data = function(txt) {
+                const cn_code_vals = filters.cn_code?.get_value?.() || [];
+                let filterArr = [['supplier', 'like', `%${txt}%`]];
+                if (cn_code_vals.length) {
+                    filterArr.push(['cn_code', 'in', cn_code_vals]);
+                }
+                return frappe.db.get_list('External Good', {
+                    fields: ['supplier as value', 'supplier as description'],
+                    filters: filterArr,
+                    distinct: true,
+                    limit: 20,
                 });
-                load_report_table(true);
-            });
-        }
+            };
 
-        /**
-         * Setup listeners for filter changes.
-         * @param {Object} filters
-         */
-        function setup_filter_listeners(filters) {
-            ['cn_code', 'supplier', 'article_number', 'reporting_period'].forEach(key => {
-                const ctrl = filters[key];
-                if (ctrl) {
-                    ctrl.df.onchange = () => {
-                        load_report_table(true);
-                    };
+            // Article Number: depends on selected Supplier(s) and CN Code(s)
+            filters.article_number.df.get_data = function(txt) {
+                const supplier_vals = filters.supplier?.get_value?.() || [];
+                const cn_code_vals = filters.cn_code?.get_value?.() || [];
+                let filterArr = [['article_no', 'like', `%${txt}%`]];
+                if (supplier_vals.length) {
+                    filterArr.push(['supplier', 'in', supplier_vals]);
                 }
-            });
-            ['ets_price_type', 'year', 'month', 'ets_price'].forEach(key => {
-                const ctrl = filters[key];
-                if (ctrl) {
-                    ctrl.df.onchange = () => {
-                        const selected_filters = {
-                            ets_price_type: filters.ets_price_type.get_value(),
-                            year: filters.year.get_value(),
-                            ets_price: filters.ets_price.get_value(),
-                        };
-                        update_stat_card_values(key, selected_filters);
-                        if (key === 'ets_price_type' || key === 'year') {
-                            refresh_ets_price_options(
-                                filters.ets_price_type.get_value(),
-                                filters.year.get_value()
-                            );
-                        }
-                        load_report_table(true);
-                    };
+                if (cn_code_vals.length) {
+                    filterArr.push(['cn_code', 'in', cn_code_vals]);
                 }
-            });
-        }
+                return frappe.db.get_list('External Good', {
+                    fields: ['article_no as value', 'article_no as description'],
+                    filters: filterArr,
+                    distinct: true,
+                    limit: 20,
+                });
+            };
 
-        /**
-         * Collect all selected filters and stat values from the DOM.
-         * @returns {Object}
-         */
-        function get_all_selected_filters() {
-            const selected_filters = {};
-            ['cn_code', 'supplier', 'article_number', 'reporting_period'].forEach(key => {
-                selected_filters[key] = filters[key]?.get_value?.() || [];
-            });
-            ['ets_price_type', 'year', 'ets_price'].forEach(key => {
-                selected_filters[key] = filters[key]?.get_value?.() || '';
-            });
-            selected_filters.cbam_factor = parseFloat($('[data-stat="cbam-factor"]').text()) || 0;
-            selected_filters.bench_mark = parseFloat($('[data-stat="bench-mark-emission-value"]').text()) || 0;
-            selected_filters.emission_value = parseFloat($('[data-stat="standard-emission-value"]').text()) || 0;
-            selected_filters.ets_price_value = parseFloat($('[data-stat="ets-price"]').text()) || 0;
-            return selected_filters;
-        }
-
-        /**
-         * Refresh ETS Price options based on type and year.
-         * @param {string} ets_price_type
-         * @param {string|number} year
-         */
-        function refresh_ets_price_options(ets_price_type, year) {
-            if (!ets_price_type || !year) return;
-            frappe.db.get_list('ETS Carbon Price', {
-                fields: ['name', 'price', 'price_date'],
-                filters: { ets_price_type },
-                order_by: 'price_date desc',
-                limit: 100,
-            }).then(res => {
-                const prices = res
-                    .filter(row => {
-                        const y = frappe.datetime.str_to_obj(row.price_date).getFullYear();
-                        return y == year;
-                    })
-                    .map(row => {
-                        let dateStr = '';
-                        if (row.price_date) {
-                            const d = frappe.datetime.str_to_obj(row.price_date);
-                            dateStr = ` (${d.getDate().toString().padStart(2, '0')}-${(d.getMonth()+1).toString().padStart(2, '0')}-${d.getFullYear()})`;
-                        }
-                        return {
-                            label: `${row.price}${dateStr}`,
-                            value: String(row.price)
-                        };
-                    });
-                filters.ets_price.df.options = prices;
-                filters.ets_price.refresh();
-                if (prices.length) {
-                    filters.ets_price.set_value(prices[0].value);
+            // Reporting Period: depends on selected Supplier(s) and CN Code(s)
+            filters.reporting_period.df.get_data = function(txt) {
+                const supplier_vals = filters.supplier?.get_value?.() || [];
+                const cn_code_vals = filters.cn_code?.get_value?.() || [];
+                let filterArr = [['reporting_period', 'like', `%${txt}%`]];
+                if (supplier_vals.length) {
+                    filterArr.push(['supplier', 'in', supplier_vals]);
                 }
-            }).catch(() => {
-                filters.ets_price.df.options = [];
-                filters.ets_price.refresh();
-            });
+                if (cn_code_vals.length) {
+                    filterArr.push(['cn_code', 'in', cn_code_vals]);
+                }
+                return frappe.db.get_list('External Good', {
+                    fields: ['reporting_period as value', 'reporting_period as description'],
+                    filters: filterArr,
+                    distinct: true,
+                    limit: 20,
+                });
+            };
+
+            return filters;
         }
 
         /**
@@ -343,75 +288,6 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
         }
 
         /**
-         * Create a filter control and append to the parent selector.
-         * @param {string} label
-         * @param {string} fieldtype
-         * @param {string} fieldname
-         * @param {string} parentSelector
-         * @param {Array|null} options
-         * @param {string|null} link_to
-         * @param {string|null} default_val
-         * @returns {Object}
-         */
-        function create_filter(label, fieldtype, fieldname, parentSelector, options = null, link_to = null, default_val = null) {
-            const df = { label, fieldname, fieldtype, options, default: default_val };
-            if (link_to) df.options = link_to;
-            if (fieldtype === 'MultiSelectList') {
-                df.get_data = function (txt) {
-                    const supplier_vals = filters.supplier?.get_value?.() || [];
-                    const cn_code_vals = filters.cn_code?.get_value?.() || [];
-                    if (fieldname === 'article_number') {
-                        return frappe.db.get_list('External Good', {
-                            fields: ['article_no as value', 'article_no as description'],
-                            filters: [
-                                ['article_no', 'like', `%${txt}%`],
-                                supplier_vals.length ? ['supplier', 'in', supplier_vals] : null,
-                                cn_code_vals.length ? ['cn_code', 'in', cn_code_vals] : null,
-                            ].filter(Boolean),
-                            distinct: true,
-                            limit: 20,
-                        });
-                    }
-                    if (fieldname === 'reporting_period') {
-                        return frappe.db.get_list('External Good', {
-                            fields: ['reporting_period as value', 'reporting_period as description'],
-                            filters: [
-                                ['name', 'like', `%${txt}%`],
-                                supplier_vals.length ? ['supplier', 'in', supplier_vals] : null,
-                                cn_code_vals.length ? ['cn_code', 'in', cn_code_vals] : null,
-                            ].filter(Boolean),
-                            distinct: true,
-                            limit: 20,
-                        });
-                    }
-                    if (fieldname === 'cn_code') {
-                        return frappe.db.get_list('CN Code', {
-                            fields: ['cn_code as value', 'cn_code as description'],
-                            filters: [['cn_code', 'like', `%${txt}%`]],
-                            limit: 20,
-                        });
-                    }
-                    if (fieldname === 'supplier') {
-                        return frappe.db.get_list('External Good', {
-                            fields: ['supplier as value', 'supplier as description'],
-                            filters: [['supplier', 'like', `%${txt}%`]],
-                            distinct: true,
-                            limit: 20,
-                        });
-                    }
-                };
-            }
-            const $col = $('<div class="col mb-2"></div>').appendTo(parentSelector);
-            const control = frappe.ui.form.make_control({ parent: $col, df });
-            control.refresh();
-            // Set default value in UI if provided
-            if (default_val !== undefined && default_val !== null && default_val !== "") {
-                control.set_value(default_val);
-            }
-            return control;
-        }
-
-        /**
          * Clear and render stat cards with default values.
          */
         function clear_stats() {
@@ -428,14 +304,12 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
             });
         }
 
-
-
         /**
          * Load and render the report table and update chart.
          * @param {boolean} reset If true, reset table and start from first page.
          * @param {Object} [filters={}]
          */
-        function load_report_table(reset = false, filters = {}) {
+        function load_report_table(reset = false, filters_arg = {}) {
             if (reset) {
                 start = 0;
                 all_data = [];
@@ -444,10 +318,10 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
                     datatable = null;
                 }
             }
-            const selected_filters = get_all_selected_filters();
+            const selected_filters = cbam.get_all_selected_filters(filters);
             frappe.call({
                 method: 'cbam.cbam.page.financial_evaluation_report.financial_evaluation_report.get_report_data',
-                args: { filters, selected_filters, start, page_length },
+                args: { filters: filters_arg, selected_filters, start, page_length },
                 callback: function (r) {
                     if (r.message) {
                         const { columns, data, chart_data, total_count: count } = r.message;
