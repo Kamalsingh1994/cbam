@@ -61,7 +61,7 @@ cbam.setup_filter_listeners = function(filters, load_report_table, update_stat_c
                 };
                 update_stat_card_values(key, selected_filters);
                 if (key === 'ets_price_type' || key === 'year') {
-                    cbam.refresh_ets_price_options(
+                    refresh_ets_price_options(
                         filters.ets_price_type.get_value(),
                         filters.year.get_value()
                     );
