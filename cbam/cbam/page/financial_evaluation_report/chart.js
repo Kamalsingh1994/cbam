@@ -75,7 +75,6 @@ cbam.update_chart = function update_chart(chart_data) {
                 }
             },
             yAxis: {
-                min: 0,
                 title: { text: __('Cost') }
             },
             legend: { align: 'center', verticalAlign: 'bottom', layout: 'horizontal' },
