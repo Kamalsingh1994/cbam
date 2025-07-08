@@ -18,7 +18,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
 
         // Layout
         render_layout(page.body);
-        inject_custom_styles(page.body);
+        cbam.inject_custom_styles(page.body);
 
         // Filters
         const filters = setup_filters();
@@ -34,11 +34,33 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
 
         // Initial Stats, Chart, and Table
         clear_stats();
-        update_chart(null);
+        cbam.update_chart(null);
         load_report_table(true);
 
         // Setup table toggle functionality
         setup_table_toggle();
+
+        // Helper: Get table data, optionally per tonne
+        function get_table_data(data, per_tonne = false) {
+            return data.map(row => {
+                if (!per_tonne) return { ...row };
+                const mass = Number(row.raw_mass) || 0;
+                let mass_tonnes = mass / 1000;
+                if (mass_tonnes > 0) {
+                    return {
+                        ...row,
+                        real_emission_cost: (Number(row.real_emission_cost) || 0) / mass_tonnes,
+                        standard_emission_cost: (Number(row.standard_emission_cost) || 0) / mass_tonnes
+                    };
+                } else {
+                    return {
+                        ...row,
+                        real_emission_cost: 0,
+                        standard_emission_cost: 0
+                    };
+                }
+            });
+        }
 
         // --- Show Selected Rows Toggle Logic ---
         function get_selected_rows_data() {
@@ -47,55 +69,55 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
             return selectedIndexes.map(idx => all_data[idx]);
         }
 
-        // Listen for toggle event
-        $('#selected-rows-toggle').on('change', function() {
-            const showSelected = $(this).is(':checked');
+        // Listen for 'Show Cost per tonne' toggle event
+        $('#table-toggle').on('change', function() {
+            const per_tonne = $(this).is(':checked');
+            // Update table
+            const table_data = get_table_data(all_data, per_tonne);
+            if (datatable) {
+                datatable.refresh(table_data);
+            }
+            // Update chart (respect 'Show Selected rows' toggle)
+            const showSelected = $('#selected-rows-toggle').is(':checked');
             let chart_data;
             if (showSelected) {
                 const selectedData = get_selected_rows_data();
-                chart_data = get_chart_data(selectedData);
+                chart_data = cbam.get_chart_data(selectedData, per_tonne);
             } else {
-                chart_data = get_chart_data(all_data);
+                chart_data = cbam.get_chart_data(all_data, per_tonne);
             }
-            update_chart(chart_data);
+            cbam.update_chart(chart_data);
         });
 
-		function get_chart_data(data) {
-			// data: array of row objects
-			const labels = [];
-			const actual_costs = [];
-			const standard_costs = [];
-			if (!data) return { labels: [], actual_costs: [], standard_costs: [] };
-		
-			data.forEach(row => {
-				const article = row.article_number || '';
-				const supplier = row.supplier || '';
-				labels.push(`${article} (${supplier})`);
-				actual_costs.push(Number(row.real_emission_cost) || 0);
-				standard_costs.push(Number(row.standard_emission_cost) || 0);
-			});
-		
-			return {
-				labels,
-				actual_costs,
-				standard_costs
-			};
-		}
-		
+        // Listen for 'Show Selected rows' toggle event
+        $('#selected-rows-toggle').on('change', function() {
+            const showSelected = $(this).is(':checked');
+            const per_tonne = $('#table-toggle').is(':checked');
+            let chart_data;
+            if (showSelected) {
+                const selectedData = get_selected_rows_data();
+                chart_data = cbam.get_chart_data(selectedData, per_tonne);
+            } else {
+                chart_data = cbam.get_chart_data(all_data, per_tonne);
+            }
+            cbam.update_chart(chart_data);
+        });
 
-        // Update chart live when selection changes if toggle is ON
+        // Update chart live when selection changes if 'Show Selected rows' is ON
         function bind_datatable_selection_events() {
             if (!datatable) return;
             datatable.on('onCheckRow', function() {
                 if ($('#selected-rows-toggle').is(':checked')) {
                     const selectedData = get_selected_rows_data();
-                    update_chart(get_chart_data(selectedData));
+                    const per_tonne = $('#table-toggle').is(':checked');
+                    cbam.update_chart(cbam.get_chart_data(selectedData, per_tonne));
                 }
             });
             datatable.on('onUncheckRow', function() {
                 if ($('#selected-rows-toggle').is(':checked')) {
                     const selectedData = get_selected_rows_data();
-                    update_chart(get_chart_data(selectedData));
+                    const per_tonne = $('#table-toggle').is(':checked');
+                    cbam.update_chart(cbam.get_chart_data(selectedData, per_tonne));
                 }
             });
         }
@@ -148,110 +170,6 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
                         <div id="table-section"></div>
                     </div>
                 </div>
-            `);
-        }
-
-        /**
-         * Inject custom styles for the page.
-         * @param {HTMLElement} body
-         */
-        function inject_custom_styles(body) {
-            $(body).append(`
-                <style>
-                    .stat-card.frappe-card {
-                        min-width: 230px;
-                        max-width: 260px;
-                    }
-                    .filter-clear-btn {
-                        min-width: 70px;
-                        margin-left: 8px;
-                    }
-                    @media (max-width: 991px) {
-                        .stat-card.frappe-card {
-                            min-width: 180px;
-                            max-width: 100%;
-                        }
-                    }
-                    .dt-cell__content--col-0 {
-                        width: unset !important;
-                    }
-                    /* Checkbox column alignment fix */
-                    .dt-cell--col-0, .dt-header__cell--col-0 {
-                        min-width: 40px !important;
-                        max-width: 40px !important;
-                        width: 40px !important;
-                        text-align: center;
-                    }
-                    /* Table toggle section styles */
-                    #table-toggle-section {
-                        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                        border: 1px solid #dee2e6;
-                    }
-                    /* Compact Toggle Switch Styles */
-                    .switch-compact {
-                        position: relative;
-                        display: inline-block;
-                        width: 40px;
-                        height: 20px;
-                    }
-                    
-                    .switch-compact input {
-                        opacity: 0;
-                        width: 0;
-                        height: 0;
-                    }
-                    
-                    .slider-compact {
-                        position: absolute;
-                        cursor: pointer;
-                        top: 0;
-                        left: 0;
-                        right: 0;
-                        bottom: 0;
-                        background-color: #ccc;
-                        -webkit-transition: .3s;
-                        transition: .3s;
-                    }
-                    
-                    .slider-compact:before {
-                        position: absolute;
-                        content: "";
-                        height: 14px;
-                        width: 14px;
-                        left: 3px;
-                        bottom: 3px;
-                        background-color: white;
-                        -webkit-transition: .3s;
-                        transition: .3s;
-                    }
-                    
-                    input:checked + .slider-compact {
-                        background-color: #2196F3;
-                    }
-                    
-                    input:focus + .slider-compact {
-                        box-shadow: 0 0 1px #2196F3;
-                    }
-                    
-                    input:checked + .slider-compact:before {
-                        -webkit-transform: translateX(20px);
-                        -ms-transform: translateX(20px);
-                        transform: translateX(20px);
-                    }
-                    
-                    .slider-compact.round {
-                        border-radius: 20px;
-                    }
-                    
-                    .slider-compact.round:before {
-                        border-radius: 50%;
-                    }
-                    
-                    #table-toggle-section {
-                        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                        border: 1px solid #dee2e6;
-                    }
-                </style>
             `);
         }
 
@@ -510,84 +428,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
             });
         }
 
-        /**
-         * Render or update the chart section.
-         * @param {Object|null} chart_data
-         */
-        function update_chart(chart_data) {
-            $('#chart-section').empty();
 
-            if (!chart_data || !chart_data.labels || chart_data.labels.length === 0) {
-                $('#chart-section').html('<div class="text-center text-muted p-4">No data available for chart</div>');
-                return;
-            }
-
-            // Custom: Concatenate article and supplier for x-axis labels if available
-            let labels = chart_data.labels;
-            let label_map = {};
-            if (chart_data.articles && chart_data.suppliers && Array.isArray(chart_data.articles) && Array.isArray(chart_data.suppliers)) {
-                labels = chart_data.articles.map((article, idx) => {
-                    const supplier = chart_data.suppliers[idx] || '';
-                    const label = `${article} (${supplier})`;
-                    label_map[idx] = label;
-                    return label;
-                });
-            } else {
-                labels = chart_data.labels;
-                labels.forEach((l, idx) => { label_map[idx] = l; });
-            }
-
-            // Highcharts integration: create a scrollable container and chart div
-            const minWidth = Math.max(600, labels.length * 80); // 80px per label as a heuristic
-            $('#chart-section').append('<div id="highchart-scroll-inner" style="overflow-x: auto; width: 100%;"><div id="highchart-bar" style="min-width: ' + minWidth + 'px; max-height: 350px;"></div></div>');
-
-            function renderHighChart() {
-                Highcharts.chart('highchart-bar', {
-                    chart: {
-                        type: 'column',
-                        height: 350
-                    },
-                    credits: {
-                        enabled: false
-                    },
-                    title: { text: __('Standard vs Actual Cost') },
-                    xAxis: {
-                        categories: labels,
-                        labels: {
-                            rotation: 45,
-                            style: { fontSize: '12px' }
-                        }
-                    },
-                    yAxis: {
-                        min: 0,
-                        title: { text: __('Cost') }
-                    },
-                    legend: { align: 'center', verticalAlign: 'bottom', layout: 'horizontal' },
-                    series: [
-                        {
-                            name: __('Actual Cost'),
-                            data: chart_data.actual_costs,
-                            color: '#3b5bdb'
-                        },
-                        {
-                            name: __('Standard Cost'),
-                            data: chart_data.standard_costs,
-                            color: '#fa5252'
-                        }
-                    ]
-                });
-            }
-
-            if (typeof window.Highcharts === 'undefined') {
-                // Dynamically load Highcharts from CDN if not already loaded
-                const script = document.createElement('script');
-                script.src = 'https://code.highcharts.com/highcharts.js';
-                script.onload = () => renderHighChart();
-                document.head.appendChild(script);
-            } else {
-                renderHighChart();
-            }
-        }
 
         /**
          * Load and render the report table and update chart.
@@ -623,11 +464,13 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
                             resizable: true,
                             editable: false
                         }));
+                        const per_tonne = $('#table-toggle').is(':checked');
+                        const table_data = get_table_data(all_data, per_tonne);
                         if (!datatable) {
                             $('#table-section').empty();
                             datatable = new DataTable('#table-section', {
                                 columns: formattedColumns,
-                                data: all_data,
+                                data: table_data,
                                 layout: 'fixed',
                                 stickyHeader: true,
                                 inlineFilters: true,
@@ -638,15 +481,24 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
                             });
                             bind_datatable_selection_events();
                         } else {
-                            datatable.refresh(all_data);
+                            datatable.refresh(table_data);
                         }
-                        update_chart(chart_data);
+                        // Update chart (respect 'Show Selected rows' toggle)
+                        const showSelected = $('#selected-rows-toggle').is(':checked');
+                        let chart_data_final;
+                        if (showSelected) {
+                            const selectedData = get_selected_rows_data();
+                            chart_data_final = cbam.get_chart_data(selectedData, per_tonne);
+                        } else {
+                            chart_data_final = cbam.get_chart_data(all_data, per_tonne);
+                        }
+                        cbam.update_chart(chart_data_final);
                         render_pagination_controls();
                     }
                 },
                 error: function () {
                     $('#table-section').empty().html('<div class="text-center text-muted p-4">Failed to load data</div>');
-                    update_chart(null);
+                    cbam.update_chart(null);
                     render_pagination_controls();
                 }
             });
