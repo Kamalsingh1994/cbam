@@ -67,37 +67,9 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
 
     user = frappe.session.user
     declarants = get_declarant_for_user(user)
-    if declarants:
-        declarant_list = ', '.join(f"'{d}'" for d in declarants)
-        where_clauses.append(f"g.declarant IN ({declarant_list})")
 
-    if filters.get("cn_code") and isinstance(filters["cn_code"], list) and len(filters["cn_code"]) > 0:
-        cn_code_list = ', '.join(f"'{c}'" for c in filters["cn_code"])
-        where_clauses.append(f"(g.cn_code IN ({cn_code_list}))")
-        where_clauses_eg.append(f"(eg.cn_code IN ({cn_code_list}))")
-
-    if filters.get("supplier") and isinstance(filters["supplier"], list) and len(filters["supplier"]) > 0:
-        supplier_list = ', '.join(f"'{s}'" for s in filters["supplier"])
-        where_clauses.append(f"(g.supplier_name IN ({supplier_list}))")
-        where_clauses_eg.append(f"(eg.supplier IN ({supplier_list}))")
-
-    if filters.get("article_number") and isinstance(filters["article_number"], list) and len(filters["article_number"]) > 0:
-        article_number_list = ', '.join(f"'{s}'" for s in filters["article_number"])
-        where_clauses.append(f"(g.article_number IN ({article_number_list}))")
-        where_clauses_eg.append(f"(eg.article_no IN ({article_number_list}))")
-    
-    if filters.get("reporting_period") and isinstance(filters["reporting_period"], list) and len(filters["reporting_period"]) > 0:
-        reporting_period_list = ', '.join(f"'{s}'" for s in filters["reporting_period"])
-        where_clauses.append(f"(g.internal_customs_import_number IN ({reporting_period_list}))")
-        where_clauses_eg.append(f"(eg.reporting_period IN ({reporting_period_list}))")
-
-    where_sql = ""
-    if where_clauses:
-        where_sql = "WHERE " + " AND ".join(where_clauses)
-        
-    where_sql_eg = ""
-    if where_clauses_eg:
-        where_sql_eg = "WHERE " + " AND ".join(where_clauses_eg) if where_clauses_eg else ""
+    #set where conditions
+    where_sql, where_sql_eg = set_conditions(declarants, filters, where_clauses, where_clauses_eg)
 
     cbam_factor = float(selected_filters.get('cbam_factor', 0.0) or 0.0)
     bench_mark = float(selected_filters.get('bench_mark', 0.0) or 0.0)
@@ -105,24 +77,7 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
     ets_carbon_price = float(selected_filters.get('ets_price_value', 0.0) or selected_filters.get('ets_price', 0.0) or 0.0)
 
     # Count total rows for pagination
-    count_query = f"""
-        SELECT COUNT(*) FROM (
-            SELECT 
-                eg.cn_code, eg.article_no as article_number, eg.supplier, eg.raw_mass, eg.installation_country,
-                eg.specific_direct_embedded_emissions, eg.carbon_price_due
-            FROM `tabExternal Good` eg
-            {where_sql_eg}
-            
-            UNION
-            SELECT 
-                g.cn_code, g.article_number, g.supplier_name as supplier, g.raw_mass, g.installation_country,
-                g.specific_direct_embedded_emissions, g.carbon_price_due
-            FROM `tabGood` g
-            {where_sql}
-        ) AS count_table
-
-    """
-    total_count = frappe.db.sql(count_query)[0][0]
+    total_count = get_count(where_sql, where_sql_eg)
 
     # Main data query with LIMIT/OFFSET for pagination
     data_query = f"""
@@ -174,6 +129,63 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
     data = frappe.db.sql(data_query, as_dict=1)
     return data, total_count
 
+
+def set_conditions(declarants, filters, where_clauses, where_clauses_eg):
+    if declarants:
+        declarant_list = ', '.join(f"'{d}'" for d in declarants)
+        where_clauses.append(f"g.declarant IN ({declarant_list})")
+
+    if filters.get("cn_code") and isinstance(filters["cn_code"], list) and len(filters["cn_code"]) > 0:
+        cn_code_list = ', '.join(f"'{c}'" for c in filters["cn_code"])
+        where_clauses.append(f"(g.cn_code IN ({cn_code_list}))")
+        where_clauses_eg.append(f"(eg.cn_code IN ({cn_code_list}))")
+
+    if filters.get("supplier") and isinstance(filters["supplier"], list) and len(filters["supplier"]) > 0:
+        supplier_list = ', '.join(f"'{s}'" for s in filters["supplier"])
+        where_clauses.append(f"(g.supplier_name IN ({supplier_list}))")
+        where_clauses_eg.append(f"(eg.supplier IN ({supplier_list}))")
+
+    if filters.get("article_number") and isinstance(filters["article_number"], list) and len(filters["article_number"]) > 0:
+        article_number_list = ', '.join(f"'{s}'" for s in filters["article_number"])
+        where_clauses.append(f"(g.article_number IN ({article_number_list}))")
+        where_clauses_eg.append(f"(eg.article_no IN ({article_number_list}))")
+    
+    if filters.get("reporting_period") and isinstance(filters["reporting_period"], list) and len(filters["reporting_period"]) > 0:
+        reporting_period_list = ', '.join(f"'{s}'" for s in filters["reporting_period"])
+        where_clauses.append(f"(g.internal_customs_import_number IN ({reporting_period_list}))")
+        where_clauses_eg.append(f"(eg.reporting_period IN ({reporting_period_list}))")
+
+    where_sql = ""
+    if where_clauses:
+        where_sql = "WHERE " + " AND ".join(where_clauses)
+        
+    where_sql_eg = ""
+    if where_clauses_eg:
+        where_sql_eg = "WHERE " + " AND ".join(where_clauses_eg) if where_clauses_eg else ""
+
+    return where_sql, where_sql_eg
+
+def get_count(where_sql, where_sql_eg):
+    count_query = f"""
+        SELECT COUNT(*) FROM (
+            SELECT 
+                eg.cn_code, eg.article_no as article_number, eg.supplier, eg.raw_mass, eg.installation_country,
+                eg.specific_direct_embedded_emissions, eg.carbon_price_due
+            FROM `tabExternal Good` eg
+            {where_sql_eg}
+            
+            UNION
+            SELECT 
+                g.cn_code, g.article_number, g.supplier_name as supplier, g.raw_mass, g.installation_country,
+                g.specific_direct_embedded_emissions, g.carbon_price_due
+            FROM `tabGood` g
+            {where_sql}
+        ) AS count_table
+
+    """
+    total_count = frappe.db.sql(count_query)[0][0]
+
+    return total_count
 
 def get_chart_data(data):
     """Process data to create chart data grouped by article and supplier for bar chart"""
