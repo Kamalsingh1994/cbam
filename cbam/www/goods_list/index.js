@@ -658,7 +658,7 @@ const CreateEmissionSubmissionDialog = async function(goods) {
     });
 
     // Get supplier details ONCE
-    let supplier_details = await cbam.supplier.get_supplier();
+    let supplier_details = await cbam.supplier.get_supplier_details();
 
     if (existing_good.message && existing_good.message.length > 0) {
         let last_good_response = await frappe.call({
