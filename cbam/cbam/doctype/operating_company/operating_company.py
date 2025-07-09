@@ -35,6 +35,7 @@ class OperatingCompany(Document):
 				self.status = "Pending Verification"		
 			else:
 				frappe.msgprint(MISSING_CONTACT_MESSAGE)
+				notify_system_manager_of_conflict(self.main_contact_employee_email, self.name)
 				self.create_commercial_contact_user = 0
 				self.commercial_contact_user = ""
 				self.status = "Missing Commercial Contact"
@@ -57,7 +58,7 @@ class OperatingCompany(Document):
 				self.status = "Pending Verification"
 			else:
 				frappe.msgprint(MISSING_CONTACT_MESSAGE)
-				
+				notify_system_manager_of_conflict(self.cbam_representive_employee_email, self.name)
 				self.cbam_representative_user = ""
 				self.status = "CBAM Rep User Conflict"
 
@@ -234,3 +235,19 @@ def update_goods_on_operating_company_change(doc, method):
         good_doc.supplier_name = doc.supplier_name
         good_doc.save(ignore_permissions=True)
 
+def notify_system_manager_of_conflict(email, oc_name):
+	subject = "User Conflict on Operating Company Assignment"
+	message = f"""
+		<p>Dear System Manager,</p>
+		<p>An attempt was made to assign the email <b>{email}</b> to Operating Company <b>{oc_name}</b>,</p>
+		<p>but this email is already associated with another Operating Company.</p>
+		<p>Please resolve this conflict by checking user permissions and assignments.</p>
+	"""
+
+	system_managers = frappe.get_all("User", filters={"role": "System Manager", "enabled": 1}, pluck="email")
+
+	frappe.sendmail(
+		recipients=system_managers,
+		subject=subject,
+		message=message
+	)
