@@ -134,6 +134,7 @@ def set_conditions(declarants, filters, where_clauses, where_clauses_eg):
     if declarants:
         declarant_list = ', '.join(f"'{d}'" for d in declarants)
         where_clauses.append(f"g.declarant IN ({declarant_list})")
+        where_clauses_eg.append(f"eg.declarant IN ({declarant_list})")
 
     if filters.get("cn_code") and isinstance(filters["cn_code"], list) and len(filters["cn_code"]) > 0:
         cn_code_list = ', '.join(f"'{c}'" for c in filters["cn_code"])
@@ -183,8 +184,8 @@ def get_count(where_sql, where_sql_eg):
         ) AS count_table
 
     """
-    total_count = frappe.db.sql(count_query)[0][0]
-
+    result = list(frappe.db.sql(count_query))
+    total_count = result[0][0] if result else 0
     return total_count
 
 def get_chart_data(data):
@@ -258,7 +259,83 @@ def get_cards_value(filters=None):
         LIMIT 1
     """
 
-    result = frappe.db.sql(sql, filters, as_dict=True)
+    result = list(frappe.db.sql(sql, filters, as_dict=True))
     return result[0] if result else {}
+
+
+def fetch_external_good_options(filter_type, txt, declarants, cn_code_list, supplier_list):
+    filters = []
+    if declarants:
+        filters.append(["declarant", "in", declarants])
+    if cn_code_list:
+        filters.append(["cn_code", "in", cn_code_list])
+    if supplier_list and filter_type != "supplier":
+        filters.append(["supplier", "in", supplier_list])
+    if txt:
+        if filter_type == "supplier":
+            filters.append(["supplier", "like", f"%{txt}%"])
+        elif filter_type == "article_number":
+            filters.append(["article_no", "like", f"%{txt}%"])
+        elif filter_type == "reporting_period":
+            filters.append(["reporting_period", "like", f"%{txt}%"])
+    field_map = {
+        "supplier": "supplier",
+        "article_number": "article_no",
+        "reporting_period": "reporting_period"
+    }
+    field = field_map.get(filter_type)
+    if not field:
+        return []
+    results = frappe.db.get_list("External Good", fields=[field], filters=filters, distinct=True, limit=20)
+    return [row.get(field) for row in results if row.get(field)]
+
+
+def fetch_good_options(filter_type, txt, declarants, cn_code_list, supplier_list):
+    filters = []
+    if declarants:
+        filters.append(["declarant", "in", declarants])
+    if cn_code_list:
+        filters.append(["cn_code", "in", cn_code_list])
+    if supplier_list and filter_type != "supplier":
+        filters.append(["supplier_name", "in", supplier_list])
+    if txt:
+        if filter_type == "supplier":
+            filters.append(["supplier_name", "like", f"%{txt}%"])
+        elif filter_type == "article_number":
+            filters.append(["article_number", "like", f"%{txt}%"])
+        elif filter_type == "reporting_period":
+            filters.append(["internal_customs_import_number", "like", f"%{txt}%"])
+    field_map = {
+        "supplier": "supplier_name",
+        "article_number": "article_number",
+        "reporting_period": "internal_customs_import_number"
+    }
+    field = field_map.get(filter_type)
+    if not field:
+        return []
+    results = frappe.db.get_list("Good", fields=[field], filters=filters, distinct=True, limit=20)
+    return [row.get(field) for row in results if row.get(field)]
+
+
+def merge_and_format_options(*option_lists):
+    seen = set()
+    options = []
+    for option_list in option_lists:
+        for val in option_list:
+            if val and val not in seen:
+                options.append({"value": val, "description": val})
+                seen.add(val)
+    return options
+
+@frappe.whitelist()
+def get_filter_options(txt=None, filter_type=None, cn_code=None, supplier=None):
+    user = frappe.session.user
+    declarants = get_declarant_for_user(user)
+    cn_code_list = [c.strip() for c in cn_code.split(",") if c.strip()] if cn_code else []
+    supplier_list = [s.strip() for s in supplier.split(",") if s.strip()] if supplier else []
+
+    eg_options = fetch_external_good_options(filter_type, txt, declarants, cn_code_list, supplier_list)
+    g_options = fetch_good_options(filter_type, txt, declarants, cn_code_list, supplier_list)
+    return merge_and_format_options(eg_options, g_options)
 
 

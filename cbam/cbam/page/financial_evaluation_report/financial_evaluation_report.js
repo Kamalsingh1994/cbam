@@ -43,21 +43,25 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
         // Helper: Get table data, optionally per tonne
         function get_table_data(data, per_tonne = false) {
             return data.map(row => {
-                if (!per_tonne) return { ...row };
-                let mass_tonnes = Number(row.raw_mass_tonne) || 0;
-                if (mass_tonnes > 0) {
-                    return {
-                        ...row,
-                        real_emission_cost: (Number(row.real_emission_cost) || 0) / mass_tonnes,
-                        standard_emission_cost: (Number(row.standard_emission_cost) || 0) / mass_tonnes
-                    };
+                let real_emission_cost, standard_emission_cost;
+                if (!per_tonne) {
+                    real_emission_cost = Number(row.real_emission_cost) || 0;
+                    standard_emission_cost = Number(row.standard_emission_cost) || 0;
                 } else {
-                    return {
-                        ...row,
-                        real_emission_cost: 0,
-                        standard_emission_cost: 0
-                    };
+                    let mass_tonnes = Number(row.raw_mass_tonne) || 0;
+                    if (mass_tonnes > 0) {
+                        real_emission_cost = (Number(row.real_emission_cost) || 0) / mass_tonnes;
+                        standard_emission_cost = (Number(row.standard_emission_cost) || 0) / mass_tonnes;
+                    } else {
+                        real_emission_cost = 0;
+                        standard_emission_cost = 0;
+                    }
                 }
+                return {
+                    ...row,
+                    real_emission_cost: real_emission_cost.toFixed(3),
+                    standard_emission_cost: standard_emission_cost.toFixed(3)
+                };
             });
         }
 
@@ -197,57 +201,34 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
                 });
             };
 
-            // Supplier: depends on selected CN Code(s)
+            // Helper to fetch filter options from backend
+            function fetch_filter_options({ txt, filter_type, cn_code = [], supplier = [] }) {
+                return frappe.call({
+                    method: "cbam.cbam.page.financial_evaluation_report.financial_evaluation_report.get_filter_options",
+                    args: {
+                        txt,
+                        filter_type,
+                        cn_code: cn_code.join(","),
+                        supplier: supplier.join(",")
+                    }
+                }).then(r => r.message || []);
+            }
+
             filters.supplier.df.get_data = function(txt) {
-                const cn_code_vals = filters.cn_code?.get_value?.() || [];
-                let filterArr = [['supplier', 'like', `%${txt}%`]];
-                if (cn_code_vals.length) {
-                    filterArr.push(['cn_code', 'in', cn_code_vals]);
-                }
-                return frappe.db.get_list('External Good', {
-                    fields: ['supplier as value', 'supplier as description'],
-                    filters: filterArr,
-                    distinct: true,
-                    limit: 20,
-                });
+                const cn_code = filters.cn_code?.get_value?.() || [];
+                return fetch_filter_options({ txt, filter_type: "supplier", cn_code });
             };
 
-            // Article Number: depends on selected Supplier(s) and CN Code(s)
             filters.article_number.df.get_data = function(txt) {
-                const supplier_vals = filters.supplier?.get_value?.() || [];
-                const cn_code_vals = filters.cn_code?.get_value?.() || [];
-                let filterArr = [['article_no', 'like', `%${txt}%`]];
-                if (supplier_vals.length) {
-                    filterArr.push(['supplier', 'in', supplier_vals]);
-                }
-                if (cn_code_vals.length) {
-                    filterArr.push(['cn_code', 'in', cn_code_vals]);
-                }
-                return frappe.db.get_list('External Good', {
-                    fields: ['article_no as value', 'article_no as description'],
-                    filters: filterArr,
-                    distinct: true,
-                    limit: 20,
-                });
+                const supplier = filters.supplier?.get_value?.() || [];
+                const cn_code = filters.cn_code?.get_value?.() || [];
+                return fetch_filter_options({ txt, filter_type: "article_number", supplier, cn_code });
             };
 
-            // Reporting Period: depends on selected Supplier(s) and CN Code(s)
             filters.reporting_period.df.get_data = function(txt) {
-                const supplier_vals = filters.supplier?.get_value?.() || [];
-                const cn_code_vals = filters.cn_code?.get_value?.() || [];
-                let filterArr = [['reporting_period', 'like', `%${txt}%`]];
-                if (supplier_vals.length) {
-                    filterArr.push(['supplier', 'in', supplier_vals]);
-                }
-                if (cn_code_vals.length) {
-                    filterArr.push(['cn_code', 'in', cn_code_vals]);
-                }
-                return frappe.db.get_list('External Good', {
-                    fields: ['reporting_period as value', 'reporting_period as description'],
-                    filters: filterArr,
-                    distinct: true,
-                    limit: 20,
-                });
+                const supplier = filters.supplier?.get_value?.() || [];
+                const cn_code = filters.cn_code?.get_value?.() || [];
+                return fetch_filter_options({ txt, filter_type: "reporting_period", supplier, cn_code });
             };
 
             return filters;
