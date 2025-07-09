@@ -7,10 +7,19 @@ def get_supplier():
     filters = {"commercial_contact_user": frappe.session.user}
     if "CBAM Representative" in frappe.get_roles() and not "Commercial Contact" in frappe.get_roles():
         filters = {"cbam_representative_user": frappe.session.user}
+    return frappe.db.get_value("Operating Company", filters, "name")
 
+@frappe.whitelist()
+def get_supplier_details():
+    filters = {"commercial_contact_user": frappe.session.user}
+    if "CBAM Representative" in frappe.get_roles() and not "Commercial Contact" in frappe.get_roles():
+        filters = {"cbam_representative_user": frappe.session.user}
     return frappe.get_value("Operating Company", filters, [
         "name", "supplier_name", "company_phone_number", "company_email",
-        "street_and_number", "zip_code", "city", "country", "cbam_representive_last_name", "cbam_representive_employee_email", "cbam_representive_employee_position", "cbam_representive_employee_first_name", "cbam_representive_employee_phone_number"
+        "street_and_number", "zip_code", "city", "country", 
+        "cbam_representive_last_name", "cbam_representive_employee_email", 
+        "cbam_representive_employee_position", "cbam_representive_employee_first_name", 
+        "cbam_representive_employee_phone_number"
     ], as_dict=True) or {}
 
 
