@@ -43,21 +43,25 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
         // Helper: Get table data, optionally per tonne
         function get_table_data(data, per_tonne = false) {
             return data.map(row => {
-                if (!per_tonne) return { ...row };
-                let mass_tonnes = Number(row.raw_mass_tonne) || 0;
-                if (mass_tonnes > 0) {
-                    return {
-                        ...row,
-                        real_emission_cost: (Number(row.real_emission_cost) || 0) / mass_tonnes,
-                        standard_emission_cost: (Number(row.standard_emission_cost) || 0) / mass_tonnes
-                    };
+                let real_emission_cost, standard_emission_cost;
+                if (!per_tonne) {
+                    real_emission_cost = Number(row.real_emission_cost) || 0;
+                    standard_emission_cost = Number(row.standard_emission_cost) || 0;
                 } else {
-                    return {
-                        ...row,
-                        real_emission_cost: 0,
-                        standard_emission_cost: 0
-                    };
+                    let mass_tonnes = Number(row.raw_mass_tonne) || 0;
+                    if (mass_tonnes > 0) {
+                        real_emission_cost = (Number(row.real_emission_cost) || 0) / mass_tonnes;
+                        standard_emission_cost = (Number(row.standard_emission_cost) || 0) / mass_tonnes;
+                    } else {
+                        real_emission_cost = 0;
+                        standard_emission_cost = 0;
+                    }
                 }
+                return {
+                    ...row,
+                    real_emission_cost: real_emission_cost.toFixed(3),
+                    standard_emission_cost: standard_emission_cost.toFixed(3)
+                };
             });
         }
 
@@ -197,142 +201,34 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
                 });
             };
 
-            // Supplier: depends on selected CN Code(s)
-            filters.supplier.df.get_data = async function(txt) {
-                const cn_code_vals = filters.cn_code?.get_value?.() || [];
-                let filterArr = [['supplier', 'like', `%${txt}%`]];
-                if (cn_code_vals.length) {
-                    filterArr.push(['cn_code', 'in', cn_code_vals]);
-                }
-                // Fetch from External Good
-                const externalPromise = frappe.db.get_list('External Good', {
-                    fields: ['supplier as value', 'supplier as description'],
-                    filters: filterArr,
-                    distinct: true,
-                    limit: 20
-                });
-                // Fetch from Good (supplier_name)
-                const goodPromise = frappe.db.get_list('Good', {
-                    fields: ['supplier_name as value', 'supplier_name as description'],
-                    filters: [['supplier_name', 'like', `%${txt}%`], ...(cn_code_vals.length ? [['cn_code', 'in', cn_code_vals]] : [])],
-                    distinct: true,
-                    limit: 20
-                });
-                // Wait for both
-                const [external, good] = await Promise.all([externalPromise, goodPromise]);
-                // Merge and deduplicate by value
-                const all = [...external, ...good];
-                const seen = new Set();
-                const unique = all.filter(item => {
-                    if (!item.value || seen.has(item.value)) return false;
-                    seen.add(item.value);
-                    return true;
-                });
-                return unique;
+            // Helper to fetch filter options from backend
+            function fetch_filter_options({ txt, filter_type, cn_code = [], supplier = [] }) {
+                return frappe.call({
+                    method: "cbam.cbam.page.financial_evaluation_report.financial_evaluation_report.get_filter_options",
+                    args: {
+                        txt,
+                        filter_type,
+                        cn_code: cn_code.join(","),
+                        supplier: supplier.join(",")
+                    }
+                }).then(r => r.message || []);
+            }
+
+            filters.supplier.df.get_data = function(txt) {
+                const cn_code = filters.cn_code?.get_value?.() || [];
+                return fetch_filter_options({ txt, filter_type: "supplier", cn_code });
             };
 
-            // Article Number: depends on selected Supplier(s) and CN Code(s)
-            filters.article_number.df.get_data = async function(txt) {
-                const supplier_vals = filters.supplier?.get_value?.() || [];
-                const cn_code_vals = filters.cn_code?.get_value?.() || [];
-                let filterArrExternal = [['article_no', 'like', `%${txt}%`]];
-                if (supplier_vals.length) {
-                    filterArrExternal.push(['supplier', 'in', supplier_vals]);
-                }
-                if (cn_code_vals.length) {
-                    filterArrExternal.push(['cn_code', 'in', cn_code_vals]);
-                }
-                // Fetch from External Good
-                const externalPromise = frappe.db.get_list('External Good', {
-                    fields: ['article_no as value', 'article_no as description'],
-                    filters: filterArrExternal,
-                    distinct: true,
-                    limit: 20
-                });
-
-                // For Good, use article_number and map to value/description
-                let filterArrGood = [['article_number', 'like', `%${txt}%`]];
-                if (supplier_vals.length) {
-                    filterArrGood.push(['supplier_name', 'in', supplier_vals]);
-                }
-                if (cn_code_vals.length) {
-                    filterArrGood.push(['cn_code', 'in', cn_code_vals]);
-                }
-                const goodPromise = frappe.db.get_list('Good', {
-                    fields: ['article_number'],
-                    filters: filterArrGood,
-                    distinct: true,
-                    limit: 20
-                });
-
-                // Wait for both
-                const [external, good] = await Promise.all([externalPromise, goodPromise]);
-                // Map Good results to match the structure
-                const goodMapped = good.map(item => ({
-                    value: item.article_number,
-                    description: item.article_number
-                }));
-                // Merge and deduplicate by value
-                const all = [...external, ...goodMapped];
-                const seen = new Set();
-                const unique = all.filter(item => {
-                    if (!item.value || seen.has(item.value)) return false;
-                    seen.add(item.value);
-                    return true;
-                });
-                return unique;
+            filters.article_number.df.get_data = function(txt) {
+                const supplier = filters.supplier?.get_value?.() || [];
+                const cn_code = filters.cn_code?.get_value?.() || [];
+                return fetch_filter_options({ txt, filter_type: "article_number", supplier, cn_code });
             };
 
-            // Reporting Period: depends on selected Supplier(s) and CN Code(s)
-            filters.reporting_period.df.get_data = async function(txt) {
-                const supplier_vals = filters.supplier?.get_value?.() || [];
-                const cn_code_vals = filters.cn_code?.get_value?.() || [];
-                let filterArrExternal = [['reporting_period', 'like', `%${txt}%`]];
-                if (supplier_vals.length) {
-                    filterArrExternal.push(['supplier', 'in', supplier_vals]);
-                }
-                if (cn_code_vals.length) {
-                    filterArrExternal.push(['cn_code', 'in', cn_code_vals]);
-                }
-                // Fetch from External Good
-                const externalPromise = frappe.db.get_list('External Good', {
-                    fields: ['reporting_period as value', 'reporting_period as description'],
-                    filters: filterArrExternal,
-                    distinct: true,
-                    limit: 20
-                });
-
-                // For Good, use internal_customs_import_number and map to value/description
-                let filterArrGood = [['internal_customs_import_number', 'like', `%${txt}%`]];
-                if (supplier_vals.length) {
-                    filterArrGood.push(['supplier_name', 'in', supplier_vals]);
-                }
-                if (cn_code_vals.length) {
-                    filterArrGood.push(['cn_code', 'in', cn_code_vals]);
-                }
-                const goodPromise = frappe.db.get_list('Good', {
-                    fields: ['internal_customs_import_number'],
-                    filters: filterArrGood,
-                    distinct: true,
-                    limit: 20
-                });
-
-                // Wait for both
-                const [external, good] = await Promise.all([externalPromise, goodPromise]);
-                // Map Good results to match the structure
-                const goodMapped = good.map(item => ({
-                    value: item.internal_customs_import_number,
-                    description: item.internal_customs_import_number
-                }));
-                // Merge and deduplicate by value
-                const all = [...external, ...goodMapped];
-                const seen = new Set();
-                const unique = all.filter(item => {
-                    if (!item.value || seen.has(item.value)) return false;
-                    seen.add(item.value);
-                    return true;
-                });
-                return unique;
+            filters.reporting_period.df.get_data = function(txt) {
+                const supplier = filters.supplier?.get_value?.() || [];
+                const cn_code = filters.cn_code?.get_value?.() || [];
+                return fetch_filter_options({ txt, filter_type: "reporting_period", supplier, cn_code });
             };
 
             return filters;
