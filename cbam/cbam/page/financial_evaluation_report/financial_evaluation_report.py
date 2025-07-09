@@ -248,7 +248,7 @@ def get_cards_value(filters=None):
             sev.emission_value,
             ecp.price AS ets_price
         FROM `tabCBAM Factor` cf
-        LEFT JOIN `tabCN Code Bench Mark Emission Value` cnb 
+        LEFT JOIN `tabCBAM Benchmark` cnb 
             ON cnb.year = %(year)s
         LEFT JOIN `tabStandard Emission Value` sev 
             ON sev.year = %(year)s
