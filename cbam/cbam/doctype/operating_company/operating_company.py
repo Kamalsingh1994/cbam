@@ -209,3 +209,28 @@ def send_bulk_signup_request(operating_companys):
 		for company in operating_companys:
 			operating_company = frappe.get_doc("Operating Company", company.get("name"))
 			operating_company.send_signup_request()
+
+
+
+
+def update_goods_on_operating_company_change(doc, method):
+    # Fetch all Goods records linked to this Operating Company and not "Data Submitted"
+    goods_list = frappe.get_all("Good", 
+        filters={
+            "operating_company": doc.name,
+            "status": ["!=", "Data Submitted"]
+        },
+        fields=["name"]
+    )
+
+    for good in goods_list:
+        good_doc = frappe.get_doc("Good", good.name)
+        good_doc.country = doc.country
+        good_doc.city = doc.city
+        good_doc.zip_code = doc.zip_code
+        good_doc.street_and_number = doc.street_and_number
+        good_doc.company_email = doc.company_email
+        good_doc.company_phone_number = doc.company_phone_number
+        good_doc.supplier_name = doc.supplier_name
+        good_doc.save(ignore_permissions=True)
+

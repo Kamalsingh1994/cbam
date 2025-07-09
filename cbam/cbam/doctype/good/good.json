@@ -42,12 +42,15 @@
   "supplier_section",
   "operating_company",
   "country",
+  "street_and_number",
   "column_break_lqxr",
   "supplier_name",
   "city",
+  "company_email",
   "column_break_fkqq",
   "supplier_number",
   "zip_code",
+  "company_phone_number",
   "section_break_kbvy",
   "declarant",
   "column_break_rtyx",
@@ -624,13 +627,31 @@
    "fieldname": "raw_mass_tonne",
    "fieldtype": "Float",
    "label": "Raw Mass [t]"
+  },
+  {
+   "fieldname": "street_and_number",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Street and Number"
+  },
+  {
+   "fieldname": "company_email",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Company Email"
+  },
+  {
+   "fieldname": "company_phone_number",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Company Phone Number"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-09 07:38:29.464808",
+ "modified": "2025-07-08 13:25:37.215898",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
