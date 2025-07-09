@@ -165,6 +165,13 @@ after_migrate = [
 # 	}
 # }
 
+doc_events = {
+    "Operating Company": {
+        "on_update": "cbam.cbam.doctype.operating_company.operating_company.update_goods_on_operating_company_change"
+    }
+}
+
+
 # Scheduled Tasks
 # ---------------
 
