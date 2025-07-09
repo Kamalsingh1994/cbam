@@ -32,7 +32,7 @@ def get_columns():
         {"fieldname": "cn_code", "fieldtype": "Data", "label": "CN Code", "width": 150},
         {"fieldname": "article_number", "fieldtype": "Data", "label": "Article Number", "width": 200},
         {"fieldname": "supplier", "fieldtype": "Data", "label": "Supplier", "width": 200},
-        {"fieldname": "raw_mass", "fieldtype": "Data", "label": "Mass [kg]", "width": 150},
+        {"fieldname": "raw_mass_tonne", "fieldtype": "Data", "label": "Mass [t]", "width": 150},
         {"fieldname": "carbon_price_due", "fieldtype": "Data", "label": "Carbon Price Due", "width": 150},
         {"fieldname": "installation_country", "fieldtype": "Data", "label": "Installation Country", "width": 180},
         {"fieldname": "real_emission_value", "fieldtype": "Data", "label": "Specific (Direct) Emission Value", "width": 250},
@@ -86,20 +86,20 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
                 eg.cn_code,
                 eg.article_no AS article_number,
                 eg.supplier,
-                IFNULL(eg.raw_mass,0.0) AS raw_mass,
+                IFNULL(eg.raw_mass_tonne,0.0) AS raw_mass_tonne,
                 IFNULL(eg.carbon_price_due,0.0) as carbon_price_due,
                 eg.installation_country,
                 IFNULL(eg.specific_direct_embedded_emissions,0.0) AS real_emission_value,             
                 ((
                     IFNULL(eg.specific_direct_embedded_emissions,0.0) - ({cbam_factor} * {bench_mark})
                     - ((IFNULL(eg.specific_direct_embedded_emissions,0.0) * IFNULL(eg.carbon_price_due, 0.0)) / {ets_carbon_price})
-                ) * IFNULL(eg.raw_mass, 0.0) * {ets_carbon_price}) AS real_emission_cost,
+                ) * IFNULL(eg.raw_mass_tonne, 0.0) * {ets_carbon_price}) AS real_emission_cost,
 
                 ((
                     {emission_value}
                     - ({bench_mark} * {cbam_factor})
                     - (({emission_value} * IFNULL(eg.carbon_price_due, 0.0)) / {ets_carbon_price})
-                ) * IFNULL(eg.raw_mass, 0.0) * {ets_carbon_price}) AS standard_emission_cost
+                ) * IFNULL(eg.raw_mass_tonne, 0.0) * {ets_carbon_price}) AS standard_emission_cost
             FROM `tabExternal Good` eg
             {where_sql_eg}
             UNION
@@ -107,20 +107,20 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
                 g.cn_code,
                 g.article_number,
                 g.supplier_name AS supplier,
-                IFNULL(g.raw_mass,0.0) AS raw_mass,
+                IFNULL(g.raw_mass_tonne,0.0) AS raw_mass_tonne,
                 IFNULL(g.carbon_price_due,0.0) AS carbon_price_due,
                 g.installation_country,    
                 IFNULL(g.specific_direct_embedded_emissions,0.0) AS real_emission_value,
                 ((
                     IFNULL(g.specific_direct_embedded_emissions,0.0) - ({cbam_factor} * {bench_mark})
                     - ((IFNULL(g.specific_direct_embedded_emissions,0.0) * IFNULL(g.carbon_price_due,0.0)) / {ets_carbon_price})
-                ) * IFNULL(g.raw_mass,0.0) * {ets_carbon_price}) AS real_emission_cost,
+                ) * IFNULL(g.raw_mass_tonne,0.0) * {ets_carbon_price}) AS real_emission_cost,
                 ((
                     {emission_value}
                     - ({bench_mark} * {cbam_factor})
                     - (({emission_value} * IFNULL(g.carbon_price_due, 0.0)) / {ets_carbon_price})
                 )
-                * IFNULL(g.raw_mass, 0.0) * {ets_carbon_price}) AS standard_emission_cost
+                * IFNULL(g.raw_mass_tonne, 0.0) * {ets_carbon_price}) AS standard_emission_cost
             FROM `tabGood` g
             {where_sql}
         ) AS main_table
@@ -169,14 +169,14 @@ def get_count(where_sql, where_sql_eg):
     count_query = f"""
         SELECT COUNT(*) FROM (
             SELECT 
-                eg.cn_code, eg.article_no as article_number, eg.supplier, eg.raw_mass, eg.installation_country,
+                eg.cn_code, eg.article_no as article_number, eg.supplier, eg.raw_mass_tonne, eg.installation_country,
                 eg.specific_direct_embedded_emissions, eg.carbon_price_due
             FROM `tabExternal Good` eg
             {where_sql_eg}
             
             UNION
             SELECT 
-                g.cn_code, g.article_number, g.supplier_name as supplier, g.raw_mass, g.installation_country,
+                g.cn_code, g.article_number, g.supplier_name as supplier, g.raw_mass_tonne, g.installation_country,
                 g.specific_direct_embedded_emissions, g.carbon_price_due
             FROM `tabGood` g
             {where_sql}

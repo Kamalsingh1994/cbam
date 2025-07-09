@@ -13,6 +13,7 @@
   "supplier",
   "installation_name",
   "raw_mass",
+  "raw_mass_tonne",
   "buying_price_per_mass",
   "calculate",
   "quantity_of_articles",
@@ -180,12 +181,17 @@
    "fieldname": "position_number",
    "fieldtype": "Data",
    "label": "Report Position Number"
+  },
+  {
+   "fieldname": "raw_mass_tonne",
+   "fieldtype": "Float",
+   "label": "Raw Mass [t]"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-02 12:58:41.625026",
+ "modified": "2025-07-08 17:27:02.937388",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",

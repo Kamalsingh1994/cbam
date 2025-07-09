@@ -6,4 +6,8 @@ from frappe.model.document import Document
 
 
 class ExternalGood(Document):
-	pass
+	def validate(self):
+		if self.raw_mass:
+			self.raw_mass_tonne = float(self.raw_mass) / 1000
+
+
