@@ -134,6 +134,7 @@ def set_conditions(declarants, filters, where_clauses, where_clauses_eg):
     if declarants:
         declarant_list = ', '.join(f"'{d}'" for d in declarants)
         where_clauses.append(f"g.declarant IN ({declarant_list})")
+        where_clauses_eg.append(f"eg.declarant IN ({declarant_list})")
 
     if filters.get("cn_code") and isinstance(filters["cn_code"], list) and len(filters["cn_code"]) > 0:
         cn_code_list = ', '.join(f"'{c}'" for c in filters["cn_code"])
