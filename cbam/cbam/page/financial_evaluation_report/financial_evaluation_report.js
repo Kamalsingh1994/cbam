@@ -44,8 +44,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
         function get_table_data(data, per_tonne = false) {
             return data.map(row => {
                 if (!per_tonne) return { ...row };
-                const mass = Number(row.raw_mass) || 0;
-                let mass_tonnes = mass / 1000;
+                let mass_tonnes = Number(row.raw_mass_tonne) || 0;
                 if (mass_tonnes > 0) {
                     return {
                         ...row,
