@@ -35,7 +35,11 @@ class OperatingCompany(Document):
 				self.status = "Pending Verification"		
 			else:
 				frappe.msgprint(MISSING_CONTACT_MESSAGE)
-				notify_system_manager_of_conflict(self.main_contact_employee_email, self.name)
+				# Only send email once
+				if not getattr(self.flags, "conflict_notified", False):
+					notify_system_manager_of_conflict(self.main_contact_employee_email, self.name)
+					self.flags.conflict_notified = True
+
 				self.create_commercial_contact_user = 0
 				self.commercial_contact_user = ""
 				self.status = "Missing Commercial Contact"
@@ -58,7 +62,11 @@ class OperatingCompany(Document):
 				self.status = "Pending Verification"
 			else:
 				frappe.msgprint(MISSING_CONTACT_MESSAGE)
-				notify_system_manager_of_conflict(self.cbam_representive_employee_email, self.name)
+				# Only send email once
+				if not getattr(self.flags, "conflict_notified", False):
+					notify_system_manager_of_conflict(self.cbam_representive_employee_email, self.name)
+					self.flags.conflict_notified = True
+
 				self.cbam_representative_user = ""
 				self.status = "CBAM Rep User Conflict"
 
