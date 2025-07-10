@@ -292,7 +292,7 @@ function executeJS() {
             title: __("Add New Emission"),
             fields: [
                 {
-                    label: __("Label"),
+                    label: __("Emission Label"),
                     fieldname: "label",
                     fieldtype: "Data",
                     reqd: update ? 0 : 1,
