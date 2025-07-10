@@ -6,8 +6,13 @@ from frappe.model.document import Document
 
 
 class CBAMEmissionData(Document):
+	def on_update(self):
+		self.update_good_installation_name()
+		
 	def after_insert(self):
 		self.add_to_installation_cht()
+		self.update_good_installation_name()
+
 
 	def on_trash(self):
 		self.delete_child_from_installation_cht()
@@ -34,3 +39,13 @@ class CBAMEmissionData(Document):
 		linked_goods_list = frappe.get_all("Good", filters={"emission_data": self.name}, fields=["name"], pluck="name")
 		for good in linked_goods_list:
 			frappe.db.set_value("Good", good, "emission_data", None)
+
+
+	def update_good_installation_name(self):
+		if self.operating_company and self.installation_name:
+			good_docs = frappe.get_all("Good", 
+                filters={"operating_company": self.operating_company},
+                fields=["name"]
+            )
+			for good in good_docs:
+				frappe.db.set_value("Good", good.name, "installation_name", self.installation_name)
