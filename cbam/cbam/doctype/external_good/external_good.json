@@ -13,6 +13,7 @@
   "supplier",
   "installation_name",
   "raw_mass",
+  "raw_mass_tonne",
   "buying_price_per_mass",
   "calculate",
   "quantity_of_articles",
@@ -54,7 +55,7 @@
    "fieldname": "mass_per_article",
    "fieldtype": "Float",
    "label": "Mass Per Article [kg]",
-   "read_only_depends_on": "eval:doc.calculate == \"Quantity of Articles\""
+   "read_only_depends_on": "eval:doc.calculate == \"Mass Per Article [kg]\""
   },
   {
    "fieldname": "column_break_ltwo",
@@ -173,19 +174,24 @@
    "fieldname": "quantity_of_articles",
    "fieldtype": "Float",
    "label": "Quantity of Articles",
-   "read_only_depends_on": "eval:doc.calculate == \"Mass Per Article [kg]\""
+   "read_only_depends_on": "eval:doc.calculate == \"Quantity of Articles\""
   },
   {
    "description": "e.g. 1.1, 1.2, 2.1, 2.2",
    "fieldname": "position_number",
    "fieldtype": "Data",
    "label": "Report Position Number"
+  },
+  {
+   "fieldname": "raw_mass_tonne",
+   "fieldtype": "Float",
+   "label": "Raw Mass [t]"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-30 08:17:58.927526",
+ "modified": "2025-07-08 17:27:02.937388",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",

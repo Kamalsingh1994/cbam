@@ -9,8 +9,11 @@
  "field_order": [
   "naming_series",
   "cn_code",
-  "country",
   "emission_value",
+  "indirect_emission_value",
+  "column_break_rjvl",
+  "country",
+  "year",
   "reporting_period"
  ],
  "fields": [
@@ -29,7 +32,7 @@
   {
    "fieldname": "emission_value",
    "fieldtype": "Data",
-   "label": "Emission Value"
+   "label": "Direct Emission Value [tCO2/tproduct]"
   },
   {
    "default": "SEV-",
@@ -45,12 +48,27 @@
    "fieldtype": "Table MultiSelect",
    "label": "Reporting Period",
    "options": "Reporting Period"
+  },
+  {
+   "fieldname": "column_break_rjvl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Link",
+   "label": "Year",
+   "options": "Year"
+  },
+  {
+   "fieldname": "indirect_emission_value",
+   "fieldtype": "Data",
+   "label": "Indirect Emission Value [tCO2/tproduct]"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-27 12:41:13.989800",
+ "modified": "2025-07-09 08:51:35.685339",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Standard Emission Value",

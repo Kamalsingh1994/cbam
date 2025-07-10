@@ -14,7 +14,6 @@ class Good(Document):
 			prefix = self.parent_good
 			self.name = f'{prefix}-{getseries(prefix, 2)}'
 
-
 	def validate(self):
 		self.set_countries()
 		if self.supplier_number and self.supplier_name:
@@ -24,7 +23,7 @@ class Good(Document):
 		if self.operating_company:
 			self.supplier_number, self.supplier_name = frappe.db.get_values("Operating Company", self.operating_company, ['supplier_number', 'supplier_name'])[0]
 
-		self.update_name()
+		self.update_mass_t()
 
 	def update_name(self):
 		for row in self.split_details:
@@ -315,3 +314,20 @@ def send_data_request(goods):
 			frappe.db.set_value("Good", g.get("name"), "status", "Data Requested")
 
 
+@frappe.whitelist()
+def get_supplier_snapshot():
+    # Same method you use on frontend
+    from cbam.utils.supplier import get_supplier
+    return get_supplier()
+
+def on_submit(doc, method):
+    # Get supplier snapshot
+    supplier = get_supplier_snapshot()
+
+    # Set snapshot fields on Good
+    doc.country = supplier.get("country")
+    doc.city = supplier.get("city")
+    doc.zip_code = supplier.get("zip_code")
+    doc.street_and_number = supplier.get("street_and_number")
+    doc.company_email = supplier.get("company_email")
+    doc.company_phone_number = supplier.get("company_phone_number")

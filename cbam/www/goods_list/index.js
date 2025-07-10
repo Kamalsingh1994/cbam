@@ -639,29 +639,87 @@ function executeJS() {
     }
 
 
-    CreateEmissionSubmissionDialog = async function(goods){
-        let supplier_details = await cbam.supplier.get_supplier_details();
-        if (supplier_details.status!="Company Verified"){
-            const cc_add = __("Company Contact and Address")
-            const cbr_details = __("CBAM Representative Details")
-            let d = new frappe.ui.Dialog({ 
-                title: `Please Confirm your Operating Company Details`,
+const CreateEmissionSubmissionDialog = async function(goods) {
+    let current_user_email = frappe.session.user;
+
+    // Get last submitted Good by this user
+    let existing_good = await frappe.call({
+        method: "frappe.client.get_list",
+        args: {
+            doctype: "Good",
+            filters: {
+                cbam_representative_email: current_user_email,
+                status: "Data Submitted"
+            },
+            fields: ["name"],
+            order_by: "modified desc",
+            limit_page_length: 1
+        }
+    });
+
+    // Get supplier details ONCE
+    let supplier_details = await cbam.supplier.get_supplier_details();
+
+    if (existing_good.message && existing_good.message.length > 0) {
+        let last_good_response = await frappe.call({
+            method: "frappe.client.get",
+            args: {
+                doctype: "Good",
+                name: existing_good.message[0].name,
                 fields: [
+                    "country",
+                    "city",
+                    "zip_code",
+                    "street_and_number",
+                    "company_email",
+                    "company_phone_number"
+                ]
+            }
+        });
+
+        let last_good = last_good_response.message;
+
+        // Normalize helper
+        function normalize(val) {
+            return (val || '').toString().trim().toLowerCase();
+        }
+
+        // Actual comparison
+        let has_changed = (
+            normalize(last_good.country) !== normalize(supplier_details.country) ||
+            normalize(last_good.city) !== normalize(supplier_details.city) ||
+            normalize(last_good.zip_code) !== normalize(supplier_details.zip_code) ||
+            normalize(last_good.street_and_number) !== normalize(supplier_details.street_and_number) ||
+            normalize(last_good.company_email) !== normalize(supplier_details.company_email) ||
+            normalize(last_good.company_phone_number) !== normalize(supplier_details.company_phone_number)
+        );
+
+        if (!has_changed) {
+            SubmissionDialog(goods);
+            return;
+        } else {
+            console.log(" Change detected — showing confirmation popup.");
+        }
+    }
+
+    // Show popup
+    if (supplier_details.status !== "Company Verified") {
+        const cc_add = __("Company Contact and Address");
+        let d = new frappe.ui.Dialog({
+            title: __("Please Confirm your Operating Company Details"),
+            fields: [
                     {
                         label: __("Operating Company Name"),
                         fieldname: "supplier_name",
                         fieldtype: "Data",
                         
                         default: supplier_details.supplier_name,
-                        read_only:1
-                        //options: "\nSub Supplier\nCollegue"
+                        read_only: 1
                     },
                     {
-                        label: `<strong>${cc_add}</strong>`,
+                        label: `<strong>${__("Company Contact and Address")}</strong>`,
                         fieldname: "sb1",
-                        fieldtype: "Section Break",
-                        
-                        
+                        fieldtype: "Section Break"
                     },
                     {
                         label: __("Company Phone Number"),
@@ -701,10 +759,8 @@ function executeJS() {
                     },
                     {
                         label: __(""),
-                        fieldname: "cb1",
-                        fieldtype: "Column Break",
-                        
-                        
+                        fieldname: "cb2",
+                        fieldtype: "Column Break"
                     },
                     {
                         label: __("City"),
@@ -716,21 +772,20 @@ function executeJS() {
                     {
                         label: __("Country"),
                         fieldname: "country",
-                        fieldtype: "Autocomplete",
-                        options: await cbam.utils.get_links("Country"),
+                        fieldtype: "Data",
                         default: supplier_details.country,
                         reqd: 1
                     },
                     {
-                        label: `<strong>${cbr_details}</strong>`,
-                        fieldname: "sb1",
-                        fieldtype: "Section Break",                        
+                        label: `<strong>${__("CBAM Representative Details")}</strong>`,
+                        fieldname: "sb3",
+                        fieldtype: "Section Break"
                     },
                     {
-                        label: __("CBAM Representative Last Name"),
-                        fieldname: "cbam_representive_last_name",
+                        label: __("CBAM Representative First Name"),
+                        fieldname: "cbam_representive_employee_first_name",
                         fieldtype: "Data",
-                        default: supplier_details.cbam_representive_last_name,
+                        default: supplier_details.cbam_representive_employee_first_name,
                         reqd: 1
                     },
                     {
@@ -738,7 +793,7 @@ function executeJS() {
                         fieldname: "cbam_representive_employee_email",
                         fieldtype: "Data",
                         default: supplier_details.cbam_representive_employee_email,
-                        reqd: supplier_details.cbam_representative_user ? 0 : 1 ,
+                        reqd: supplier_details.cbam_representative_user ? 0 : 1,
                         read_only: supplier_details.cbam_representative_user ? 1 : 0
                     },
                     {
@@ -750,16 +805,14 @@ function executeJS() {
                     },
                     {
                         label: __(""),
-                        fieldname: "cb2",
-                        fieldtype: "Column Break",
-                        
-                        
+                        fieldname: "cb4",
+                        fieldtype: "Column Break"
                     },
                     {
-                        label: __("CBAM Representative First Name"),
-                        fieldname: "cbam_representive_employee_first_name",
+                        label: __("CBAM Representative Last Name"),
+                        fieldname: "cbam_representive_last_name",
                         fieldtype: "Data",
-                        default: supplier_details.cbam_representive_employee_first_name,
+                        default: supplier_details.cbam_representive_last_name,
                         reqd: 1
                     },
                     {
@@ -768,34 +821,24 @@ function executeJS() {
                         fieldtype: "Data",
                         default: supplier_details.cbam_representive_employee_phone_number,
                         reqd: 1
-                    },
-                    
+                    }
                 ],
-                size: 'extra-large', // small, large, extra-large 
-                primary_action_label: __('Confirm Details'),
-                //secondary_action_label: '',
-                primary_action(values) {
-                    values.varify = true
-                    cbam.supplier.confirm_details(values)
-                    d.hide();
-                    SubmissionDialog(goods)
-                },
-                secondary_action(values) {
-                    
-                    
-                    
-                    no+=1
-                    
-                }
-            });
-            d.show()
-        }
-        else{
-            SubmissionDialog(goods)    
-        }
-        
-        
+            size: 'extra-large',
+            primary_action_label: __('Confirm Details'),
+            primary_action(values) {
+                cbam.supplier.confirm_details(values);
+                d.hide();
+                SubmissionDialog(goods);
+            }
+        });
+        d.show();
+    } else {
+        SubmissionDialog(goods);
     }
+};
+
+
+
 
     if(document.querySelector(".list-container")) {
         const contentContainer = document.querySelectorAll(".content-container");

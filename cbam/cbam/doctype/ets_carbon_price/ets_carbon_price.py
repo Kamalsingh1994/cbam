@@ -4,9 +4,11 @@
 import frappe
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
+from frappe.sessions import datetime
 from frappe.utils import today, formatdate
 
 class ETSCarbonPrice(Document):
+	
 	def autoname(self):
 		if not self.ets_price_type:
 			frappe.throw("ETS Price Type (Actual or Prediction) is required.")

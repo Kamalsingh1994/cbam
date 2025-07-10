@@ -9,10 +9,10 @@
  "field_order": [
   "naming_series",
   "cn_code",
+  "reporting_period",
   "column_break_zmxu",
   "bench_mark",
-  "section_break_mnmo",
-  "reporting_period"
+  "year"
  ],
  "fields": [
   {
@@ -24,7 +24,7 @@
   {
    "fieldname": "bench_mark",
    "fieldtype": "Data",
-   "label": "Bench Mark Emission Value [tCO2/tproduct]"
+   "label": "Emission Benchmark [tCO2/tproduct]"
   },
   {
    "default": "CN-BM-",
@@ -38,23 +38,25 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "section_break_mnmo",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "reporting_period",
    "fieldtype": "Table MultiSelect",
    "label": "Reporting Period",
    "options": "Reporting Period"
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Link",
+   "label": "Year",
+   "options": "Year"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-27 12:28:21.848050",
+ "modified": "2025-07-09 07:56:12.685414",
  "modified_by": "Administrator",
  "module": "CBAM",
- "name": "CN Code Bench Mark Emission Value",
+ "name": "CBAM Benchmark",
  "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [

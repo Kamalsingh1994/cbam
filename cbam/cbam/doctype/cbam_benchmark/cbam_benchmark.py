@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class CNCodeBenchMarkEmissionValue(Document):
+class CBAMBenchmark(Document):
 	pass

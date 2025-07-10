@@ -59,7 +59,6 @@
 		</div>
 	</div>
 	<div class="container info-container hidden">
-		<h2>{{_('Base information of installation')}}</h2>
 		<div class="container responsive-md" style="width: 100%">
 		<div class="tc-field-cont field-cont">
 			<span class="field-label">{{_('Name of the Installation')}}</span>
@@ -81,7 +80,6 @@
 			<span class="field tc-field">{{doc.country}}</span>
 		</div>
 		</div>
-		<h2>{{_('Emissions data tracking of the installation')}}</h2>
 		<div class="container responsive-md" style="width: 100%">
 		<div class="tc-field-cont field-cont">
 			<span class="field-label">{{_('Is the installation tracking emissions data?')}}</span>
@@ -104,21 +102,32 @@
 		</div>
 		{% endif %}
 		</div>
-		<h2>{{_('Emission Details')}}</h2>
+		<div class="d-flex justify-content-between align-items-center mb-3" style="width: 100%;">
+			<div style="width: 140px;"></div>
+
+			<h2 class="m-0 text-center flex-grow-1">{{ _('Emission Details') }}</h2>
+
+			<div>
+				<a href="#" class="btn btn-primary btn-sm primary-action ex-pay-link add-newemission" style="text-decoration: none; color: white;">
+					{{ _('Add New Emission') }}
+				</a>
+			</div>
+		</div>
+		
 		<div class="table-responsive" style="width: 100%;">
 		<table class="table" style="min-width: 134%;">
 			
 			<tr>
 				<td width=""><strong>{{_('Sr.')}}</strong></td>
 				
-				<td><strong>{{_('Label')}}</strong></td>
-				<td><strong>{{_('Specific (direct) embedded emissions [tCO2/t]')}}</strong></td>
-				<td width=""><strong>{{_('Source of electricity')}}</strong></td>
+				<td><strong>{{_('Emission Label')}}</strong></td>
+				<td><strong>{{_('Specific (Direct) Embedded Emissions [tCO2/t]')}}</strong></td>
+				<td width=""><strong>{{_('Source of Electricity')}}</strong></td>
 				<td width=""><strong>{{_('Production Method')}}</strong></td>
-				<td><strong>{{_('Electricity consumed [MWh/t]')}}</strong></td>
-				<td><strong>{{_('Indirect Emission Factor [tCO2/MWh]')}}</strong></td>
-				<td><strong>{{_('Source of Indirect Emission Factor')}}</strong></td>
-				<td><strong>{{_('Specific (indirect) embedded emissions [tCO2/t]')}}</strong></td>
+				<td><strong>{{_('Electricity Consumed [MWh/t]')}}</strong></td>
+				<td><strong>{{_('Electricity Emission Factor [tCO2/MWh]')}}</strong></td>
+				<td><strong>{{_('Source of Electricity Emission Factor')}}</strong></td>
+				<td><strong>{{_('Specific (Indirect) Embedded Emissions [tCO2/t]')}}</strong></td>
 				<td><strong>{{_('Edit Emission')}}</strong></td>
 			</tr>
 			
@@ -134,7 +143,7 @@
 				<td>{{i.electricity_consumed}}</td>
 				<td>{{i.indirect_emission_factor}}</td>
 				<td>{{i.source_of_indirect_emission_factor or ""}}</td>
-				<td>{{i.specific_indirect_embedded_emissions}}</td>
+				<td>{{i.specific_indirect_embedded_emissions or ""}}</td>
 				<td style="text-align: center;">
 				<button class="btn btn-secondary btn-sm secondary-action edit-emission" data-emission="{{i.name}}">
 					{{_('Edit')}}
@@ -143,11 +152,7 @@
 			</tr>
 			{%endfor%}
 		</table>
-		<button class="btn btn-primary btn-sm primary-action">
-			<span> 
-			<span><a href = "#" class="ex-pay-link add-newemission">{{_('Add New Emission')}}</a></span>
-			</span>
-		</button>
+		
 		</div>
 		
 		

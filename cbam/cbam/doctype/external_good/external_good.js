@@ -17,7 +17,21 @@ frappe.ui.form.on("External Good", {
       });
     }
   },
+  raw_mass_tonne(frm) {
+      if (frm.doc.raw_mass_tonne != null) {
+          const value = flt(frm.doc.raw_mass_tonne) * 1000;
+          if (flt(frm.doc.raw_mass) !== value) {
+              frm.set_value("raw_mass", value);
+          }
+      }
+  },
   raw_mass: function (frm) {
+    if (frm.doc.raw_mass != null) {
+      const value = flt(frm.doc.raw_mass) / 1000;
+      if (flt(frm.doc.raw_mass_tonne) !== value) {
+          frm.set_value("raw_mass_tonne", value);
+      }
+    }
     calculate_quantity(frm);
     calculate_mass_per_article(frm);
   },
