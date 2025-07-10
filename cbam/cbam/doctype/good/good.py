@@ -14,7 +14,6 @@ class Good(Document):
 			prefix = self.parent_good
 			self.name = f'{prefix}-{getseries(prefix, 2)}'
 
-
 	def validate(self):
 		self.set_countries()
 		if self.supplier_number and self.supplier_name:
@@ -24,12 +23,7 @@ class Good(Document):
 		if self.operating_company:
 			self.supplier_number, self.supplier_name = frappe.db.get_values("Operating Company", self.operating_company, ['supplier_number', 'supplier_name'])[0]
 
-		self.update_name()
 		self.update_mass_t()
-
-	def update_mass_t(self):
-		if self.raw_mass:
-			self.raw_mass_tonne = float(self.raw_mass) / 1000
 
 	def update_name(self):
 		for row in self.split_details:
