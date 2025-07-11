@@ -85,6 +85,7 @@ function executeJS() {
     const checkboxes = document.querySelectorAll(".checkbox");
     const selectedEl = document.querySelector(".selected-no");
     const statusFilter = document.querySelector(".status-filter");
+    const reportingFilter = document.querySelector(".reporting-filter");
     const dropDownCont = document.querySelectorAll(".options-abs");
     const dataBtnEl = document.querySelectorAll(".data-btn");
     const notAllowed = ["Split", "Data Submitted"];
@@ -497,35 +498,88 @@ function executeJS() {
         totalCheckbox.checked  = value;
     }
     
-    // To apply the filter on the Invoices Content Container
-    const setStatusFilter = function (status) {
-        // Reset the values
-        totalCheckbox.checked = false;
-        selected = 0;
-        selectedEl.textContent = selected;
+//     // To apply the filter on the Invoices Content Container
+//     const setStatusFilter = function (status) {
+//         // Reset the values
+//         totalCheckbox.checked = false;
+//         selected = 0;
+//         selectedEl.textContent = selected;
         
-        contentContainer.forEach(container => {
-            // Show all the elements before checking for the filter condition
-            container.classList.remove("hidden");
+//         contentContainer.forEach(container => {
+//             // Show all the elements before checking for the filter condition
+//             container.classList.remove("hidden");
             
-            container.querySelector(".checkbox").checked = false;
-            const curStatus = container.querySelector(".status").textContent.toLowerCase();
+//             container.querySelector(".checkbox").checked = false;
+//             const curStatus = container.querySelector(".status").textContent.toLowerCase();
             
-            // The first condition is incase no filter is applied we want to show all the goods
-            if(!status) {
-                container.classList.remove("hidden");
-                // To hide the invoices which are not the same as filter
-            } else if(status.toLowerCase() != curStatus) {
-                container.classList.add("hidden");
-            }
-        })
-    };
+//             // The first condition is incase no filter is applied we want to show all the goods
+//             if(!status) {
+//                 container.classList.remove("hidden");
+//                 // To hide the invoices which are not the same as filter
+//             } else if(status.toLowerCase() != curStatus) {
+//                 container.classList.add("hidden");
+//             }
+//         })
+//     };
+//    const setReportingFilter = function (reporting) {
+//         totalCheckbox.checked = false;
+//         selected = 0;
+//         selectedEl.textContent = selected;
 
-    statusFilter.addEventListener("change", function() {
-        const selectedValue = this.value;
-        
-        setStatusFilter(selectedValue);
-    })
+//         contentContainer.forEach(container => {
+//             container.classList.remove("hidden");
+//             const checkbox = container.querySelector(".checkbox");
+//             if (checkbox) checkbox.checked = false;
+
+//             const reportingEl = container.querySelector(".reporting");
+//             const curReporting = reportingEl ? (reportingEl.dataset.reporting || "").toLowerCase() : "";
+
+//             if (!reporting) {
+//                 container.classList.remove("hidden");
+//             } else if (reporting.toLowerCase() !== curReporting) {
+//                 container.classList.add("hidden");
+//             }
+//         });
+//     };
+    const applyCombinedFilter = function () {
+    const selectedStatus = statusFilter.value.toLowerCase();
+    const selectedReporting = reportingFilter.value.toLowerCase();
+
+    totalCheckbox.checked = false;
+    selected = 0;
+    selectedEl.textContent = selected;
+
+    contentContainer.forEach(container => {
+        const curStatus = container.querySelector(".status").textContent.toLowerCase();
+        const reportingEl = container.querySelector(".reporting");
+        const curReporting = reportingEl ? (reportingEl.dataset.reporting || "").toLowerCase() : "";
+
+        let show = true;
+
+        // Check status filter
+        if (selectedStatus && selectedStatus !== "all" && selectedStatus !== curStatus) {
+            show = false;
+        }
+
+        // Check reporting filter
+        if (selectedReporting && selectedReporting !== "all" && selectedReporting !== curReporting) {
+            show = false;
+        }
+
+        // Apply visibility
+        container.classList.toggle("hidden", !show);
+
+        const checkbox = container.querySelector(".checkbox");
+        if (checkbox) checkbox.checked = false;
+    });
+};
+
+
+
+    statusFilter.addEventListener("change", applyCombinedFilter);
+    reportingFilter.addEventListener("change", applyCombinedFilter);
+
+
 
     // This checks the visible checkboxes in set the boxes lenght value (This is in case filter is applied an some invoices are hidden)
     const checkVisibleBoxes = function() {
