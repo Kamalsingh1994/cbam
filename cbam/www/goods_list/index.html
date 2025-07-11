@@ -12,12 +12,28 @@
               </h1>
               <div class="selected-cta-container">
                 <span class="status-filter-container">
-                  <select type="text" class="form-control  status-filter" data-fieldtype="Select" data-fieldname="status" placeholder="">
-                    <option value="">{{_('All')}}</option>
-                    <option value="Data Requested">{{_('Data Requested')}}</option>
-                    <option value="Data Assigned">{{_('Data Assigned')}}</option>
-                    <option value="Data Submitted">{{_('Data Submitted')}}</option>
+                  <div class="form-group">
+                  <select class="form-control status-filter" data-fieldtype="Select" data-fieldname="status">
+                    <option value="" disabled selected hidden>{{ _("Status") }}</option>
+                    <option value="">{{ _("All") }}</option>
+                    <option value="Data Requested">{{ _('Data Requested') }}</option>
+                    <option value="Data Assigned">{{ _('Data Assigned') }}</option>
+                    <option value="Data Submitted">{{ _('Data Submitted') }}</option>
                   </select>
+
+                </div>
+                </span>
+                <span class="reporting-filter-container">
+                  <div class="form-group">
+                  <select class="form-control reporting-filter" name="reporting-period">
+                    <option value="" disabled selected hidden>{{ _("Reporting Period") }}</option>
+                    <option value="">{{ _("All") }}</option>
+                    {% for doc in frappe.get_all("Customs Import", fields=["name"], order_by="creation desc") %}
+                      <option value="{{ doc.name }}">{{ doc.name }}</option>
+                    {% endfor %}
+                  </select>
+
+                </div>
                 </span>
 
                 <div class="selected-container">
@@ -105,7 +121,9 @@
               <div class="list-row-col list-subject level status-title">
                 <span class="gt-text">{{_('Status')}}</span>
               </div>
-              
+              <div class="list-row-col list-subject level gt-container">
+                <span class="gt-text">{{_('Reporting Period')}}</span>
+              </div>
               <!-- <div class="list-row-col list-subject level prt-container">
                 <span class="prt-text">Actions</span>
               </div> -->
@@ -132,6 +150,7 @@
                           data-doctype="DocType"
                           data-name="Sales Invoice"
                           data-status="{{doc.status}}"
+                          data-reporting="{{ doc.internal_customs_import_number }}"
                           {{ disabled }}
                         />
                       </span>
@@ -173,9 +192,14 @@
                       <span data-status="{{doc.status}}" class="status">{{doc.status}}</span>
                     </span>
                 </div>
-                <div class="list-row-col list-subject level gt-container parts-cont">
-                  <span></span>
+                <div class="list-row-col list-subject level tc-container">
+                  <span class="reporting text-cut" data-reporting="{{doc.internal_customs_import_number}}">
+                      {{doc.internal_customs_import_number}}
+                  </span>
                 </div>
+                <!-- <div class="list-row-col list-subject level gt-container parts-cont">
+                  <span></span>
+                </div> -->
                 <!-- <div class="popup-options list-row-col list-subject level prt-container">
                   <button class="action-btn text-muted btn btn-default icon-btn">
                     <svg class="action-btn icon icon-sm">
