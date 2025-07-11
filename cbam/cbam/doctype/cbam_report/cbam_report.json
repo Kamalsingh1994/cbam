@@ -11,7 +11,8 @@
   "declarant",
   "column_break_fenp",
   "importer",
-  "declarant_acts_as_importer"
+  "declarant_acts_as_importer",
+  "report_attachment"
  ],
  "fields": [
   {
@@ -53,12 +54,17 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Declarant acts as Importer"
+  },
+  {
+   "fieldname": "report_attachment",
+   "fieldtype": "Attach",
+   "label": "Report Attachment"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-27 12:23:49.760396",
+ "modified": "2025-07-11 09:26:41.694640",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Report",
