@@ -156,6 +156,9 @@ def set_conditions(declarants, filters, where_clauses, where_clauses_eg):
         where_clauses.append(f"(g.internal_customs_import_number IN ({reporting_period_list}))")
         where_clauses_eg.append(f"(eg.reporting_period IN ({reporting_period_list}))")
 
+    # Only fetch Good records with status = 'Data Submitted'
+    where_clauses.append("g.status = 'Data Submitted'")
+
     where_sql = ""
     if where_clauses:
         where_sql = "WHERE " + " AND ".join(where_clauses)
