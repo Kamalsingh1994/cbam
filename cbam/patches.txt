@@ -11,5 +11,6 @@ cbam.patches.v15_4_3.update_nav_bar_items
 cbam.patches.v15_4_3.copy_customs_tariff_to_cn_code
 cbam.patches.v15_4_3.create_cn_code
 cbam.patches.v15_4_3.disable_report
-cbam.patches.v15_4_3.update_raw_mass_tonne
 cbam.patches.v15_4_3.update_good_installation_name
+cbam.patches.v15_4_3.truncate_customs_tariff_number
+cbam.patches.v15_4_3.update_rawmass_tonne
