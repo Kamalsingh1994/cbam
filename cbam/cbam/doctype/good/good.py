@@ -23,7 +23,7 @@ class Good(Document):
 		if self.operating_company:
 			self.supplier_number, self.supplier_name = frappe.db.get_values("Operating Company", self.operating_company, ['supplier_number', 'supplier_name'])[0]
 
-		self.update_mass_t()
+		self.update_name()
 
 	def update_name(self):
 		for row in self.split_details:
