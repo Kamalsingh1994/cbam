@@ -13,7 +13,7 @@ class ETSCarbonPrice(Document):
 		if not self.ets_price_type:
 			frappe.throw("ETS Price Type (Actual or Prediction) is required.")
 
-		if not self.price_date:
+		if not self.price_date and self.ets_price_type != "Future":
 			frappe.throw("ETS Carbon Price Date is required.")
 
         # Map Actual / Prediction to A / P
