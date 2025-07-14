@@ -151,8 +151,10 @@ class OperatingCompany(Document):
 			if self.commercial_contact_user:
 				self.create_permissions(self.commercial_contact_user)
 
-		if self.parent_operating_company:
+		# Only send signup request if no conflict
+		if self.parent_operating_company and not self.user_conflict:
 			self.send_signup_request()
+
 
 	@frappe.whitelist()
 	def send_signup_request(self):
