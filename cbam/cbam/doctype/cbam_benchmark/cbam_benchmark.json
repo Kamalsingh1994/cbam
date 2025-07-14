@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "naming_series:naming_series",
  "creation": "2025-05-28 13:08:50.113150",
@@ -8,18 +9,22 @@
  "field_order": [
   "naming_series",
   "cn_code",
-  "bench_mark"
+  "reporting_period",
+  "column_break_zmxu",
+  "bench_mark",
+  "year"
  ],
  "fields": [
   {
    "fieldname": "cn_code",
-   "fieldtype": "Data",
-   "label": "CN Code"
+   "fieldtype": "Link",
+   "label": "CN Code",
+   "options": "CN Code"
   },
   {
    "fieldname": "bench_mark",
    "fieldtype": "Data",
-   "label": "Bench Mark"
+   "label": "Emission Benchmark [tCO2/tproduct]"
   },
   {
    "default": "CN-BM-",
@@ -27,15 +32,31 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Naming Series"
+  },
+  {
+   "fieldname": "column_break_zmxu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reporting_period",
+   "fieldtype": "Table MultiSelect",
+   "label": "Reporting Period",
+   "options": "Reporting Period"
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Link",
+   "label": "Year",
+   "options": "Year"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-28 13:16:29.701028",
+ "modified": "2025-07-09 07:56:12.685414",
  "modified_by": "Administrator",
  "module": "CBAM",
- "name": "CN Code Bench Mark",
+ "name": "CBAM Benchmark",
  "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
@@ -44,10 +65,22 @@
    "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Declarant",
    "share": 1,
    "write": 1
   }

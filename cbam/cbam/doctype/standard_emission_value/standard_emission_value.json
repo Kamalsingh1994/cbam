@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "naming_series:naming_series",
  "creation": "2025-05-28 13:07:06.761430",
@@ -8,24 +9,30 @@
  "field_order": [
   "naming_series",
   "cn_code",
+  "emission_value",
+  "indirect_emission_value",
+  "column_break_rjvl",
   "country",
-  "emission_value"
+  "year",
+  "reporting_period"
  ],
  "fields": [
   {
    "fieldname": "cn_code",
-   "fieldtype": "Data",
-   "label": "CN Code"
+   "fieldtype": "Link",
+   "label": "CN Code",
+   "options": "CN Code"
   },
   {
    "fieldname": "country",
-   "fieldtype": "Data",
-   "label": "Country"
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country"
   },
   {
    "fieldname": "emission_value",
    "fieldtype": "Data",
-   "label": "Emission Value"
+   "label": "Direct Emission Value [tCO2/tproduct]"
   },
   {
    "default": "SEV-",
@@ -33,12 +40,35 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Naming Series"
+  },
+  {
+   "allow_bulk_edit": 1,
+   "allow_in_quick_entry": 1,
+   "fieldname": "reporting_period",
+   "fieldtype": "Table MultiSelect",
+   "label": "Reporting Period",
+   "options": "Reporting Period"
+  },
+  {
+   "fieldname": "column_break_rjvl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Link",
+   "label": "Year",
+   "options": "Year"
+  },
+  {
+   "fieldname": "indirect_emission_value",
+   "fieldtype": "Data",
+   "label": "Indirect Emission Value [tCO2/tproduct]"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-28 13:18:34.512821",
+ "modified": "2025-07-09 08:51:35.685339",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Standard Emission Value",
@@ -50,10 +80,22 @@
    "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Declarant",
    "share": 1,
    "write": 1
   }

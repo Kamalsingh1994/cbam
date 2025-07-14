@@ -6,7 +6,7 @@ app_email = "wolfram.schmidt@phamos.eu"
 app_license = "mit"
 
 after_install = "cbam.utils.after_install.after_install"
-#update boot context
+#update boot context 
 boot_session = "cbam.boot.update_boot_context"
 extend_bootinfo = "cbam.boot.update_website_context"
 website_context = {
@@ -66,6 +66,7 @@ after_migrate = [
     "cbam.utils.utils.update_workspace_for_helpdesk",
     "cbam.utils.utils.add_helpdesk_navbar_item",
     "cbam.utils.utils.remove_user_access_for_desk_user",
+    "cbam.utils.utils.update_workspace_roles",
 ]
 # Svg Icons
 # ------------------
@@ -164,6 +165,13 @@ after_migrate = [
 # 	}
 # }
 
+doc_events = {
+    "Operating Company": {
+        "on_update": "cbam.cbam.doctype.operating_company.operating_company.update_goods_on_operating_company_change"
+    }
+}
+
+
 # Scheduled Tasks
 # ---------------
 
@@ -198,9 +206,9 @@ scheduler_events = {
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "cbam.event.get_events"
-# }
+override_whitelisted_methods = {
+	"frappe.core.doctype.user.user.update_password": "cbam.override.user.update_password"
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
@@ -315,3 +323,7 @@ fixtures = [
     # ]
     # },
 ]
+
+permission_query_conditions = {
+    "User": "cbam.utils.utils.user_permission_query"
+}

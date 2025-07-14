@@ -1,0 +1,44 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"huNlzC7Tud\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">CBAM Analysis Dashboard</span>\",\"col\":12}},{\"id\":\"l0wR6yPlaV\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Financial Evaluation Report\",\"col\":3}}]",
+ "creation": "2025-07-07 12:11:13.553729",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "solid-info",
+ "idx": 0,
+ "indicator_color": "",
+ "is_hidden": 0,
+ "label": "Financial Dashboard",
+ "links": [],
+ "modified": "2025-07-07 12:17:17.166116",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "Financial Dashboard",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Declarant"
+  }
+ ],
+ "sequence_id": 28.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Financial Evaluation Report",
+   "link_to": "financial-evaluation-report",
+   "type": "Page"
+  }
+ ],
+ "title": "Financial Dashboard"
+}

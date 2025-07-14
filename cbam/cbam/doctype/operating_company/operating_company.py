@@ -35,6 +35,11 @@ class OperatingCompany(Document):
 				self.status = "Pending Verification"		
 			else:
 				frappe.msgprint(MISSING_CONTACT_MESSAGE)
+				# Only send email once
+				if not getattr(self.flags, "conflict_notified", False):
+					notify_system_manager_of_conflict(self.main_contact_employee_email, self.name)
+					self.flags.conflict_notified = True
+
 				self.create_commercial_contact_user = 0
 				self.commercial_contact_user = ""
 				self.status = "Missing Commercial Contact"
@@ -57,7 +62,11 @@ class OperatingCompany(Document):
 				self.status = "Pending Verification"
 			else:
 				frappe.msgprint(MISSING_CONTACT_MESSAGE)
-				
+				# Only send email once
+				if not getattr(self.flags, "conflict_notified", False):
+					notify_system_manager_of_conflict(self.cbam_representive_employee_email, self.name)
+					self.flags.conflict_notified = True
+
 				self.cbam_representative_user = ""
 				self.status = "CBAM Rep User Conflict"
 
@@ -142,8 +151,10 @@ class OperatingCompany(Document):
 			if self.commercial_contact_user:
 				self.create_permissions(self.commercial_contact_user)
 
-		if self.parent_operating_company:
+		# Only send signup request if no conflict
+		if self.parent_operating_company and not self.user_conflict:
 			self.send_signup_request()
+
 
 	@frappe.whitelist()
 	def send_signup_request(self):
@@ -209,3 +220,44 @@ def send_bulk_signup_request(operating_companys):
 		for company in operating_companys:
 			operating_company = frappe.get_doc("Operating Company", company.get("name"))
 			operating_company.send_signup_request()
+
+
+
+
+def update_goods_on_operating_company_change(doc, method):
+    # Fetch all Goods records linked to this Operating Company and not "Data Submitted"
+    goods_list = frappe.get_all("Good", 
+        filters={
+            "operating_company": doc.name,
+            "status": ["!=", "Data Submitted"]
+        },
+        fields=["name"]
+    )
+
+    for good in goods_list:
+        good_doc = frappe.get_doc("Good", good.name)
+        good_doc.country = doc.country
+        good_doc.city = doc.city
+        good_doc.zip_code = doc.zip_code
+        good_doc.street_and_number = doc.street_and_number
+        good_doc.company_email = doc.company_email
+        good_doc.company_phone_number = doc.company_phone_number
+        good_doc.supplier_name = doc.supplier_name
+        good_doc.save(ignore_permissions=True)
+
+def notify_system_manager_of_conflict(email, oc_name):
+	subject = "User Conflict on Operating Company Assignment"
+	message = f"""
+		<p>Dear System Manager,</p>
+		<p>An attempt was made to assign the email <b>{email}</b> to Operating Company <b>{oc_name}</b>,</p>
+		<p>but this email is already associated with another Operating Company.</p>
+		<p>Please resolve this conflict by checking user permissions and assignments.</p>
+	"""
+
+	system_managers = frappe.get_all("User", filters={"role": "System Manager", "enabled": 1}, pluck="email")
+
+	frappe.sendmail(
+		recipients=system_managers,
+		subject=subject,
+		message=message
+	)

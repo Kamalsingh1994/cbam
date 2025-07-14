@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 
 def update_workspace_for_helpdesk():
     """
@@ -52,3 +53,48 @@ def remove_user_access_for_desk_user():
         print(f"Removed permission: {perm.name}")
 
     frappe.db.commit()
+
+
+def update_workspace_roles():
+    update_roles("Helpdesk", ["System Manager", "Administrator"])
+    update_roles("Users", ["System Manager", "Administrator"])
+
+def update_user_workspace_roles():
+    update_workspace_roles("User", ["System Manager", "Administrator"])
+
+def update_roles(workspace_name, required_roles):
+    # Check if workspace exists
+    if not frappe.db.exists("Workspace", workspace_name):
+        return
+
+    ws = frappe.get_doc("Workspace", workspace_name)
+    existing_roles = {r.role for r in ws.roles}
+
+    # Append only missing roles
+    for role in required_roles:
+        if role not in existing_roles:
+            ws.append("roles", {"role": role})
+
+    # Always unhide the workspace if hidden
+    if ws.is_hidden:
+        ws.is_hidden = 0
+    
+    ws.save(ignore_permissions=True)
+    frappe.db.commit()
+
+def user_permission_query(user):
+    # Hide all user documents from everyone except admins
+    if "System Manager" in frappe.get_roles(user) or user == "Administrator":
+        return ""
+    return "1=0"  # deny all rows
+
+@frappe.whitelist()
+def get_declarant_for_user():
+    user = frappe.session.user
+    declarants = frappe.get_all(
+        "Declarant User",
+        filters={"user": user},
+        pluck="parent"
+    )
+    return declarants
+

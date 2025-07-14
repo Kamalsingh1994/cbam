@@ -19,6 +19,22 @@ frappe.ui.form.on('Good', {
                 }
             }
         });
+    },
+    raw_mass(frm) {
+        if (frm.doc.raw_mass != null) {
+            const value = flt(frm.doc.raw_mass) / 1000;
+            if (flt(frm.doc.raw_mass_tonne) !== value) {
+                frm.set_value("raw_mass_tonne", value);
+            }
+        }
+    },
+    raw_mass_tonne(frm) {
+        if (frm.doc.raw_mass_tonne != null) {
+            const value = flt(frm.doc.raw_mass_tonne) * 1000;
+            if (flt(frm.doc.raw_mass) !== value) {
+                frm.set_value("raw_mass", value);
+            }
+        }
     }
 })
 

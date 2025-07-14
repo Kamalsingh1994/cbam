@@ -1,22 +1,55 @@
-# Copyright (c) 2025, Your Company and contributors
+# Copyright (c) 2025, phamos GmbH and contributors
 # For license information, please see license.txt
 
 import frappe
 from frappe import _
+from frappe.sessions import datetime
 from frappe.utils import flt, getdate
 from collections import defaultdict
 
+@frappe.whitelist()
+def get_ets_prices(price_type=None, month=None, year=None):
+    conditions = []
+    values = []
+
+    if price_type:
+        conditions.append("ets_price_type = %s")
+        values.append(price_type)
+
+    if month and year:
+        try:
+            month_number = datetime.strptime(month, "%B").month
+            conditions.append("MONTH(price_date) = %s")
+            conditions.append("YEAR(price_date) = %s")
+            values.extend([month_number, year])
+        except ValueError:
+            frappe.throw("Invalid month format")
+
+    where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
+
+    data = frappe.db.sql(f"""
+        SELECT DISTINCT price, price_date FROM `tabETS Carbon Price`
+        {where_clause}
+        ORDER BY price_date DESC
+    """, values, as_dict=True)
+
+    return data
+
+
 def execute(filters=None):
+    filters = filters or {}
     columns = get_columns()
-    data = get_data()
-    return columns, data, None
+    data = get_data(filters)
+    chart = get_chart(data)
+    return columns, data, None, chart
 
 def get_columns():
     columns =  [
 		{
-			"fieldname": "cn_number",
+			"fieldname": "cn_code",
 			"fieldtype": "Data",
-			"label": "CN Number"
+			"label": "CN Code",
+			"width": 150	
 		},
 		{
 			"fieldname": "article_number",
@@ -26,20 +59,21 @@ def get_columns():
 		{
 			"fieldname": "supplier",
 			"fieldtype": "Data",
-			"label": "Supplier"
+			"label": "Supplier",
+            "width": 200
 		},
         {
-			"fieldname": "country",
+			"fieldname": "installation_country",
 			"fieldtype": "Data",
-			"label": "Land"
+			"label": "Installation Country"
 		},
 		{
 			"fieldname": "raw_mass",
 			"fieldtype": "Data",
-			"label": "Mass [kg]"
+			"label": "Mass [kg]",
+			"width": 150
 		},
 		{
-		
 			"fieldname": "mass_per_article",
 			"fieldtype": "Data",
 			"label": "Mass per Article"
@@ -49,92 +83,204 @@ def get_columns():
 			"fieldtype": "Data",
 			"label": "Buying Price per Mass"
 		},
-       
 		{
-		
 			"fieldname": "real_emission_value",
 			"fieldtype": "Data",
-			"label": "Real Emission Value"
+			"label": "Specific (Direct) Emission Value"
 		},
-       
+        {
+			"fieldname": "standard_emission_value",
+			"fieldtype": "Data",
+			"label": "Standard Emission Value"
+		},
+		{
+			"fieldname": "real_emission_cost",
+			"fieldtype": "Data",
+			"label": "Emission Cost based on Actual Emission Value"
+		},
+        {
+			"fieldname": "standard_emission_cost",
+			"fieldtype": "Data",
+			"label": "Emission Cost based on Standard Emission Value"
+		},
 		{
 			"fieldname": "carbon_price_due",
 			"fieldtype": "Data",
 			"label": "Carbon Price Due"
 		},
         {
-			"fieldname": "ets_carbon_price",
+            "fieldname": "cbam_factor",
 			"fieldtype": "Data",
-			"label": "ETS Carbon Price"
-		},
+			"label": "CBAM Factor",
+        },
+        {
+            "fieldname": "bench_mark",
+            "fieldtype": "Data",
+            "label": "Bench Mark",
+        },
+        {
+            "fieldname": "ets_carbon_price",
+            "fieldtype": "Data",
+            "label": "ETS Carbon Price",
+        }
 	]
              
     return columns
 
-def get_data():
-    
-    ets_carbon_price = frappe.db.get_value(
-        "ETS Carbon Price",
-        {"ets_price_type": "Actual"},
-        "price",
-        order_by="date desc"
-    ) or 0
-    
+def get_data(filters=None):
+    filters = filters or {}
+
+    ets_carbon_price = filters.get('ets_price') or 0
+
     user = frappe.session.user
     declarants = get_declarant_for_user(user)
-    
-    # If user has Declarant restrictions
-    good_filter_clause = ""
+
+    where_clauses = []
+    where_clauses_eg = []
+
+
+    # Declarant restriction (only for Good)
     if declarants:
-        # Safely format for SQL IN clause
         declarant_list = ', '.join(f"'{d}'" for d in declarants)
-        good_filter_clause = f" where g.declarant in ({declarant_list})"
+        where_clauses.append(f"g.declarant IN ({declarant_list})")
+
+    # CN Code filter
+    if filters.get("cn_code"):
+        cn_code_list = ', '.join(f"'{c}'" for c in filters["cn_code"])
+        where_clauses.append(f"(g.cn_code IN ({cn_code_list}))")
+        where_clauses_eg.append(f"(eg.cn_code IN ({cn_code_list}))")
+
+    # Supplier filter
+    if filters.get("supplier"):
+        supplier_list = ', '.join(f"'{s}'" for s in filters["supplier"])
+        where_clauses.append(f"(g.supplier_name IN ({supplier_list}))")
+        where_clauses_eg.append(f"(eg.supplier IN ({supplier_list}))")
+
+	# Article Number filter
+    if filters.get("article_number"):
+        article_number_list = ', '.join(f"'{s}'" for s in filters["article_number"])
+        where_clauses.append(f"(g.article_number IN ({article_number_list}))")
+        where_clauses_eg.append(f"(eg.article_no IN ({article_number_list}))")
+    
+    # Reporting Period filter
+    if filters.get("reporting_period"):
+        reporting_period_list = ', '.join(f"'{s}'" for s in filters["reporting_period"])
+        where_clauses.append(f"(g.internal_customs_import_number IN ({reporting_period_list}))")
+        where_clauses_eg.append(f"(eg.reporting_period IN ({reporting_period_list}))")
+
+
+    where_sql = ""
+    if where_clauses:
+        where_sql = "WHERE " + " AND ".join(where_clauses)
+        
+    where_sql_eg = ""
+    if where_clauses_eg:
+        where_sql_eg = "WHERE " + " AND ".join(where_clauses_eg) if where_clauses_eg else ""
         
     data = frappe.db.sql(f"""
-		SELECT 
-			eg.cn_code AS cn_number,
-			eg.article_no AS article_number,
-			eg.supplier,
-			eg.country,
-			eg.raw_mass AS raw_mass,
-			eg.mass_per_article,
-			eg.buying_price_per_mass AS buying_price,
-			eg.carbon_price_due,
-			eg.real_emissions_value AS real_emission_value,
-			e.emission_value,
-			b.bench_mark,
-			{ets_carbon_price} AS ets_carbon_price
-		FROM `tabExternal Good` eg
-		JOIN `tabStandard Emission Value` e 
-			ON eg.cn_code = e.cn_code AND eg.country = e.country
-		JOIN `tabCN Code Bench Mark` b 
-			ON b.cn_code = eg.cn_code
+        SELECT 
+            eg.cn_code,
+            eg.article_no AS article_number,
+            eg.supplier,
+            eg.installation_country,
+            IFNULL(eg.raw_mass,0.0) AS raw_mass,
+            IFNULL(eg.mass_per_article,0.0) AS mass_per_article,
+            IFNULL(eg.buying_price_per_mass,0.0) AS buying_price,
+            IFNULL(eg.carbon_price_due,0.0) as carbon_price_due,
+            IFNULL(eg.specific_direct_embedded_emissions,0.0) AS real_emission_value,
+            IFNULL(e.emission_value,0.0) AS standard_emission_value,
+            IFNULL(b.bench_mark,0.0) AS bench_mark,
+            eg.reporting_period,
+            IFNULL(cbam.cbam_factor,0.0) AS cbam_factor,
+            {ets_carbon_price} as ets_carbon_price,
+            ((
+                IFNULL(eg.specific_direct_embedded_emissions,0) - (IFNULL(cbam.cbam_factor,0) * IFNULL(b.bench_mark,0))
+                - ((IFNULL(eg.specific_direct_embedded_emissions,0) * IFNULL(eg.carbon_price_due, 0)) / {ets_carbon_price})
+            ) * IFNULL(eg.raw_mass, 0) * {ets_carbon_price}) AS real_emission_cost,
 
-		UNION ALL
+            ((
+                IFNULL(e.emission_value, 0.0) 
+                - (IFNULL(b.bench_mark, 0.0) * IFNULL(cbam.cbam_factor, 0.0))
+                - ((IFNULL(e.emission_value, 0.0) * IFNULL(eg.carbon_price_due, 0.0)) / {ets_carbon_price})
+            ) 
+            * IFNULL(eg.raw_mass, 0.0) * {ets_carbon_price}) AS standard_emission_cost
 
-		SELECT 
-			g.customs_tariff_number AS cn_number,
-			g.article_number,
-			g.supplier_name AS supplier,
-			g.country_of_origin AS country,	
-			g.raw_mass,
-			g.mass_per_article,
-			g.buying_price,
-			g.carbon_price_due,
-			g.specific_direct_embedded_emissions AS real_emission_value,
-			e.emission_value,
-			b.bench_mark,
-			{ets_carbon_price} AS ets_carbon_price
-		FROM `tabGood` g
-		JOIN `tabStandard Emission Value` e 
-			ON g.customs_tariff_number = e.cn_code AND g.country_of_origin = e.country
-		JOIN `tabCN Code Bench Mark` b 
-			ON b.cn_code = g.customs_tariff_number
-		{good_filter_clause}
-	""", as_dict=1)
+        FROM `tabExternal Good` eg
+        LEFT JOIN `tabStandard Emission Value` e 
+            ON eg.cn_code = e.cn_code AND eg.installation_country = e.country
+            
+        LEFT JOIN `tabCBAM Benchmark` b 
+            ON b.cn_code = eg.cn_code
+
+        LEFT JOIN `tabReporting Period` rp
+            ON rp.reporting_period = eg.reporting_period AND rp.parent IS NOT NULL AND rp.parenttype = 'CBAM Factor'
+
+        LEFT JOIN `tabCBAM Factor` cbam
+            ON cbam.name = rp.parent
+
+		{where_sql_eg}
+        
+        UNION
+
+        SELECT 
+            g.cn_code,
+            g.article_number,
+            g.supplier_name AS supplier,
+            g.installation_country,	
+            IFNULL(g.raw_mass,0.0) AS raw_mass,
+            IFNULL(g.mass_per_article,0.0) AS mass_per_article,
+            IFNULL(g.buying_price,0.0) AS buying_price,
+            IFNULL(g.carbon_price_due,0.0) AS carbon_price_due,
+            IFNULL(g.specific_direct_embedded_emissions,0) AS real_emission_value,
+            IFNULL(e.emission_value,0.0) AS standard_emission_value,
+            IFNULL(b.bench_mark,0.0) AS bench_mark,
+            g.internal_customs_import_number as reporting_period,
+            IFNULL(cbam.cbam_factor,0.0) AS cbam_factor,
+            {ets_carbon_price} as ets_carbon_price,
+            ((
+                IFNULL(g.specific_direct_embedded_emissions,0.0) - (IFNULL(cbam.cbam_factor,0.0) * IFNULL(b.bench_mark,0.0))
+                - ((IFNULL(g.specific_direct_embedded_emissions,0.0) * IFNULL(g.carbon_price_due,0.0)) / {ets_carbon_price})
+            ) * IFNULL(g.raw_mass,0.0) * {ets_carbon_price}) AS real_emission_cost,
+
+            ((
+                IFNULL(e.emission_value, 0.0)
+                - (IFNULL(b.bench_mark, 0.0) * IFNULL(cbam.cbam_factor, 0.0))
+                - ((IFNULL(e.emission_value, 0.0) * IFNULL(g.carbon_price_due, 0.0)) / {ets_carbon_price})
+            )
+            * IFNULL(g.raw_mass, 0.0) * {ets_carbon_price}) AS standard_emission_cost
+
+        FROM `tabGood` g
+
+        LEFT JOIN `tabStandard Emission Value` e 
+            ON g.cn_code = e.cn_code AND g.installation_country = e.country
+        LEFT JOIN `tabCBAM Benchmark` b 
+            ON b.cn_code = g.cn_code
+ 
+        LEFT JOIN `tabReporting Period` rp 
+            ON rp.reporting_period = g.internal_customs_import_number AND rp.parent IS NOT NULL
+        LEFT JOIN `tabCBAM Factor` cbam
+            ON cbam.name = rp.parent AND rp.parenttype = 'CBAM Factor'
+
+        {where_sql}
+    """, as_dict=1)
+
+    unique_keys = set()
+    final_data = []
+
+    for row in data:
+        key = (
+            row["cn_code"], row["article_number"], row["supplier"], row["installation_country"]
+        )
+
+        if key not in unique_keys:
+            # Optional: skip rows that have mostly blanks
+            if any([row.get("real_emission_value"), row.get("standard_emission_value"), row.get("buying_price")]):
+                final_data.append(row)
+                unique_keys.add(key)
+
+    return final_data
 
 
-    return data
 
 def get_declarant_for_user(user):
     result = frappe.db.get_all(
@@ -144,3 +290,56 @@ def get_declarant_for_user(user):
         distinct=True
     )
     return [row.parent for row in result]  # List of declarant names
+
+
+def get_chart(data, filters=None):
+    if not data:
+        return {}
+
+    filters = filters or {}
+
+    def to_float(value):
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return 0.0
+
+    # Always group by article + supplier
+    real_emission_map = defaultdict(float)
+    standard_emission_map = defaultdict(float)
+
+    for row in data:
+        article = row.get("article_number") or "Unknown"
+        supplier = row.get("supplier") or "Unknown"
+
+        if filters.get("supplier") and filters.get("supplier").strip():
+            if supplier != filters.get("supplier").strip():
+                continue  # only include rows matching selected supplier
+
+        label = f"{article} ({supplier})"
+        real_emission_map[label] += to_float(row.get("real_emission_cost"))
+        standard_emission_map[label] += to_float(row.get("standard_emission_cost"))
+
+    labels = list(real_emission_map.keys())
+    real_values = [real_emission_map[label] for label in labels]
+    standard_values = [standard_emission_map[label] for label in labels]
+
+    return {
+        "type": "bar",
+        "data": {
+            "labels": labels,
+            "datasets": [
+                {
+                    "name": "Emission Cost based on Actual Emission Value",
+                    "values": real_values
+                },
+                {
+                    "name": "Standard Emission Cost",
+                    "values": standard_values
+                }
+            ]
+        },
+        "colors": ["#5e64ff", "#ff5858"]
+    }
+
+

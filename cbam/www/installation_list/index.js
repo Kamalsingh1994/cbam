@@ -292,7 +292,7 @@ function executeJS() {
             title: __("Add New Emission"),
             fields: [
                 {
-                    label: __("Label"),
+                    label: __("Emission Label"),
                     fieldname: "label",
                     fieldtype: "Data",
                     reqd: update ? 0 : 1,
@@ -304,12 +304,12 @@ function executeJS() {
                     fieldtype: "Column Break",
                 },
                 {
-                    label: __("Specific (direct) embedded emissions [tCO2/t]"),
+                    label: __("Specific (Direct) Embedded Emissions [tCO2/t]"),
                     fieldname: "specific_direct_embedded_emissions",
                     fieldtype: "Float",
                     description: "Example: 1.67 tCO2/t (t = tonnes of product)",
                     reqd: update ? 0 : 1,
-                    default: docData ? docData.specific_direct_embedded_emissions : "" 
+                    default: docData ? docData.specific_direct_embedded_emissions : "0.0" 
                    
                 },
                 {
@@ -318,7 +318,7 @@ function executeJS() {
                     fieldtype: "Section Break",
                 },
                 {
-                    label: __("Source of electricity"),
+                    label: __("Source of Electricity"),
                     fieldname: "source_of_electricity",
                     fieldtype: "Select",
                     options: await cbam.utils.get_field_options("CBAM Emission Data", "source_of_electricity", false),
@@ -327,11 +327,11 @@ function executeJS() {
                    
                 },
                 {
-                    label: __("Electricity consumed [MWh/t]"),
+                    label: __("Electricity Consumed [MWh/t]"),
                     fieldname: "electricity_consumed",
                     fieldtype: "Float",
                     reqd: update ? 0 : 1,
-                    default: docData ? docData.electricity_consumed : ""
+                    default: docData ? docData.electricity_consumed : "0.0"
                     
                 },
                 {
@@ -370,14 +370,14 @@ function executeJS() {
                     fieldtype: "Section Break",
                 },
                 {
-                    label: __("Indirect Emission Factor [tCO2/MWh]"),
+                    label: __("Electricity Emission Factor [tCO2/MWh]"),
                     fieldname: "indirect_emission_factor",
                     fieldtype: "Float",
                     default: docData ? docData.indirect_emission_factor : "",
                     description: "Your specific indirect emission factor. If not set the national indirect emission factor defined by the IEA is used",
                 },
                 {
-                    label: __("Source of Indirect Emission Factor"),
+                    label: __("Source of Electricity Emission Factor"),
                     fieldname: "source_of_indirect_emission_factor",
                     fieldtype: "Data",
                     default: docData ? docData.source_of_indirect_emission_factor : "",
@@ -390,11 +390,12 @@ function executeJS() {
                     fieldtype: "Column Break",
                 },
                 {
-                    label: __("Specific (indirect) embedded emissions [tCO2/t]"),
+                    label: __("Specific (Indirect) Embedded Emissions [tCO2/t]"),
                     fieldname: "specific_indirect_embedded_emissions",
                     fieldtype: "Float",
                     default: docData ? docData.specific_indirect_embedded_emissions : "",
                     depends_on: "eval:doc.indirect_emission_factor",
+                    description: "<b>Calculated as:</b> Electricity Consumed [MWh/t] × Electricity Emission Factor [tCO2/MWh]"
                 },
                 {
                     label: __(""),
@@ -402,11 +403,12 @@ function executeJS() {
                     fieldtype: "Section Break"
                 },
                 {
-                    label: __("Emission Notes (sent to declarant when submitting goods)"),
+                    label: __("Emission Notes (Sent to Declarant When Submitting Goods)"),
                     fieldname: "emission_notes",
                     fieldtype: "Small Text",
-                    mandatory_depends_on: "eval:!doc.specific_direct_embedded_emissions",
+                    mandatory_depends_on: "eval:!doc.specific_direct_embedded_emissions || !doc.electricity_consumed",
                     description: __("Explanation mandatory if no emission data entered"),
+                    default: docData ? docData.emission_notes : "",
                 },
                 {
                     label: __(""),
@@ -430,16 +432,26 @@ function executeJS() {
                 }      
             },
             secondary_action(values) {
-                
-                
-                
                 no+=1
-                
             }
-        });
-
-                    
+        });          
         d.show();
+
+        // This is to recalculate the indirect emissions when the electricity consumed or indirect emission factor changes
+        d.fields_dict.electricity_consumed.df.change = function() {
+            recalculateIndirectEmissions();
+        };
+        d.fields_dict.indirect_emission_factor.df.change = function() {
+            recalculateIndirectEmissions();
+        };
+        function recalculateIndirectEmissions() {
+            const electricity = flt(d.get_value("electricity_consumed"));
+            const factor = flt(d.get_value("indirect_emission_factor"));
+        
+            const indirect_emissions = electricity * factor;
+            d.set_value("specific_indirect_embedded_emissions", indirect_emissions);
+        }
+        
     }
 
     

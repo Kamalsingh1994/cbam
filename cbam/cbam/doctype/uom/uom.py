@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class CNCodeBenchMark(Document):
+class UOM(Document):
 	pass

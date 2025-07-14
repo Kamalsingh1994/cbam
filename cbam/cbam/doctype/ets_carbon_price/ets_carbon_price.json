@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "naming_series:naming_series",
  "creation": "2025-06-03 08:35:23.402476",
@@ -7,26 +8,27 @@
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
-  "date",
+  "creation_date",
+  "price_date",
+  "column_break_moht",
   "price",
-  "ets_price_type"
+  "ets_price_type",
+  "carbon_price_source"
  ],
  "fields": [
   {
-   "fieldname": "date",
-   "fieldtype": "Date",
-   "label": "Date"
-  },
-  {
    "fieldname": "price",
    "fieldtype": "Currency",
-   "label": "Price"
+   "in_list_view": 1,
+   "label": "ETS Carbon Price [\u20ac/tCO2]"
   },
   {
    "fieldname": "ets_price_type",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "ETS price Type",
-   "options": "\nActual\nPrediction"
+   "options": "\nActual\nPrediction",
+   "set_only_once": 1
   },
   {
    "default": "ETS-CP-",
@@ -34,12 +36,38 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Naming Series"
+  },
+  {
+   "fieldname": "creation_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Creation Date",
+   "read_only": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "carbon_price_source",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "ETS Carbon Price Source",
+   "options": "ETS Carbon Price Source"
+  },
+  {
+   "fieldname": "price_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Price Date",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_moht",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-03 12:30:40.539393",
+ "modified": "2025-07-02 11:53:16.039881",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "ETS Carbon Price",
@@ -51,12 +79,23 @@
    "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Declarant",
+   "select": 1,
+   "share": 1
   }
  ],
  "row_format": "Dynamic",

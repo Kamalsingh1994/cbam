@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "naming_series:naming_series",
  "creation": "2025-05-28 12:13:56.907372",
@@ -10,22 +11,34 @@
   "cn_code",
   "article_no",
   "supplier",
-  "land",
+  "installation_name",
   "raw_mass",
+  "raw_mass_tonne",
+  "buying_price_per_mass",
+  "calculate",
+  "quantity_of_articles",
   "mass_per_article",
   "column_break_ltwo",
-  "number_of_items",
-  "buying_price_per_mass",
-  "real_emissions_value",
   "carbon_price_due",
-  "country",
+  "installation_country",
+  "customs_procedure",
+  "position_number",
+  "specific_direct_embedded_emissions",
+  "specific_indirect_embedded_emissions",
+  "declarant_details_section",
+  "report_id",
+  "reporting_period",
+  "declarant_acts_as_importer",
+  "column_break_tcbb",
+  "importer",
   "declarant"
  ],
  "fields": [
   {
    "fieldname": "cn_code",
-   "fieldtype": "Data",
-   "label": "CN Code"
+   "fieldtype": "Link",
+   "label": "CN Code",
+   "options": "CN Code"
   },
   {
    "fieldname": "article_no",
@@ -33,43 +46,30 @@
    "label": "Article No"
   },
   {
+   "description": "Operator Name",
    "fieldname": "supplier",
    "fieldtype": "Data",
    "label": "Supplier"
   },
   {
-   "fieldname": "land",
-   "fieldtype": "Data",
-   "label": "Land"
-  },
-  {
    "fieldname": "mass_per_article",
-   "fieldtype": "Data",
-   "label": "mass per article [kg]"
+   "fieldtype": "Float",
+   "label": "Mass Per Article [kg]",
+   "read_only_depends_on": "eval:doc.calculate == \"Mass Per Article [kg]\""
   },
   {
    "fieldname": "column_break_ltwo",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "number_of_items",
-   "fieldtype": "Data",
-   "label": "Number of items"
-  },
-  {
    "fieldname": "buying_price_per_mass",
    "fieldtype": "Data",
-   "label": "Buying price per mass"
-  },
-  {
-   "fieldname": "real_emissions_value",
-   "fieldtype": "Data",
-   "label": "real emissions value"
+   "label": "Customs Value of Imported Raw Mass [\u20ac]"
   },
   {
    "fieldname": "carbon_price_due",
    "fieldtype": "Data",
-   "label": "Carbon price due"
+   "label": "Carbon Price Due [\u20ac/tCO2]"
   },
   {
    "default": "EX-G-",
@@ -81,25 +81,117 @@
   },
   {
    "fieldname": "raw_mass",
-   "fieldtype": "Data",
-   "label": "mass [kg]"
+   "fieldtype": "Float",
+   "label": "Raw Mass [kg]",
+   "reqd": 1
   },
   {
-   "fieldname": "country",
-   "fieldtype": "Data",
-   "label": "Country"
-  },
-  {
+   "fetch_from": "report_id.declarant",
+   "fetch_if_empty": 1,
    "fieldname": "declarant",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Declarant",
-   "options": "Declarant"
+   "options": "Declarant",
+   "reqd": 1
+  },
+  {
+   "fieldname": "installation_country",
+   "fieldtype": "Link",
+   "label": "Installation Country",
+   "options": "Country"
+  },
+  {
+   "fieldname": "declarant_details_section",
+   "fieldtype": "Section Break",
+   "label": "Declarant Details"
+  },
+  {
+   "fieldname": "report_id",
+   "fieldtype": "Link",
+   "label": "Report ID",
+   "options": "CBAM Report"
+  },
+  {
+   "fetch_from": "report_id.reporting_period",
+   "fetch_if_empty": 1,
+   "fieldname": "reporting_period",
+   "fieldtype": "Link",
+   "label": "Reporting Period",
+   "options": "Customs Import"
+  },
+  {
+   "fetch_from": "report_id.importer",
+   "fieldname": "importer",
+   "fieldtype": "Data",
+   "label": "Importer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_tcbb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.report_id",
+   "fetch_from": "report_id.declarant_acts_as_importer",
+   "fieldname": "declarant_acts_as_importer",
+   "fieldtype": "Check",
+   "label": "Declarant acts as Importer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "customs_procedure",
+   "fieldtype": "Link",
+   "label": "Customs Procedure",
+   "options": "Customs Procedure"
+  },
+  {
+   "fieldname": "installation_name",
+   "fieldtype": "Data",
+   "label": "Installation Name"
+  },
+  {
+   "description": "Real/Actual Emission",
+   "fieldname": "specific_direct_embedded_emissions",
+   "fieldtype": "Data",
+   "label": "Specific (Direct) Embedded Emissions [tCO2/tproduct]"
+  },
+  {
+   "fieldname": "specific_indirect_embedded_emissions",
+   "fieldtype": "Data",
+   "label": "Specific (Indirect) Embedded Emissions [tCO2/tproduct]"
+  },
+  {
+   "description": "Option to calculate <b>Article Quantity </b>or <b>Mass per Article</b>",
+   "fieldname": "calculate",
+   "fieldtype": "Select",
+   "label": "Calculate",
+   "options": "\nMass Per Article [kg]\nQuantity of Articles",
+   "reqd": 1
+  },
+  {
+   "fieldname": "quantity_of_articles",
+   "fieldtype": "Float",
+   "label": "Quantity of Articles",
+   "read_only_depends_on": "eval:doc.calculate == \"Quantity of Articles\""
+  },
+  {
+   "description": "e.g. 1.1, 1.2, 2.1, 2.2",
+   "fieldname": "position_number",
+   "fieldtype": "Data",
+   "label": "Report Position Number"
+  },
+  {
+   "fieldname": "raw_mass_tonne",
+   "fieldtype": "Float",
+   "label": "Raw Mass [t]"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-05 13:28:26.259238",
+ "modified": "2025-07-08 17:27:02.937388",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",
@@ -111,10 +203,24 @@
    "delete": 1,
    "email": 1,
    "export": 1,
+   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Declarant",
+   "select": 1,
    "share": 1,
    "write": 1
   }

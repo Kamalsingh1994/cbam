@@ -20,7 +20,7 @@
             />
             </span>
         <span class="level-item bold ">
-            <span class="inv-name" id="doc-name" data-doctype="DocType" data-name="{{doc.name}}" data-installation-name="{{doc.installation_name or ''}}" data-installation="{{doc.installation or ''}}" data-emission="{{doc.emission_data or ''}}" data-emission-name="{{doc.emission_name or ''}}" title="Sales Invoice" >{{doc.customs_tariff_number}}</span>
+            <span class="inv-name" id="doc-name" data-doctype="DocType" data-name="{{doc.name}}" data-installation-name="{{doc.installation_name or ''}}" data-installation="{{doc.installation or ''}}" data-emission="{{doc.emission_data or ''}}" data-emission-name="{{doc.emission_name or ''}}" title="Sales Invoice" >{{doc.cn_code}}</span>
         </span>
     </div>
     <div class="list-row-col list-subject level tc-container gd">
@@ -125,8 +125,8 @@
       </div>
 
       <div class="tc-field-cont field-cont">
-        <span class="field-label">{{_('Customs Tariff Number')}}</span>
-        <div class="field tc-field">{{_(doc.customs_tariff_number)}}</div>
+        <span class="field-label">{{_('CN Code')}}</span>
+        <div class="field tc-field">{{_(doc.cn_code)}}</div>
       </div>
 
 
@@ -185,7 +185,7 @@
 
         <div class="tc-field-cont field-cont">
             <span class="field-label">{{_('Specific (direct) embedded emissions [tCO2/t]')}}</span>
-            <div class="field tc-field">{{_(doc.direct_emission_data) or ""}}</div>
+            <div class="field tc-field">{{_(doc.specific_direct_embedded_emissions) or ""}}</div>
         </div>
 
         <div class="tc-field-cont field-cont">

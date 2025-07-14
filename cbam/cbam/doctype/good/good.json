@@ -17,12 +17,14 @@
   "hand_over_date",
   "column_break_qjtl",
   "internal_customs_import_number",
+  "cn_code",
   "customs_tariff_number",
   "column_break_jhfv",
   "good_description",
   "values_section",
   "column_break_kaso",
   "raw_mass",
+  "raw_mass_tonne",
   "currency",
   "inward_processing",
   "mass_per_article",
@@ -40,12 +42,15 @@
   "supplier_section",
   "operating_company",
   "country",
+  "street_and_number",
   "column_break_lqxr",
   "supplier_name",
   "city",
+  "company_email",
   "column_break_fkqq",
   "supplier_number",
   "zip_code",
+  "company_phone_number",
   "section_break_kbvy",
   "declarant",
   "column_break_rtyx",
@@ -127,14 +132,6 @@
    "label": "Article Number"
   },
   {
-   "fieldname": "customs_tariff_number",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Customs Tariff Number",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
    "fieldname": "column_break_qjtl",
    "fieldtype": "Column Break"
   },
@@ -152,6 +149,7 @@
    "label": "Imported into EU on"
   },
   {
+   "description": "Reporting Period",
    "fieldname": "internal_customs_import_number",
    "fieldtype": "Link",
    "label": "Internal Customs Import Number",
@@ -170,7 +168,7 @@
   {
    "fieldname": "raw_mass",
    "fieldtype": "Float",
-   "label": "Raw mass in Kilograms",
+   "label": "Raw Mass [kg]",
    "non_negative": 1,
    "read_only_depends_on": "eval:doc.manufacture==\"I am NOT the manufacturer of the whole amount of the product\"",
    "reqd": 1
@@ -598,7 +596,7 @@
   {
    "fieldname": "mass_per_article",
    "fieldtype": "Data",
-   "label": "mass per article"
+   "label": "Mass per article"
   },
   {
    "fieldname": "buying_price",
@@ -609,13 +607,51 @@
    "fieldname": "carbon_price_due",
    "fieldtype": "Data",
    "label": "Carbon price due"
+  },
+  {
+   "fieldname": "cn_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "CN Code",
+   "non_negative": 1,
+   "options": "CN Code",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customs_tariff_number",
+   "fieldtype": "Data",
+   "label": "Customs Tariff Number",
+   "read_only": 1
+  },
+  {
+   "fieldname": "raw_mass_tonne",
+   "fieldtype": "Float",
+   "label": "Raw Mass [t]"
+  },
+  {
+   "fieldname": "street_and_number",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Street and Number"
+  },
+  {
+   "fieldname": "company_email",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Company Email"
+  },
+  {
+   "fieldname": "company_phone_number",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Company Phone Number"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-04 11:46:57.459785",
+ "modified": "2025-07-08 13:25:37.215898",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
