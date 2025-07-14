@@ -12,7 +12,10 @@
   "column_break_fenp",
   "importer",
   "declarant_acts_as_importer",
-  "report_attachment"
+  "report_attachment",
+  "section_break_dvny",
+  "column_break_queg",
+  "cbam_report_data"
  ],
  "fields": [
   {
@@ -35,7 +38,8 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Declarant",
-   "options": "Declarant"
+   "options": "Declarant",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_fenp",
@@ -59,12 +63,27 @@
    "fieldname": "report_attachment",
    "fieldtype": "Attach",
    "label": "Report Attachment"
+  },
+  {
+   "fieldname": "section_break_dvny",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.report_attachment",
+   "fieldname": "cbam_report_data",
+   "fieldtype": "Table",
+   "label": "CBAM Report Data",
+   "options": "CBAM Report Data"
+  },
+  {
+   "fieldname": "column_break_queg",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-11 09:26:41.694640",
+ "modified": "2025-07-14 07:20:58.942666",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Report",

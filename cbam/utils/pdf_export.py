@@ -1,102 +1,3 @@
-import os
-import re
-import fitz  # PyMuPDF
-import frappe
-import pandas as pd
-
-
-def extract_cbam_goods(pdf_path):
-    doc = fitz.open(pdf_path)
-    lines = []
-    for page in doc:
-        lines.extend(page.get_text().split("\n"))
-
-    section_re = re.compile(r"^(\d+(?:\.\d+)?)\s+[\w\d]")
-    good_blocks = []
-    current = {"Section": None, "Lines": []}
-
-    for line in lines:
-        line = line.strip()
-        match = section_re.match(line)
-        if match:
-            if current["Section"]:
-                good_blocks.append(current)
-            current = {"Section": match.group(1), "Lines": [line]}
-        elif current["Section"]:
-            current["Lines"].append(line)
-
-    if current["Section"]:
-        good_blocks.append(current)
-
-    def extract_field(label, lines, numeric=False):
-        for i, l in enumerate(lines):
-            if label in l:
-                if ":" in l:
-                    return l.split(":", 1)[1].strip()
-                elif i + 1 < len(lines):
-                    value = lines[i + 1].strip()
-                    if numeric and not re.match(r"^[\d.]+$", value):
-                        continue
-                    return value
-        return None
-
-    # Step: Cache parent fields from sections like "1", "2", "3"
-    parent_values = {}
-
-    for block in good_blocks:
-        section = block["Section"]
-        if "." not in section:  # It's a parent
-            parent_values[section] = {
-                "Requested Procedure Code": extract_field("Requested procedure code", block["Lines"], numeric=True),
-                "CN Code": extract_field("| CN", block["Lines"])  # fallback via section header line
-            }
-
-    # Step: Extract per-section values
-    extracted = []
-    for block in good_blocks:
-        section = block["Section"]
-        lines = block["Lines"]
-
-        # Determine parent section ID (e.g., 1.1 → 1)
-        parent_key = section.split(".")[0]
-
-        data = {
-            "Section": section,
-            "Operator Name": extract_field("Operator Name", lines),
-            "Installation Name": extract_field("Installation name", lines),
-            "Country of Production": extract_field("Country code", lines),
-            "Type of Measurement Unit": extract_field("Type of measurement unit", lines),
-            "Quantity": extract_field("Quantity", lines, numeric=True),
-            "Specific Direct Embedded Emissions": extract_field("Specific direct embedded emissions", lines, numeric=True),
-            "Specific Indirect Embedded Emissions": extract_field("Specific indirect embedded emissions", lines, numeric=True),
-            "Type of Determination": extract_field("Type of determination", lines),
-            "Requested Procedure Code": extract_field("Requested procedure code", lines, numeric=True) or parent_values.get(parent_key, {}).get("Requested Procedure Code"),
-            "CN Code": parent_values.get(parent_key, {}).get("CN Code")
-        }
-
-        if data["Operator Name"] or data["Installation Name"]:
-            extracted.append(data)
-
-    return extracted
-
-
-@frappe.whitelist()
-def extract_cbam_pdf_flex1(file_url="/files/PDF_export.pdf"):
-    if file_url.startswith("/private/files/"):
-        full_path = frappe.get_site_path("private", "files", os.path.basename(file_url))
-    elif file_url.startswith("/files/"):
-        full_path = frappe.get_site_path("public", "files", os.path.basename(file_url))
-    else:
-        raise ValueError("Invalid file URL")
-
-    if not os.path.exists(full_path):
-        raise FileNotFoundError(f"File not found: {full_path}")
-
-    extracted = extract_cbam_goods(full_path)
-    return extracted
-
-
-
 import fitz  # PyMuPDF
 import os
 import re
@@ -173,27 +74,27 @@ def extract_cbam_goods(pdf_path):
         parent_key = section.split(".")[0]
 
         data = {
-            "Section": section,
-            "Operator Name": extract_field("Operator Name", lines),
-            "Installation Name": extract_field("Installation name", lines),
-            "Country of Production": extract_field("Country code", lines),
-            "Type of Measurement Unit": extract_field("Type of measurement unit", lines),
-            "Quantity": extract_field("Quantity", lines, numeric=True),
-            "Specific Direct Embedded Emissions": extract_field("Specific direct embedded emissions", lines, numeric=True),
-            "Specific indirect embedded emissions": extract_field("Specific indirect embedded emissions", lines, numeric=True),
-            "Type of Determination": extract_field("Type of determination", lines),
-            "Requested Procedure Code": extract_field("Requested procedure code", lines, numeric=True) or parent_values.get(parent_key, {}).get("Requested Procedure Code"),
-            "CN Code": block.get("CN Code") or parent_values.get(parent_key, {}).get("CN Code")
+            "section": section,
+            "operator_name": extract_field("Operator Name", lines),
+            "installation_name": extract_field("Installation name", lines),
+            "country_of_production": extract_field("Country code", lines),
+            "type_of_measurement_unit": extract_field("Type of measurement unit", lines),
+            "quantity": extract_field("Quantity", lines, numeric=True),
+            "specific_direct_embedded_emissions": extract_field("Specific direct embedded emissions", lines, numeric=True),
+            "specific_indirect_embedded_emissions": extract_field("Specific indirect embedded emissions", lines, numeric=True),
+            "type_of_determination": extract_field("Type of determination", lines),
+            "requested_procedure_code": extract_field("Requested procedure code", lines, numeric=True) or parent_values.get(parent_key, {}).get("Requested Procedure Code"),
+            "cn_code": block.get("CN Code") or parent_values.get(parent_key, {}).get("CN Code")
         }
 
-        if data["Operator Name"] or data["Installation Name"]:
+        if data["operator_name"] or data["installation_name"]:
             extracted.append(data)
 
     return extracted
 
 
 @frappe.whitelist()
-def extract_cbam_pdf_flex(file_url="/files/PDF_export.pdf"):
+def extract_cbam_pdf_flex(file_url):
     if file_url.startswith("/private/files/"):
         full_path = frappe.get_site_path("private", "files", os.path.basename(file_url))
     elif file_url.startswith("/files/"):
@@ -205,4 +106,5 @@ def extract_cbam_pdf_flex(file_url="/files/PDF_export.pdf"):
         raise FileNotFoundError(f"File not found: {full_path}")
 
     extracted = extract_cbam_goods(full_path)
+
     return extracted

@@ -1,5 +1,5 @@
 frappe.provide('cbam');
-
+ 
 /**
  * Create a filter control and append to the parent selector.
  */

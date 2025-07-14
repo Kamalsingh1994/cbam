@@ -1,0 +1,134 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-11 14:37:49.633012",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section",
+  "cn_code",
+  "operator_name",
+  "installation_name",
+  "country",
+  "measurement_unit",
+  "imported",
+  "column_break_ckgj",
+  "quantity",
+  "determination_type",
+  "direct_embedded_emissions",
+  "indirect_embedded_emissions",
+  "requested_procedure_code",
+  "external_good"
+ ],
+ "fields": [
+  {
+   "columns": 1,
+   "fieldname": "section",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Position",
+   "width": "2"
+  },
+  {
+   "columns": 1,
+   "fieldname": "cn_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "CN Code"
+  },
+  {
+   "columns": 2,
+   "fieldname": "operator_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Operator Name "
+  },
+  {
+   "columns": 2,
+   "fieldname": "installation_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Installation Name"
+  },
+  {
+   "columns": 1,
+   "fieldname": "country",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Country"
+  },
+  {
+   "columns": 1,
+   "fieldname": "measurement_unit",
+   "fieldtype": "Data",
+   "label": "Measurement Unit"
+  },
+  {
+   "columns": 1,
+   "fieldname": "quantity",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Quantity"
+  },
+  {
+   "fieldname": "direct_embedded_emissions",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Direct Embedded Emissions"
+  },
+  {
+   "fieldname": "indirect_embedded_emissions",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Indirect Embedded Emissions"
+  },
+  {
+   "columns": 1,
+   "fieldname": "determination_type",
+   "fieldtype": "Data",
+   "label": "Determination Type"
+  },
+  {
+   "fieldname": "requested_procedure_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Requested Procedure Code"
+  },
+  {
+   "columns": 1,
+   "fieldname": "external_good",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "External Good",
+   "options": "External Good"
+  },
+  {
+   "fieldname": "column_break_ckgj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "imported",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Imported",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-07-14 08:44:20.820016",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "CBAM Report Data",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
