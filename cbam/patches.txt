@@ -1,6 +1,6 @@
 [pre_model_sync]
 # Patches added in this section will be executed before doctypes are migrated
-# Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations
+# Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations 
 
 cbam.patches.v15_4_3.setup_cbam_rep_name
 
@@ -12,5 +12,5 @@ cbam.patches.v15_4_3.copy_customs_tariff_to_cn_code
 cbam.patches.v15_4_3.create_cn_code
 cbam.patches.v15_4_3.disable_report
 cbam.patches.v15_4_3.update_good_installation_name
-cbam.patches.v15_4_3.truncate_customs_tariff_number
-cbam.patches.v15_4_3.update_rawmass_tonne
+cbam.patches.v15_4_3.truncate_cn_code
+cbam.patches.v15_4_3.update_rawmass_t
