@@ -7,10 +7,9 @@ def execute():
         try:
             frappe.db.sql(f"""
                 UPDATE `{table}`
-                SET `raw_mass_tonne` = `raw_mass` / 1000
-                WHERE `raw_mass` IS NOT NULL
-                  AND `raw_mass_tonne` IS NULL
-                  AND CAST(`raw_mass` AS DECIMAL) IS NOT NULL
+                SET raw_mass_tonne = raw_mass / 1000
+                WHERE raw_mass IS NOT NULL
+                AND raw_mass_tonne IS NULL OR raw_mass_tonne = 0
             """)
             frappe.db.commit()
         except Exception as e:
