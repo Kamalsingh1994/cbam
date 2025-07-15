@@ -25,16 +25,17 @@
                 </span>
                 <span class="reporting-filter-container">
                   <div class="form-group">
-                  <select class="form-control reporting-filter" name="reporting-period">
-                    <option value="" disabled selected hidden>{{ _("Reporting Period") }}</option>
-                    <option value="">{{ _("All") }}</option>
-                    {% for doc in frappe.get_all("Customs Import", fields=["name"], order_by="creation desc") %}
-                      <option value="{{ doc.name }}">{{ doc.name }}</option>
-                    {% endfor %}
-                  </select>
-
-                </div>
+                    <select class="form-control reporting-filter" name="reporting-period">
+                      <option value="">{{ _("All") }}</option>
+                      {% for doc in frappe.get_all("Customs Import", fields=["name", "current"], order_by="creation desc") %}
+                        <option value="{{ doc.name }}" {% if doc.current == 1 %}selected{% endif %}>
+                          {{ doc.name }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
                 </span>
+
 
                 <div class="selected-container">
                   <span>{{_('Selected')}}: <span class="selected-no">0</span></span>

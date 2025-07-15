@@ -15,3 +15,17 @@ class CustomsImport(Document):
 			frappe.db.delete("Good", {
 				"name": good.name
 			})
+
+	def validate(self):
+		if self.current:
+			existing = frappe.db.get_value("Customs Import", {"current": 1, "name": ["!=", self.name]}, "name")
+
+			if existing:
+				frappe.db.sql("""
+					UPDATE `tabCustoms Import`
+					SET current = 0
+					WHERE name = %s
+				""", (existing,))
+
+				frappe.msgprint(f"Customs Import <b>{self.name}</b> is now current, current status removed from <b>{existing}</b>.")
+
