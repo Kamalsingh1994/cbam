@@ -1,0 +1,26 @@
+{
+ "content": null,
+ "creation": "2025-07-15 07:07:35.552869",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2025-07-15 07:07:35.552869",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "ets-price-dashboard",
+ "owner": "Administrator",
+ "page_name": "ets-price-dashboard",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Declarant"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "ETS Price Dashboard"
+}
