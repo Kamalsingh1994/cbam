@@ -5,7 +5,7 @@ frappe.ui.form.on('CBAM Report', {
       }
 
       disable_imported_rows(frm);
-      
+      select_non_imported_rows(frm); // select non-imported rows by default
     },
   
     report_attachment(frm) {
@@ -38,7 +38,7 @@ frappe.ui.form.on('CBAM Report', {
     
               frm.refresh_field('cbam_report_data');
               disable_imported_rows(frm); // also apply on new data
-              
+              select_non_imported_rows(frm); // select non-imported rows by default
             } else {
               frappe.msgprint('No data returned or parsed from file.');
             }
@@ -56,6 +56,7 @@ frappe.ui.form.on('CBAM Report', {
         }
       });
   }
+
 
   function add_import_button_to_child_table(frm) {
     const grid = frm.get_field('cbam_report_data').grid;
@@ -115,10 +116,6 @@ frappe.ui.form.on('CBAM Report', {
       });
     });
   
-    // Hide the button by default
-    const $btn = $(grid.wrapper).find('.grid-footer .btn:contains("Import External Goods")');
-    $btn.hide();
-  
     // Show it only when rows are selected
     grid.wrapper.on('change', 'input[type="checkbox"]', function () {
       const hasSelected = grid.get_selected_children().some(row => !row.imported);
@@ -134,6 +131,16 @@ frappe.ui.form.on('CBAM Report', {
     }, 100);
 
     grid.custom_import_button_added = true;
+  }
+  
+  function select_non_imported_rows(frm) {
+    const grid = frm.fields_dict.cbam_report_data.grid;
+    grid.grid_rows.forEach(row => {
+      if (!row.doc.imported) {
+        row.doc.__checked = 1;
+        row.refresh_check();
+      }
+    });
   }
   
   
