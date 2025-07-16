@@ -1,9 +1,43 @@
 frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
+    if (!sessionStorage.getItem('ets_price_dashboard_reloaded')) {
+        sessionStorage.setItem('ets_price_dashboard_reloaded', '1');
+        location.reload();
+        return;
+    } else {
+        sessionStorage.removeItem('ets_price_dashboard_reloaded');
+    }
+    $(wrapper).empty();
     var page = frappe.ui.make_app_page({
         parent: wrapper,
         title: 'ETS Price Dashboard',
         single_column: true
     });
+
+    // Add custom style for active tab background color (black) and bold font
+    $(`<style>
+      #dashboard-tabs .nav-link.active {
+        background-color: #000 !important;
+        color: #fff !important;
+        border-color: #000 #000 #fff !important;
+        font-weight: 600 !important;
+      }
+      #dashboard-tabs .nav-link {
+        color: #000;
+        font-weight: 500;
+      }
+    </style>`).appendTo('head');
+
+    // Insert tab navigation just below the page title
+    $(page.body).prepend(`
+        <ul class="nav nav-tabs mb-3" id="dashboard-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="/app/ets-price-dashboard">ETS Price Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/app/financial-evaluation-report">Financial Evaluation Report</a>
+            </li>
+        </ul>
+    `);
 
     // Ensure Highcharts is loaded
     if (typeof Highcharts === 'undefined') {
@@ -44,10 +78,13 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
 				<input type="date" class="form-control form-control-sm" id="to-date" />
 			</div>
 
-			<div class="col-md-4 col-sm-12">
-				
+			<div class="col-md-3 col-sm-12">
 				<div id="ets-price-type-filter-container" style="margin-bottom: -15px;"></div>
 			</div>
+
+            <div class="col-md-1 col-sm-12 d-flex justify-content-end align-items-end">
+                <button id="clear-filters-btn" class="btn btn-secondary btn-sm w-100">Clear</button>
+            </div>
 
 			</div>
  		 </div>	
@@ -58,7 +95,9 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
             <div id="ets-price-chart" style="min-width: 1800px;"></div>
         </div>
     </div>
-    <div id="ets-price-table-section"></div>
+    <div class="frappe-card mb-4" id="table-scroll-container" style="overflow-x: auto;">
+        <div id="table-section"></div>
+    </div>
     `);
 
     // Create Frappe MultiSelectList for ETS Price Type (move this up before any usage)
@@ -94,7 +133,7 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
         const showing_to = data.length;
         const isFiltered = data.length !== allData.length;
         const html = `
-            <div id="pagination-controls" class="cbam-pagination-footer d-flex flex-wrap align-items-center justify-content-between mt-2">
+            <div id="pagination-controls" class="cbam-pagination-footer d-flex flex-wrap align-items-center justify-content-between mt-2 bg-light border rounded" style="padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <span class="mx-2">Showing <b>${showing_from}&ndash;${showing_to}</b> of <b>${isFiltered ? showing_to : total_count}</b></span>
                     <span class="mx-2">| Rows per load: </span>
@@ -106,11 +145,24 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
                     </select>
                 </div>
                 <div class="ms-auto">
-                    <button id="load-more" class="btn btn-primary btn-sm px-2" ${(isFiltered || data.length >= total_count) ? 'disabled' : ''}>Load More</button>
+                    <button id="load-more" class="btn btn-primary btn-sm py-1 px-2" style="font-size: 0.85em; min-width: 70px; padding: 2px 8px;" ${(isFiltered || data.length >= total_count) ? 'disabled' : ''}>Load More</button>
                 </div>
             </div>
+            <style>
+                .cbam-pagination-footer {
+                    border: 1px solid #e3e6eb;
+                    background: #f8f9fa;
+                    border-radius: 0.5rem;
+                    padding: 0.75rem 1rem;
+                    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+                }
+                @media (max-width: 600px) {
+                    .cbam-pagination-footer { flex-direction: column; align-items: stretch; }
+                    .cbam-pagination-footer .ms-auto { margin-left: 0 !important; margin-top: 0.5rem; }
+                }
+            </style>
         `;
-        $('#ets-price-table-section').after(html);
+        $('#table-scroll-container').append(html);
         $('#page-length-select').val(page_length);
         if (!isFiltered) {
             $('#page-length-select').on('change', function () {
@@ -129,9 +181,29 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
 
     function applyFilters() {
         const dateField = $('#date-field-select').val() || 'price_date';
-        const fromDate = $('#from-date').val();
-        const toDate = $('#to-date').val();
+        let fromDate = $('#from-date').val();
+        let toDate = $('#to-date').val();
         const etsTypes = etsPriceTypeFilter.get_value() || [];
+
+        // If a date field is selected and from/to date is empty, set to current month
+        if ((dateField === 'price_date' || dateField === 'creation_date') && (!fromDate || !toDate)) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            function formatDateLocal(date) {
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+            fromDate = formatDateLocal(firstDay);
+            toDate = formatDateLocal(lastDay);
+            $('#from-date').val(fromDate);
+            $('#to-date').val(toDate);
+        }
+
         const filtered = allData.filter(row => {
             let pass = true;
             if (dateField === 'all' || !dateField) {
@@ -225,7 +297,7 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
             creation_date: row.creation_date ? frappe.datetime.str_to_user(row.creation_date) : ''
         }));
         if (!datatable) {
-            datatable = new DataTable('#ets-price-table-section', {
+            datatable = new DataTable('#table-section', {
                 columns,
                 data: tableData,
                 layout: 'fixed',
@@ -367,6 +439,15 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
     // Add event handler for custom Reset Zoom button
     $('#reset-zoom-btn').on('click', function() {
         renderChart(lastFilteredData);
+    });
+
+    // Add event handler for Clear button
+    $(document).on('click', '#clear-filters-btn', function() {
+        $('#date-field-select').val('all');
+        $('#from-date').val('');
+        $('#to-date').val('');
+        etsPriceTypeFilter.set_value([]);
+        applyFilters();
     });
 
     // Populate ETS Price Type options
