@@ -9,6 +9,8 @@
  "field_order": [
   "import_name",
   "is_goods_import_complete",
+  "column_break_n8bu",
+  "current",
   "goods"
  ],
  "fields": [
@@ -30,6 +32,16 @@
    "fieldname": "is_goods_import_complete",
    "fieldtype": "Check",
    "label": "Goods Import Complete"
+  },
+  {
+   "fieldname": "column_break_n8bu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "current",
+   "fieldtype": "Check",
+   "label": "Current"
   }
  ],
  "grid_page_length": 50,
@@ -40,7 +52,7 @@
    "link_fieldname": "internal_customs_import_number"
   }
  ],
- "modified": "2025-04-11 21:56:17.945841",
+ "modified": "2025-07-15 10:15:28.076631",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Customs Import",
@@ -87,6 +99,7 @@
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
