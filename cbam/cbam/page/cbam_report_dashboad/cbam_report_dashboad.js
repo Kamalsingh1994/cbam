@@ -36,7 +36,12 @@ frappe.pages['cbam-report-dashboad'].on_page_load = function(wrapper) {
                         </div>
                     </div>
                 </div>
-                <div class="frappe-card mb-4" id="chart-section"></div>
+
+				 <div id="chart-section-container" class="frappe-card mb-4 p-3">
+					<div id="chart-scroll-wrapper" style="overflow-x: auto; width: 100%; margin-bottom:-12px">
+						<div id="chart-section" style="min-width: 1800px;"></div>
+					</div>
+				</div>
                 <div class="frappe-card mb-4" id="table-scroll-container" style="overflow-x: auto;">
                     <div id="table-section"></div>
                 </div>
@@ -137,6 +142,8 @@ frappe.pages['cbam-report-dashboad'].on_page_load = function(wrapper) {
     }
 
     function render_chart(chart_data) {
+        $('#chart-section').empty();
+
         if (!chart_data || !chart_data.categories || !chart_data.series || chart_data.categories.length === 0) {
             $('#chart-section').html('<div class="text-center text-muted p-4">No chart data available for the selected filters.</div>');
             return;
@@ -145,10 +152,24 @@ frappe.pages['cbam-report-dashboad'].on_page_load = function(wrapper) {
             load_highcharts(() => render_chart(chart_data));
             return;
         }
+
+        // Set min-width dynamically for scroll (60px per category, min 1800px)
+        const minWidth = Math.max(1800, chart_data.categories.length * 60);
+        $('#chart-section').css('min-width', minWidth + 'px');
+
         Highcharts.chart('chart-section', {
-            chart: { type: 'column' },
+            chart: {
+                type: 'column',
+                height: 400,
+                zoomType: 'x' // Enable default Highcharts zoom and reset zoom button
+            },
+            credits: { enabled: false },
             title: { text: 'Total Actual vs Standard Cost by Year' },
-            xAxis: { categories: chart_data.categories, title: { text: 'Year' } },
+            xAxis: {
+                categories: chart_data.categories,
+                labels: { rotation: 45, style: { fontSize: '12px' } },
+                title: { text: 'Year' }
+            },
             yAxis: { min: 0, title: { text: 'Cost' } },
             series: [
                 { ...chart_data.series[0], color: '#003366' },
@@ -162,8 +183,7 @@ frappe.pages['cbam-report-dashboad'].on_page_load = function(wrapper) {
                     pointPadding: 0.1,
                     groupPadding: 0.05
                 }
-            },
-            credits: { enabled: false }
+            }
         });
     }
 
