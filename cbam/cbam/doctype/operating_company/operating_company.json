@@ -131,12 +131,14 @@
   {
    "fieldname": "main_contact_employee_last_name",
    "fieldtype": "Data",
-   "label": "Commercial Contact Last Name"
+   "label": "Commercial Contact Last Name",
+   "read_only": 1
   },
   {
    "fieldname": "main_contact_employee_first_name",
    "fieldtype": "Data",
-   "label": "Commercial Contact First Name"
+   "label": "Commercial Contact First Name",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_qmcl",
@@ -146,17 +148,20 @@
    "fieldname": "main_contact_employee_email",
    "fieldtype": "Data",
    "label": "Commercial Contact Email",
-   "options": "Email"
+   "options": "Email",
+   "read_only": 1
   },
   {
    "fieldname": "main_contact_employee_phone_number",
    "fieldtype": "Data",
-   "label": "Commercial Contact Phone Number"
+   "label": "Commercial Contact Phone Number",
+   "read_only": 1
   },
   {
    "fieldname": "main_contact_employee_position",
    "fieldtype": "Data",
-   "label": "Commercial Contact Position"
+   "label": "Commercial Contact Position",
+   "read_only": 1
   },
   {
    "fieldname": "cbam_representive_details_section",
@@ -166,12 +171,14 @@
   {
    "fieldname": "cbam_representive_last_name",
    "fieldtype": "Data",
-   "label": "CBAM Representative Last Name"
+   "label": "CBAM Representative Last Name",
+   "read_only": 1
   },
   {
    "fieldname": "cbam_representive_employee_first_name",
    "fieldtype": "Data",
-   "label": "CBAM Representative First Name"
+   "label": "CBAM Representative First Name",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_xrkz",
@@ -181,17 +188,20 @@
    "fieldname": "cbam_representive_employee_email",
    "fieldtype": "Data",
    "label": "CBAM Representative  Email",
-   "options": "Email"
+   "options": "Email",
+   "read_only": 1
   },
   {
    "fieldname": "cbam_representive_employee_phone_number",
    "fieldtype": "Data",
-   "label": "CBAM Representative  Phone Number"
+   "label": "CBAM Representative  Phone Number",
+   "read_only": 1
   },
   {
    "fieldname": "cbam_representive_employee_position",
    "fieldtype": "Data",
-   "label": "CBAM Representative  Position"
+   "label": "CBAM Representative  Position",
+   "read_only": 1
   },
   {
    "fieldname": "goods_list_section",
@@ -281,7 +291,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-20 16:27:56.485260",
+ "modified": "2025-07-16 15:46:25.772764",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Operating Company",
