@@ -39,7 +39,7 @@ frappe.ui.form.on("Operating Company", {
                                     d.set_value("email", frm.doc.cbam_representive_employee_email)
                                     d.set_value("position", frm.doc.cbam_representive_employee_position)
                                     d.set_value("last_name", frm.doc.cbam_representive_last_name)
-                                    d.set_value("phone_no", frm.doc.cbam_representive_employee_first_name)
+                                    d.set_value("phone_no", frm.doc.cbam_representive_employee_phone_number)
                                 }
                             }
                         },
@@ -83,7 +83,7 @@ frappe.ui.form.on("Operating Company", {
                     size: 'large',
                     primary_action_label: "Update Contact",
                     primary_action(values){
-                        
+                        values.name = frm.doc.name;
                         frappe.call({
                             method: "update_contact",
                             doc: frm.doc,

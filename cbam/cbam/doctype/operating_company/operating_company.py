@@ -202,7 +202,6 @@ class OperatingCompany(Document):
 			
 			if not self.check_user_exists(values.email):
 				frappe.throw("This user is already associated with another Operating Company.")
-				return
 			self.cbam_representive_last_name = values.last_name
 			self.cbam_representive_employee_first_name = values.first_name
 			self.cbam_representive_employee_phone_number = values.phone_no
@@ -210,8 +209,57 @@ class OperatingCompany(Document):
 			self.cbam_representive_employee_email = values.email
 			old_user = self.cbam_representative_user
 		self.save()
+
+		user = frappe.get_all("User", filters={"email": values.email}, fields=["name"])
+		if user:
+			user_doc = frappe.get_doc("User", user[0].name)
+			user_doc.first_name = values.first_name
+			user_doc.last_name = values.last_name
+			user_doc.phone = values.phone_no
+			user_doc.save()
+
+		# Disable old user if different
 		if old_user not in [self.cbam_representative_user, self.commercial_contact_user]:
 			frappe.db.set_value("User", old_user, "enabled", 0)
+
+	def on_update(self):
+		# Commercial Contact user update
+		if self.main_contact_employee_email:
+			self.update_user(
+				self.main_contact_employee_email,
+				self.main_contact_employee_first_name,
+				self.main_contact_employee_last_name,
+				self.main_contact_employee_phone_number
+			)
+
+		# CBAM Representative user update
+		if self.cbam_representive_employee_email:
+			self.update_user(
+				self.cbam_representive_employee_email,
+				self.cbam_representive_employee_first_name,
+				self.cbam_representive_last_name,
+				self.cbam_representive_employee_phone_number
+			)
+
+	def update_user(self, email, first_name, last_name, phone_no):
+		user = frappe.get_all("User", filters={"email": email}, fields=["name"])
+		if user:
+			user_doc = frappe.get_doc("User", user[0].name)
+			has_changes = False
+
+			if user_doc.first_name != first_name:
+				user_doc.first_name = first_name
+				has_changes = True
+			if user_doc.last_name != last_name:
+				user_doc.last_name = last_name
+				has_changes = True
+			if user_doc.phone != phone_no:
+				user_doc.phone = phone_no
+				has_changes = True
+
+			if has_changes:
+				user_doc.save()
+
 
 @frappe.whitelist()
 def send_bulk_signup_request(operating_companys):
