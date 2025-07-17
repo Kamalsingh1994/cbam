@@ -168,6 +168,9 @@ after_migrate = [
 doc_events = {
     "Operating Company": {
         "on_update": "cbam.cbam.doctype.operating_company.operating_company.update_goods_on_operating_company_change"
+    },
+    "User": {
+        "before_save": "cbam.override.user.update_operating_company_contact"
     }
 }
 
