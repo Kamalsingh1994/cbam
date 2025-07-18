@@ -50,7 +50,8 @@ frappe.ui.form.on("Operating Company", {
                         {
                             label: 'First Name',
                             fieldname: 'first_name',
-                            fieldtype: 'Data'
+                            fieldtype: 'Data',
+                            reqd: 1
                         },
                         {
                             label: 'Email',
@@ -96,7 +97,7 @@ frappe.ui.form.on("Operating Company", {
                                 
                                 msgprint("Contact Updated Successfully")
                                 d.hide()
-                                frm.refresh_doc()
+                                frm.reload_doc()
                             }
                         })
                     }
