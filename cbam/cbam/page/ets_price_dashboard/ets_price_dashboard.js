@@ -180,26 +180,7 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
         let toDate = $('#to-date').val();
         const etsTypes = etsPriceTypeFilter.get_value() || [];
 
-        // If a date field is selected and from/to date is empty, set to current month
-        if (!fromDate || !toDate) {
-            if (!isClearing) {
-                const now = new Date();
-                const year = now.getFullYear();
-                const month = now.getMonth();
-                const firstDay = new Date(year, month, 1);
-                const lastDay = new Date(year, month + 1, 0);
-                function formatDateLocal(date) {
-                    const y = date.getFullYear();
-                    const m = String(date.getMonth() + 1).padStart(2, '0');
-                    const d = String(date.getDate()).padStart(2, '0');
-                    return `${y}-${m}-${d}`;
-                }
-                fromDate = formatDateLocal(firstDay);
-                toDate = formatDateLocal(lastDay);
-                $('#from-date').val(fromDate);
-                $('#to-date').val(toDate);
-            }
-        }
+        // No default date logic here; only set on initial page load
 
         const filtered = allData.filter(row => {
             let pass = true;
@@ -211,6 +192,7 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
             return pass;
         });
         lastFilteredData = filtered;
+        console.log("filtered: ", lastFilteredData)
         renderChart(filtered);
         renderTable(filtered);
     }
@@ -230,6 +212,7 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
             },
             callback: function(r) {
                 if (r.message) {
+                    console.log("data: ", r.message)
                     total_count = r.message.total_count || 0;
                     if (reset) {
                         allData = r.message.data || [];
@@ -450,4 +433,25 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
 
     // Initial load
     fetchData(true);
+    // Set default dates only on initial page load
+    function setDefaultDatesIfEmpty() {
+        let fromDate = $('#from-date').val();
+        let toDate = $('#to-date').val();
+        if (!fromDate || !toDate) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            function formatDateLocal(date) {
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+            $('#from-date').val(formatDateLocal(firstDay));
+            $('#to-date').val(formatDateLocal(lastDay));
+        }
+    }
+    setTimeout(setDefaultDatesIfEmpty, 100);
 };
