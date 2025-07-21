@@ -181,6 +181,7 @@ function executeJS() {
                     label: __("First Name"),
                     fieldname: "main_contact_employee_first_name",
                     fieldtype: "Data",
+                    reqd : 1,
                     default: supplier_details.main_contact_employee_first_name,
                 },
                 {
@@ -244,6 +245,7 @@ function executeJS() {
                     label: __("First Name"),
                     fieldname: "cbam_representive_employee_first_name",
                     fieldtype: "Data",
+                    reqd : 1,
                     default: supplier_details.cbam_representive_employee_first_name,
                 },
                 {
