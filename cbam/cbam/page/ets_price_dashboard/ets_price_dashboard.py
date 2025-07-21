@@ -9,6 +9,9 @@ def get_table_data(doctype, fields, filters=None, start=0, page_length=50):
     start = int(start or 0)
     page_length = int(page_length or 50)
 
+    # Only fetch rows where ets_price_type is 'Actual' or 'Future'
+    filters["ets_price_type"] = ["in", ["Actual", "Future"]]
+
     data = frappe.get_all(doctype, fields=fields, filters=filters, start=start, page_length=page_length, order_by="price_date desc")
 
     total_count = frappe.db.count(doctype, filters=filters)
