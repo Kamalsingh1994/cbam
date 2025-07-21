@@ -114,6 +114,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
         function bind_datatable_selection_events() {
             if (!datatable) return;
             datatable.on('onCheckRow', function() {
+                update_export_button_state();
                 if ($('#selected-rows-toggle').is(':checked')) {
                     const selectedData = get_selected_rows_data();
                     const per_tonne = $('#table-toggle').is(':checked');
@@ -128,6 +129,12 @@ frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
                 }
             });
         }
+
+        function update_export_button_state() {
+            const selected = datatable?.rowmanager?.getCheckedRows?.() || [];
+            $('#export').prop('disabled', selected.length === 0);
+        }
+
 
         /**
          * Render the main page layout.
@@ -384,6 +391,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
                     </div>
                     <div class="ms-auto">
                         <button id="load-more" class="btn btn-primary btn-sm px-2" ${(all_data.length >= total_count) ? 'disabled' : ''}>${__("Load More")}</button>
+                        <button id="export" class="btn btn-primary btn-sm px-2" disabled>${__("Export CSV")}</button>
                     </div>
                 </div>
                 <style>
@@ -411,6 +419,25 @@ frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
                 load_report_table(false);
             });
         }
+
+        // Export selected rows to CSV
+        $(document).on("click", "#export", function () {
+            const selectedRows = get_selected_rows_data();
+            if (selectedRows.length === 0) return;
+
+            const csvHeaders = Object.keys(selectedRows[0]);
+            const csvRows = selectedRows.map(row => csvHeaders.map(key => `"${(row[key] || "").toString().replace(/"/g, '""')}"`));
+            const csvContent = [csvHeaders.join(","), ...csvRows.map(r => r.join(","))].join("\n");
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "financial_evaluation_report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
 
         /**
          * Render a compact stat card.
@@ -456,4 +483,5 @@ frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
           }
         </style>`).appendTo('head');
     })();
+    
 };
