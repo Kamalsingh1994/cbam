@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"huNlzC7Tud\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">CBAM Analysis Dashboard</span>\",\"col\":12}},{\"id\":\"l0wR6yPlaV\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Financial Evaluation Report\",\"col\":3}},{\"id\":\"ygCsqidG50\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ETS Price Dashboard\",\"col\":3}},{\"id\":\"eZIiYVnbAu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"CBAM Report Dashboard\",\"col\":3}}]",
+ "content": "[{\"id\":\"huNlzC7Tud\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">CBAM Analysis Dashboard</span>\",\"col\":12}},{\"id\":\"l0wR6yPlaV\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Financial Evaluation Report\",\"col\":3}},{\"id\":\"ygCsqidG50\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ETS Price Dashboard\",\"col\":3}},{\"id\":\"eZIiYVnbAu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"CBAM Report Cost Forecast\",\"col\":3}}]",
  "creation": "2025-07-07 12:11:13.553729",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,7 +13,7 @@
  "is_hidden": 0,
  "label": "Financial Dashboard",
  "links": [],
- "modified": "2025-07-17 07:00:13.139509",
+ "modified": "2025-07-21 09:20:42.074773",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Financial Dashboard",
@@ -35,8 +35,8 @@
   {
    "color": "Grey",
    "doc_view": "List",
-   "label": "CBAM Report Dashboard",
-   "link_to": "cbam-report-dashboad",
+   "label": "CBAM Report Cost Forecast",
+   "link_to": "cbam-report-cost-forecast",
    "type": "Page"
   },
   {

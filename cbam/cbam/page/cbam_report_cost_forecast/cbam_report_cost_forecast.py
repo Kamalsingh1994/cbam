@@ -6,7 +6,7 @@ from collections import defaultdict
 from pypika import Column
 
 @frappe.whitelist()
-def get_cbam_report_data(cbam_reports=None, start=0, page_length=50):
+def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=None, to_year=None):
     """
     Fetch CBAM report dashboard data, optimized for batch DB access and Frappe best practices.
     Returns: dict with columns, data, chart_data, total_count.
@@ -19,6 +19,10 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50):
     page_length = int(page_length or 50)
     if not cbam_reports:
         return {"columns": [], "data": [], "chart_data": {}, "total_count": 0}
+
+    # Convert from_year and to_year to int if provided
+    from_year = int(from_year) if from_year else None
+    to_year = int(to_year) if to_year else None
 
     columns = get_columns()
 
@@ -62,6 +66,9 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50):
                 )
                 for ets in future_ets_prices:
                     year = int(ets.price_year)
+                    # Filter by from_year and to_year if provided
+                    if (from_year and year < from_year) or (to_year and year > to_year):
+                        continue
                     ets_price = float(ets.price or 0)
 
                     # Fetch CBAM Factor for the year, only if not disabled
@@ -150,6 +157,28 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50):
 
     return {"columns": columns, "data": data, "chart_data": chart_data, "total_count": total_count}
     
+@frappe.whitelist()
+def get_default_cbam_report():
+    user = frappe.session.user
+    # Check if user is a System Manager
+    user_roles = frappe.get_roles(user)
+    is_system_manager = 'System Manager' in user_roles
+    filters = {}
+    if not is_system_manager:
+        # Try to find a declarant linked to this user
+        declarant = frappe.db.get_value("Declarant", {"user": user}, "name")
+        if declarant:
+            filters["declarant"] = declarant
+    # Get the last imported CBAM Report (for this declarant or any)
+    report = frappe.db.get_list(
+        "CBAM Report",
+        filters=filters,
+        fields=["name"],
+        order_by="creation desc",
+        limit=1
+    )
+    return report[0]["name"] if report else None
+
 def get_columns():
     columns = [
         {"id": "year", "name": _( "Year"), "width": 80},

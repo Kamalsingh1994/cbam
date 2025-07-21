@@ -463,6 +463,9 @@ frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
                 <li class="nav-item">
                     <a class="nav-link active" href="/app/financial-evaluation-report">Financial Evaluation Report</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/app/cbam-report-cost-forecast">CBAM Report Cost Forecast</a>
+                </li>
             </ul>
         `);
 

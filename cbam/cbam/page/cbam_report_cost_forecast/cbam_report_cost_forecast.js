@@ -3,12 +3,57 @@
 
 frappe.provide('cbam.pages');
 
-frappe.pages['cbam-report-dashboad'].on_page_load = function(wrapper) {
+frappe.pages['cbam-report-cost-forecast'].on_page_load = function(wrapper) {
+
+    if (!sessionStorage.getItem('cbam_report_cost_forecast_reloaded')) {
+        sessionStorage.setItem('cbam_report_cost_forecast_reloaded', '1');
+        location.reload();
+        return;
+    } else {
+        sessionStorage.removeItem('cbam_report_cost_forecast_reloaded');
+    }
+    $(wrapper).empty();
+    
     const page = frappe.ui.make_app_page({
         parent: wrapper,
-        title: __('CBAM Report Dashboard'),
+        title: __('CBAM Report Cost Forecast'),
         single_column: true,
     });
+
+    // Add custom style for active tab background color (black) and bold font
+    $(`<style>
+        #dashboard-tabs .nav-link.active {
+          background-color: #000 !important;
+          color: #fff !important;
+          border-color: #000 #000 #fff !important;
+          font-weight: 600 !important;
+        }
+        #dashboard-tabs .nav-link {
+          color: #000;
+          font-weight: 500;
+        }
+        #dashboard-tabs {
+          margin-left: 0 !important;
+          margin-right: 0 !important;
+          margin-bottom: 25px !important;
+        }
+      </style>`).appendTo('head');
+  
+    // Insert tab navigation at the top of .page-content for perfect alignment
+    $('.page-content').prepend(`
+        <ul class="nav nav-tabs mb-0" id="dashboard-tabs">
+            <li class="nav-item">
+                <a class="nav-link" href="/app/ets-price-dashboard">ETS Price Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/app/financial-evaluation-report">Financial Evaluation Report</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="/app/cbam-report-cost-forecast">CBAM Report Cost Forecast</a>
+            </li>
+        </ul>
+    `);
+
 
     // State
     let start = 0;
@@ -22,6 +67,19 @@ frappe.pages['cbam-report-dashboad'].on_page_load = function(wrapper) {
     render_layout(page.body);
     filters = setup_filters();
 
+    // Set default CBAM Report after filters are set up
+    frappe.call({
+        method: 'cbam.cbam.page.cbam_report_cost_forecast.cbam_report_cost_forecast.get_default_cbam_report',
+        callback: function(r) {
+            if (r.message && filters.cbam_report) {
+                filters.cbam_report.set_value([r.message]);
+                start = 0;
+                all_data = [];
+                load_report_table(true);
+            }
+        }
+    });
+
     // Initial Table and Chart
     load_report_table(true);
 
@@ -34,14 +92,14 @@ frappe.pages['cbam-report-dashboad'].on_page_load = function(wrapper) {
                         <div class="col-md-3">
                             <div class="row gx-2" id="filter-section-group-1"></div>
                         </div>
+                        <div class="col-md-2" id="from-year-link"></div>
+                        <div class="col-md-2" id="to-year-link"></div>
                     </div>
                 </div>
 
-				 <div id="chart-section-container" class="frappe-card mb-4 p-3">
-					<div id="chart-scroll-wrapper" style="overflow-x: auto; width: 100%; margin-bottom:-12px">
-						<div id="chart-section" style="min-width: 1800px;"></div>
-					</div>
-				</div>
+                <div id="chart-section-container" class="frappe-card mb-4 p-3">
+                    <div id="chart-section"></div>
+                </div>
                 <div class="frappe-card mb-4" id="table-scroll-container" style="overflow-x: auto;">
                     <div id="table-section"></div>
                 </div>
@@ -52,7 +110,26 @@ frappe.pages['cbam-report-dashboad'].on_page_load = function(wrapper) {
     // --- Filter Setup ---
     function setup_filters() {
         const filters = {
-            cbam_report: cbam.create_filter('CBAM Report', 'MultiSelectList', 'cbam_report', '#filter-section-group-1', [])
+            cbam_report: cbam.create_filter('CBAM Report', 'MultiSelectList', 'cbam_report', '#filter-section-group-1', []),
+            from_year: cbam.create_filter('From Year', 'Link', 'from_year', '#from-year-link', 'Year'),
+            to_year: cbam.create_filter('To Year', 'Link', 'to_year', '#to-year-link', 'Year'),
+        };
+        // From Year Link: auto fetch from Year DocType
+        filters.from_year.df.get_data = function(txt) {
+            return frappe.db.get_list('Year', {
+                fields: ['year as value', 'year as description'],
+                filters: txt ? [['year', 'like', `%${txt}%`]] : [],
+                limit: 20,
+            });
+        };
+
+        // To Year Link: auto fetch from Year DocType
+        filters.to_year.df.get_data = function(txt) {
+            return frappe.db.get_list('Year', {
+                fields: ['name as value', 'name as description'],
+                filters: txt ? [['name', 'like', `%${txt}%`]] : [],
+                limit: 20,
+            });
         };
         // Fetch CBAM Report options
         filters.cbam_report.df.get_data = function(txt) {
@@ -62,6 +139,7 @@ frappe.pages['cbam-report-dashboad'].on_page_load = function(wrapper) {
                 limit: 20,
             });
         };
+
         // Dynamic event: reload table/chart on change
         filters.cbam_report.df.onchange = function() {
             start = 0;
@@ -69,12 +147,30 @@ frappe.pages['cbam-report-dashboad'].on_page_load = function(wrapper) {
             page_length = 50;
             load_report_table(true);
         };
+
+        filters.from_year.df.onchange = function() {
+            start = 0;
+            all_data = [];
+            page_length = 50;
+            load_report_table(true);
+        };
+
+        filters.to_year.df.onchange = function() {
+            start = 0;
+            all_data = [];
+            page_length = 50;
+            load_report_table(true);
+        };
+
+
         return filters;
     }
 
     // --- Data Table and Chart ---
     function load_report_table(reset = false) {
         const selected_reports = filters.cbam_report.get_value();
+        const from_year = filters.from_year ? filters.from_year.get_value() : null;
+        const to_year = filters.to_year ? filters.to_year.get_value() : null;
         if (reset) {
             start = 0;
             all_data = [];
@@ -91,8 +187,14 @@ frappe.pages['cbam-report-dashboad'].on_page_load = function(wrapper) {
             return;
         }
         frappe.call({
-            method: 'cbam.cbam.page.cbam_report_dashboad.cbam_report_dashboad.get_cbam_report_data',
-            args: { cbam_reports: selected_reports, start, page_length },
+            method: 'cbam.cbam.page.cbam_report_cost_forecast.cbam_report_cost_forecast.get_cbam_report_data',
+            args: {
+                cbam_reports: selected_reports,
+                start,
+                page_length,
+                from_year,
+                to_year
+            },
             freeze: true,
             callback: function(r) {
                 if (r.message) {
@@ -153,10 +255,7 @@ frappe.pages['cbam-report-dashboad'].on_page_load = function(wrapper) {
             return;
         }
 
-        // Set min-width dynamically for scroll (60px per category, min 1800px)
-        const minWidth = Math.max(1800, chart_data.categories.length * 60);
-        $('#chart-section').css('min-width', minWidth + 'px');
-
+        // Do NOT set min-width or use a scrollable wrapper. Let Highcharts fit the chart to the container.
         Highcharts.chart('chart-section', {
             chart: {
                 type: 'column',
@@ -180,8 +279,9 @@ frappe.pages['cbam-report-dashboad'].on_page_load = function(wrapper) {
                     grouping: true,
                     shadow: false,
                     borderWidth: 0,
-                    pointPadding: 0.1,
-                    groupPadding: 0.05
+                    pointPadding: 0, // No gap between bars in a group
+                    groupPadding: 0.1, // No gap between groups
+                    maxPointWidth: 40 // Limit bar width for small datasets
                 }
             }
         });
