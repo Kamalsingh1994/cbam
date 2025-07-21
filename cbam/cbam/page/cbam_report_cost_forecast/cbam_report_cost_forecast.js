@@ -67,6 +67,19 @@ frappe.pages['cbam-report-cost-forecast'].on_page_load = function(wrapper) {
     render_layout(page.body);
     filters = setup_filters();
 
+    // Set default CBAM Report after filters are set up
+    frappe.call({
+        method: 'cbam.cbam.page.cbam_report_cost_forecast.cbam_report_cost_forecast.get_default_cbam_report',
+        callback: function(r) {
+            if (r.message && filters.cbam_report) {
+                filters.cbam_report.set_value([r.message]);
+                start = 0;
+                all_data = [];
+                load_report_table(true);
+            }
+        }
+    });
+
     // Initial Table and Chart
     load_report_table(true);
 

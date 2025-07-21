@@ -157,6 +157,28 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
 
     return {"columns": columns, "data": data, "chart_data": chart_data, "total_count": total_count}
     
+@frappe.whitelist()
+def get_default_cbam_report():
+    user = frappe.session.user
+    # Check if user is a System Manager
+    user_roles = frappe.get_roles(user)
+    is_system_manager = 'System Manager' in user_roles
+    filters = {}
+    if not is_system_manager:
+        # Try to find a declarant linked to this user
+        declarant = frappe.db.get_value("Declarant", {"user": user}, "name")
+        if declarant:
+            filters["declarant"] = declarant
+    # Get the last imported CBAM Report (for this declarant or any)
+    report = frappe.db.get_list(
+        "CBAM Report",
+        filters=filters,
+        fields=["name"],
+        order_by="creation desc",
+        limit=1
+    )
+    return report[0]["name"] if report else None
+
 def get_columns():
     columns = [
         {"id": "year", "name": _( "Year"), "width": 80},
