@@ -7,9 +7,9 @@
  "modified": "2025-07-17 06:59:23.837187",
  "modified_by": "Administrator",
  "module": "CBAM",
- "name": "cbam-report-dashboad",
+ "name": "cbam-report-cost-forecast",
  "owner": "Administrator",
- "page_name": "cbam-report-dashboad",
+ "page_name": "cbam-report-cost-forecast",
  "roles": [
   {
    "role": "System Manager"
@@ -22,5 +22,5 @@
  "standard": "Yes",
  "style": null,
  "system_page": 0,
- "title": "CBAM Report Dashboad"
+ "title": "CBAM Report Cost Forecast"
 }
