@@ -166,9 +166,10 @@ def get_default_cbam_report():
     filters = {}
     if not is_system_manager:
         # Try to find a declarant linked to this user
-        declarant = frappe.db.get_value("Declarant", {"user": user}, "name")
+        declarant = frappe.db.get_value("Declarant", {"email": user}, "name")
         if declarant:
             filters["declarant"] = declarant
+
     # Get the last imported CBAM Report (for this declarant or any)
     report = frappe.db.get_list(
         "CBAM Report",
