@@ -85,8 +85,8 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
 
     <div id="chart-section" class="frappe-card mb-4 p-3">
         <button id="reset-zoom-btn" class="btn btn-secondary btn-sm mb-2" style="padding: 2px 6px; font-size: 0.8em; line-height: 1.2;">Reset</button>
-        <div id="chart-scroll-wrapper" style="overflow-x: auto; width: 100%; margin-bottom:-12px">
-            <div id="ets-price-chart" style="min-width: 1800px;"></div>
+        <div id="chart-scroll-wrapper" style="width: 100%; margin-bottom:-12px">
+            <div id="ets-price-chart"></div>
         </div>
     </div>
     <div class="frappe-card mb-4" id="table-scroll-container" style="overflow-x: auto;">
@@ -175,24 +175,35 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
     }
 
     function applyFilters() {
-        const dateField = 'price_date';
-        let fromDate = $('#from-date').val();
-        let toDate = $('#to-date').val();
+        const fromDate = $('#from-date').val();
+        const toDate = $('#to-date').val();
         const etsTypes = etsPriceTypeFilter.get_value() || [];
 
-        // No default date logic here; only set on initial page load
-
         const filtered = allData.filter(row => {
-            let pass = true;
-            // Always filter by price_date
-            let priceDate = row.price_date ? row.price_date.split(' ')[0] : '';
-            if (fromDate && priceDate < fromDate) pass = false;
-            if (toDate && priceDate > toDate) pass = false;
-            if (etsTypes.length && !etsTypes.includes(row.ets_price_type)) pass = false;
-            return pass;
+            // Check if the type is selected. If no types are selected, all types pass this check.
+            const typeIsSelected = etsTypes.length === 0 || etsTypes.includes(row.ets_price_type);
+            if (!typeIsSelected) {
+                return false;
+            }
+
+            // If the row's type is 'Future', include it regardless of the date range.
+            if (row.ets_price_type === 'Future') {
+                return true;
+            }
+
+            // For all other types, apply the date filter.
+            const priceDate = row.price_date ? row.price_date.split(' ')[0] : '';
+            if (fromDate && (!priceDate || priceDate < fromDate)) {
+                return false;
+            }
+            if (toDate && (!priceDate || priceDate > toDate)) {
+                return false;
+            }
+
+            return true;
         });
+
         lastFilteredData = filtered;
-        console.log("filtered: ", lastFilteredData)
         renderChart(filtered);
         renderTable(filtered);
     }
@@ -202,13 +213,34 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
     etsPriceTypeFilter.df.onchange = applyFilters;
 
     function fetchData(reset = false) {
+        const etsTypes = etsPriceTypeFilter.get_value ? etsPriceTypeFilter.get_value() : [];
+        let filters = {};
+
+        if (etsTypes.includes("Future")) {
+            // If both 'Actual' and 'Future' are selected, fetch both
+            if (etsTypes.includes("Actual")) {
+                filters = { ets_price_type: ["in", ["Actual", "Future"]] };
+            } else {
+                // Only fetch all 'Future' records, ignore date filters
+                filters = { ets_price_type: ["=", "Future"] };
+            }
+        } else {
+            // Use current date and type filters
+            let fromDate = $('#from-date').val();
+            let toDate = $('#to-date').val();
+            if (fromDate) filters.price_date = [">=", fromDate];
+            if (toDate) filters.price_date = ["<=", toDate];
+            if (etsTypes.length) filters.ets_price_type = ["in", etsTypes];
+        }
+
         frappe.call({
             method: "cbam.cbam.page.ets_price_dashboard.ets_price_dashboard.get_table_data",
             args: {
                 doctype,
                 fields: JSON.stringify(fields),
                 start,
-                page_length
+                page_length,
+                filters: JSON.stringify(filters)
             },
             callback: function(r) {
                 if (r.message) {
@@ -222,24 +254,6 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
                     populateEtsPriceTypeOptions(allData);
                     renderTable(allData);
                     renderChart(allData);
-                    // Set default dates and apply filter only on first load
-                    if (!initialFilterApplied) {
-                        const now = new Date();
-                        const year = now.getFullYear();
-                        const month = now.getMonth();
-                        const firstDay = new Date(year, month, 1);
-                        const lastDay = new Date(year, month + 1, 0);
-                        function formatDateLocal(date) {
-                            const y = date.getFullYear();
-                            const m = String(date.getMonth() + 1).padStart(2, '0');
-                            const d = String(date.getDate()).padStart(2, '0');
-                            return `${y}-${m}-${d}`;
-                        }
-                        $('#from-date').val(formatDateLocal(firstDay));
-                        $('#to-date').val(formatDateLocal(lastDay));
-                        initialFilterApplied = true;
-                        applyFilters();
-                    }
                 }
             }
         });
@@ -307,18 +321,21 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
     }
 
     function renderChart(data) {
-        // Standard chart data: dated points
+        // Standard chart data: dated points for 'Actual' type only
         const chartData = data
-            .filter(row => row.price_date && row.price)
+            .filter(row => row.ets_price_type === 'Actual' && row.price_date && row.price)
             .map(row => [
                 new Date(row.price_date).getTime(),
                 Number(row.price)
             ])
             .sort((a, b) => a[0] - b[0]);
-        // Dynamically set min-width for chart container for browser scroll
-        const minWidth = Math.max(1800, chartData.length * 60); // 60px per point for clarity
-        $('#ets-price-chart').css('min-width', minWidth + 'px');
-        const avgYearSeries = getAveragePricePerYearSeries(data);
+        // Remove min-width for chart container to disable horizontal scroll
+        $('#ets-price-chart').css('min-width', '');
+        // Always use allData for average-per-year series
+        const avgYearSeries = getAveragePricePerYearSeries(allData);
+        // Determine if 'Future' is selected in the filter
+        const etsTypes = etsPriceTypeFilter.get_value ? etsPriceTypeFilter.get_value() : [];
+        const showFutureAvg = etsTypes.includes("Future");
         // If no dated chart data, but price_year data exists, show average price per year as points
         let series = [];
         if (chartData.length === 0) {
@@ -335,7 +352,7 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
                 // Use Jan 1 of the year for the x-axis
                 return [new Date(`${year}-01-01`).getTime(), avg];
             });
-            if (avgPoints.length > 0) {
+            if (avgPoints.length > 0 && showFutureAvg) {
                 series = [{
                     name: 'Avg Price per Year',
                     data: avgPoints,
@@ -354,9 +371,11 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
                     type: 'line',
                     color: '#007bff',
                     marker: { enabled: true }
-                },
-                ...avgYearSeries
+                }
             ];
+            if (showFutureAvg) {
+                series = series.concat(avgYearSeries);
+            }
         }
         if (typeof Highcharts === 'undefined') {
             $('#ets-price-chart').html('<div class="text-muted p-4">Loading chart library...</div>');
@@ -390,13 +409,9 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
                         (row.price_year && new Date(`${row.price_year}-01-01`).getTime() === point.x && Number(row.price) === point.y)
                     );
                     let priceYear = originalRow ? originalRow.price_year : '';
-                    // Fallback: extract year from price_date if price_year is null
-                    if ((!priceYear || priceYear === 'null') && originalRow && originalRow.price_date) {
-                        try {
-                            priceYear = new Date(originalRow.price_date).getFullYear();
-                        } catch (e) {
-                            priceYear = '';
-                        }
+                    // Always fallback to the year from the x-axis date if priceYear is missing/null
+                    if (!priceYear || priceYear === 'null') {
+                        priceYear = new Date(point.x).getFullYear();
                     }
                     return `<b>Date:</b> ${Highcharts.dateFormat('%Y-%m-%d', point.x)}<br/>
                             <b>Price:</b> ${point.y}<br/>
@@ -433,25 +448,4 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
 
     // Initial load
     fetchData(true);
-    // Set default dates only on initial page load
-    function setDefaultDatesIfEmpty() {
-        let fromDate = $('#from-date').val();
-        let toDate = $('#to-date').val();
-        if (!fromDate || !toDate) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            function formatDateLocal(date) {
-                const y = date.getFullYear();
-                const m = String(date.getMonth() + 1).padStart(2, '0');
-                const d = String(date.getDate()).padStart(2, '0');
-                return `${y}-${m}-${d}`;
-            }
-            $('#from-date').val(formatDateLocal(firstDay));
-            $('#to-date').val(formatDateLocal(lastDay));
-        }
-    }
-    setTimeout(setDefaultDatesIfEmpty, 100);
 };
