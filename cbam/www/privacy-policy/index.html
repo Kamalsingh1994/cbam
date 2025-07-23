@@ -1,4 +1,4 @@
-{% extends "templates/cbamweb.html" %}
+{% extends "templates/web.html" %}
 
 {% set preferred_lang = frappe.request.cookies.get("preferred_language") %}
 {% set user_lang = frappe.db.get_value("User", frappe.session.user, "language") %}
