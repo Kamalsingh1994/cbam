@@ -62,15 +62,6 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
 
 			<div class="row gx-3 gy-3 align-items-end" style="max-width: 1000px;">
 			
-			<div class="col-md-2 col-sm-6">
-				<label for="date-field-select" class="form-label">Filter by</label>
-				<select id="date-field-select" class="form-select form-select-sm input-with-feedback form-control">
-					<option value="all"></option>
-					<option value="price_date">Price Date</option>
-					<option value="creation_date">Creation Date</option>
-				</select>
-			</div>
-
 			<div class="col-md-3 col-sm-6">
 				<label for="from-date" class="form-label">From Date</label>
 				<input type="date" class="form-control form-control-sm" id="from-date" />
@@ -128,6 +119,7 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
     let datatable = null;
     let initialFilterApplied = false;
     let lastFilteredData = [];
+    let isClearing = false;
 
     function renderPaginationControls(dataArg) {
         const data = dataArg || allData;
@@ -148,7 +140,8 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
                     </select>
                 </div>
                 <div class="ms-auto">
-                    <button id="load-more" class="btn btn-primary btn-sm py-1 px-2" style="font-size: 0.85em; min-width: 70px; padding: 2px 8px;" ${(isFiltered || data.length >= total_count) ? 'disabled' : ''}>Load More</button>
+                    <button id="load-more" class="btn btn-primary btn-sm px-2" ${(isFiltered || data.length >= total_count) ? 'disabled' : ''}>Load More</button>
+                    <button id="export" class="btn btn-primary btn-sm px-2" disabled>${__("Export CSV")}</button>
                 </div>
             </div>
             <style>
@@ -183,75 +176,76 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
     }
 
     function applyFilters() {
-        const dateField = $('#date-field-select').val() || 'price_date';
-        let fromDate = $('#from-date').val();
-        let toDate = $('#to-date').val();
+        const fromDate = $('#from-date').val();
+        const toDate = $('#to-date').val();
         const etsTypes = etsPriceTypeFilter.get_value() || [];
 
-        // If a date field is selected and from/to date is empty, set to current month
-        if ((dateField === 'price_date' || dateField === 'creation_date') && (!fromDate || !toDate)) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            function formatDateLocal(date) {
-                const y = date.getFullYear();
-                const m = String(date.getMonth() + 1).padStart(2, '0');
-                const d = String(date.getDate()).padStart(2, '0');
-                return `${y}-${m}-${d}`;
-            }
-            fromDate = formatDateLocal(firstDay);
-            toDate = formatDateLocal(lastDay);
-            $('#from-date').val(fromDate);
-            $('#to-date').val(toDate);
-        }
-
         const filtered = allData.filter(row => {
-            let pass = true;
-            if (dateField === 'all' || !dateField) {
-                // Show if either date is in range (or if no date filters are set)
-                let priceDate = row.price_date ? row.price_date.split(' ')[0] : '';
-                let creationDate = row.creation_date ? row.creation_date.split(' ')[0] : '';
-                let inRange = false;
-                if (fromDate || toDate) {
-                    if (fromDate && priceDate >= fromDate && (!toDate || priceDate <= toDate)) inRange = true;
-                    if (fromDate && creationDate >= fromDate && (!toDate || creationDate <= toDate)) inRange = true;
-                    if (toDate && priceDate <= toDate && (!fromDate || priceDate >= fromDate)) inRange = true;
-                    if (toDate && creationDate <= toDate && (!fromDate || creationDate >= fromDate)) inRange = true;
-                    pass = inRange;
-                }
-                // If no from/to date, show all
-            } else {
-                let dateValue = row[dateField];
-                if (!dateValue) return false;
-                dateValue = dateValue.split(' ')[0];
-                if (fromDate && dateValue < fromDate) pass = false;
-                if (toDate && dateValue > toDate) pass = false;
+            // Check if the type is selected. If no types are selected, all types pass this check.
+            const typeIsSelected = etsTypes.length === 0 || etsTypes.includes(row.ets_price_type);
+            if (!typeIsSelected) {
+                return false;
             }
-            if (etsTypes.length && !etsTypes.includes(row.ets_price_type)) pass = false;
-            return pass;
+
+            // If the row's type is 'Future', include it regardless of the date range.
+            if (row.ets_price_type === 'Future') {
+                return true;
+            }
+
+            // For all other types, apply the date filter.
+            const priceDate = row.price_date ? row.price_date.split(' ')[0] : '';
+            if (fromDate && (!priceDate || priceDate < fromDate)) {
+                return false;
+            }
+            if (toDate && (!priceDate || priceDate > toDate)) {
+                return false;
+            }
+
+            return true;
         });
+
         lastFilteredData = filtered;
         renderChart(filtered);
         renderTable(filtered);
     }
 
-    // Filter on change for all filter controls
-    $('#date-field-select, #from-date, #to-date').on('change', applyFilters);
+    // Filter on change for date controls only
+    $('#from-date, #to-date').on('change', applyFilters);
     etsPriceTypeFilter.df.onchange = applyFilters;
 
     function fetchData(reset = false) {
+        const etsTypes = etsPriceTypeFilter.get_value ? etsPriceTypeFilter.get_value() : [];
+        let filters = {};
+
+        if (etsTypes.includes("Future")) {
+            // If both 'Actual' and 'Future' are selected, fetch both
+            if (etsTypes.includes("Actual")) {
+                filters = { ets_price_type: ["in", ["Actual", "Future"]] };
+            } else {
+                // Only fetch all 'Future' records, ignore date filters
+                filters = { ets_price_type: ["=", "Future"] };
+            }
+        } else {
+            // Use current date and type filters
+            let fromDate = $('#from-date').val();
+            let toDate = $('#to-date').val();
+            if (fromDate) filters.price_date = [">=", fromDate];
+            if (toDate) filters.price_date = ["<=", toDate];
+            if (etsTypes.length) filters.ets_price_type = ["in", etsTypes];
+        }
+
         frappe.call({
             method: "cbam.cbam.page.ets_price_dashboard.ets_price_dashboard.get_table_data",
             args: {
                 doctype,
                 fields: JSON.stringify(fields),
                 start,
-                page_length
+                page_length,
+                filters: JSON.stringify(filters)
             },
             callback: function(r) {
                 if (r.message) {
+                    console.log("data: ", r.message)
                     total_count = r.message.total_count || 0;
                     if (reset) {
                         allData = r.message.data || [];
@@ -261,24 +255,6 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
                     populateEtsPriceTypeOptions(allData);
                     renderTable(allData);
                     renderChart(allData);
-                    // Set default dates and apply filter only on first load
-                    if (!initialFilterApplied) {
-                        const now = new Date();
-                        const year = now.getFullYear();
-                        const month = now.getMonth();
-                        const firstDay = new Date(year, month, 1);
-                        const lastDay = new Date(year, month + 1, 0);
-                        function formatDateLocal(date) {
-                            const y = date.getFullYear();
-                            const m = String(date.getMonth() + 1).padStart(2, '0');
-                            const d = String(date.getDate()).padStart(2, '0');
-                            return `${y}-${m}-${d}`;
-                        }
-                        $('#from-date').val(formatDateLocal(firstDay));
-                        $('#to-date').val(formatDateLocal(lastDay));
-                        initialFilterApplied = true;
-                        applyFilters();
-                    }
                 }
             }
         });
@@ -308,12 +284,25 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
                 scrollY: '400px',
                 scrollX: true,
                 className: 'frappe-datatable',
-                checkboxColumn: true // checklist enabled
+                checkboxColumn: true,
+                events: {
+                    onCheckRow: update_export_button_state,
+                    onUncheckRow: update_export_button_state
+                }
             });
         } else {
             datatable.refresh(tableData);
+            update_export_button_state(); // ensure state updated on table refresh
         }
         renderPaginationControls(data); // <-- Always call here after table is rendered
+    }
+    function update_export_button_state() {
+            const selected = datatable?.rowmanager?.getCheckedRows?.() || [];
+            $('#export').prop('disabled', selected.length === 0);
+    }
+    function get_selected_rows_data() {
+        const selectedIndexes = datatable?.rowmanager?.getCheckedRows?.() || [];
+        return selectedIndexes.map(i => datatable.datamanager.data[i]);
     }
 
     function getAveragePricePerYearSeries(data) {
@@ -346,18 +335,21 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
     }
 
     function renderChart(data) {
-        // Standard chart data: dated points
+        // Standard chart data: dated points for 'Actual' type only
         const chartData = data
-            .filter(row => row.price_date && row.price)
+            .filter(row => row.ets_price_type === 'Actual' && row.price_date && row.price)
             .map(row => [
                 new Date(row.price_date).getTime(),
                 Number(row.price)
             ])
             .sort((a, b) => a[0] - b[0]);
-        // Dynamically set min-width for chart container for browser scroll
-        const minWidth = Math.max(1800, chartData.length * 60); // 60px per point for clarity
-        $('#ets-price-chart').css('min-width', minWidth + 'px');
-        const avgYearSeries = getAveragePricePerYearSeries(data);
+        // Remove min-width for chart container to disable horizontal scroll
+        $('#ets-price-chart').css('min-width', '');
+        // Always use allData for average-per-year series
+        const avgYearSeries = getAveragePricePerYearSeries(allData);
+        // Determine if 'Future' is selected in the filter
+        const etsTypes = etsPriceTypeFilter.get_value ? etsPriceTypeFilter.get_value() : [];
+        const showFutureAvg = etsTypes.includes("Future");
         // If no dated chart data, but price_year data exists, show average price per year as points
         let series = [];
         if (chartData.length === 0) {
@@ -374,7 +366,7 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
                 // Use Jan 1 of the year for the x-axis
                 return [new Date(`${year}-01-01`).getTime(), avg];
             });
-            if (avgPoints.length > 0) {
+            if (avgPoints.length > 0 && showFutureAvg) {
                 series = [{
                     name: 'Avg Price per Year',
                     data: avgPoints,
@@ -393,9 +385,11 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
                     type: 'line',
                     color: '#007bff',
                     marker: { enabled: true }
-                },
-                ...avgYearSeries
+                }
             ];
+            if (showFutureAvg) {
+                series = series.concat(avgYearSeries);
+            }
         }
         if (typeof Highcharts === 'undefined') {
             $('#ets-price-chart').html('<div class="text-muted p-4">Loading chart library...</div>');
@@ -428,7 +422,11 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
                         (row.price_date && new Date(row.price_date).getTime() === point.x && Number(row.price) === point.y) ||
                         (row.price_year && new Date(`${row.price_year}-01-01`).getTime() === point.x && Number(row.price) === point.y)
                     );
-                    const priceYear = originalRow ? originalRow.price_year : '';
+                    let priceYear = originalRow ? originalRow.price_year : '';
+                    // Always fallback to the year from the x-axis date if priceYear is missing/null
+                    if (!priceYear || priceYear === 'null') {
+                        priceYear = new Date(point.x).getFullYear();
+                    }
                     return `<b>Date:</b> ${Highcharts.dateFormat('%Y-%m-%d', point.x)}<br/>
                             <b>Price:</b> ${point.y}<br/>
                             <b>Price Year:</b> ${priceYear}`;
@@ -446,19 +444,39 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
 
     // Add event handler for Clear button
     $(document).on('click', '#clear-filters-btn', function() {
-        $('#date-field-select').val('all');
-        $('#from-date').val('');
-        $('#to-date').val('');
+        isClearing = true;
+        $('#from-date').val('').trigger('change');
+        $('#to-date').val('').trigger('change');
         etsPriceTypeFilter.set_value([]);
         applyFilters();
+        setTimeout(() => { isClearing = false; }, 100);
     });
 
     // Populate ETS Price Type options
     function populateEtsPriceTypeOptions(data) {
-        const types = [...new Set(data.map(row => row.ets_price_type).filter(Boolean))];
+        // Get unique types, filter out 'Prediction'
+        const types = [...new Set(data.map(row => row.ets_price_type).filter(Boolean))].filter(type => type !== 'Prediction');
         etsPriceTypeFilter.df.options = types.map(type => ({ value: type, description: type }));
         etsPriceTypeFilter.refresh();
     }
+    // Export selected rows to CSV
+        $(document).on("click", "#export", function () {
+            const selectedRows = get_selected_rows_data();
+            if (selectedRows.length === 0) return;
+
+            const csvHeaders = Object.keys(selectedRows[0]);
+            const csvRows = selectedRows.map(row => csvHeaders.map(key => `"${(row[key] || "").toString().replace(/"/g, '""')}"`));
+            const csvContent = [csvHeaders.join(","), ...csvRows.map(r => r.join(","))].join("\n");
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "ets_price_report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
 
     // Initial load
     fetchData(true);

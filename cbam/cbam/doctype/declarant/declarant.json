@@ -35,7 +35,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-21 12:42:34.084991",
+ "modified": "2025-07-21 16:08:41.775297",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Declarant",
@@ -51,35 +51,21 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "select": 1,
    "share": 1,
    "write": 1
   },
   {
-   "email": 1,
-   "export": 1,
-   "print": 1,
    "read": 1,
-   "report": 1,
-   "role": "Declarant",
-   "share": 1
+   "role": "Declarant"
   },
   {
-   "email": 1,
-   "export": 1,
-   "print": 1,
    "read": 1,
-   "report": 1,
-   "role": "Commercial Contact",
-   "share": 1
+   "role": "Commercial Contact"
   },
   {
-   "email": 1,
-   "export": 1,
-   "print": 1,
    "read": 1,
-   "report": 1,
-   "role": "CBAM Representative",
-   "share": 1
+   "role": "CBAM Representative"
   }
  ],
  "row_format": "Dynamic",

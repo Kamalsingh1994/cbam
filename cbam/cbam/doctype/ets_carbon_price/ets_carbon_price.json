@@ -14,10 +14,14 @@
   "column_break_moht",
   "price_date",
   "creation_date",
-  "price_year"
+  "price_year",
+  "volume",
+  "high",
+  "low"
  ],
  "fields": [
   {
+   "description": "Closing Price",
    "fieldname": "price",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -71,12 +75,27 @@
    "fieldtype": "Link",
    "label": "Price Year",
    "options": "Year"
+  },
+  {
+   "fieldname": "volume",
+   "fieldtype": "Currency",
+   "label": "Volume"
+  },
+  {
+   "fieldname": "high",
+   "fieldtype": "Currency",
+   "label": "High"
+  },
+  {
+   "fieldname": "low",
+   "fieldtype": "Currency",
+   "label": "Low"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-14 13:25:39.041785",
+ "modified": "2025-07-22 07:56:47.792610",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "ETS Carbon Price",

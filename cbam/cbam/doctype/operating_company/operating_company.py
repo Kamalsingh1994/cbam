@@ -155,6 +155,9 @@ class OperatingCompany(Document):
 		if self.parent_operating_company and not self.user_conflict:
 			self.send_signup_request()
 
+	def on_update(self):
+		update_user_from_operating_company(self, method="on_update")
+
 
 	@frappe.whitelist()
 	def send_signup_request(self):
@@ -222,6 +225,31 @@ class OperatingCompany(Document):
 		if old_user not in [self.cbam_representative_user, self.commercial_contact_user]:
 			frappe.db.set_value("User", old_user, "enabled", 0)
 
+@frappe.whitelist()
+def update_user_from_operating_company(doc, method=None):
+	# Update the user linked in commercial_contact_user
+	if doc.commercial_contact_user:
+		try:
+			user = frappe.get_doc("User", doc.commercial_contact_user)
+			user.first_name = doc.main_contact_employee_first_name
+			user.last_name = doc.main_contact_employee_last_name
+			user.email = doc.main_contact_employee_email
+			user.phone = doc.main_contact_employee_phone_number
+			user.save(ignore_permissions=True)
+		except Exception as e:
+			frappe.log_error(frappe.get_traceback(), "Error updating commercial contact User")
+
+	# Update the user linked in cbam_representative_user
+	if doc.cbam_representative_user:
+		try:
+			user = frappe.get_doc("User", doc.cbam_representative_user)
+			user.first_name = doc.cbam_representive_employee_first_name
+			user.last_name = doc.cbam_representive_last_name
+			user.email = doc.cbam_representive_employee_email
+			user.phone = doc.cbam_representive_employee_phone_number
+			user.save(ignore_permissions=True)
+		except Exception as e:
+			frappe.log_error(frappe.get_traceback(), "Error updating CBAM representative User")
 
 @frappe.whitelist()
 def send_bulk_signup_request(operating_companys):
