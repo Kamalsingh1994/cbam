@@ -85,8 +85,8 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
 
     <div id="chart-section" class="frappe-card mb-4 p-3">
         <button id="reset-zoom-btn" class="btn btn-secondary btn-sm mb-2" style="padding: 2px 6px; font-size: 0.8em; line-height: 1.2;">Reset</button>
-        <div id="chart-scroll-wrapper" style="width: 100%; margin-bottom:-12px">
-            <div id="ets-price-chart"></div>
+        <div id="chart-scroll-wrapper" style="overflow-x: auto; width: 100%; margin-bottom:-12px">
+            <div id="ets-price-chart" style="min-width: 1800px;"></div>
         </div>
     </div>
     <div class="frappe-card mb-4" id="table-scroll-container" style="overflow-x: auto;">
@@ -140,7 +140,8 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
                     </select>
                 </div>
                 <div class="ms-auto">
-                    <button id="load-more" class="btn btn-primary btn-sm py-1 px-2" style="font-size: 0.85em; min-width: 70px; padding: 2px 8px;" ${(isFiltered || data.length >= total_count) ? 'disabled' : ''}>Load More</button>
+                    <button id="load-more" class="btn btn-primary btn-sm px-2" ${(isFiltered || data.length >= total_count) ? 'disabled' : ''}>Load More</button>
+                    <button id="export" class="btn btn-primary btn-sm px-2" disabled>${__("Export CSV")}</button>
                 </div>
             </div>
             <style>
@@ -283,12 +284,25 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
                 scrollY: '400px',
                 scrollX: true,
                 className: 'frappe-datatable',
-                checkboxColumn: true // checklist enabled
+                checkboxColumn: true,
+                events: {
+                    onCheckRow: update_export_button_state,
+                    onUncheckRow: update_export_button_state
+                }
             });
         } else {
             datatable.refresh(tableData);
+            update_export_button_state(); // ensure state updated on table refresh
         }
         renderPaginationControls(data); // <-- Always call here after table is rendered
+    }
+    function update_export_button_state() {
+            const selected = datatable?.rowmanager?.getCheckedRows?.() || [];
+            $('#export').prop('disabled', selected.length === 0);
+    }
+    function get_selected_rows_data() {
+        const selectedIndexes = datatable?.rowmanager?.getCheckedRows?.() || [];
+        return selectedIndexes.map(i => datatable.datamanager.data[i]);
     }
 
     function getAveragePricePerYearSeries(data) {
@@ -445,6 +459,24 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
         etsPriceTypeFilter.df.options = types.map(type => ({ value: type, description: type }));
         etsPriceTypeFilter.refresh();
     }
+    // Export selected rows to CSV
+        $(document).on("click", "#export", function () {
+            const selectedRows = get_selected_rows_data();
+            if (selectedRows.length === 0) return;
+
+            const csvHeaders = Object.keys(selectedRows[0]);
+            const csvRows = selectedRows.map(row => csvHeaders.map(key => `"${(row[key] || "").toString().replace(/"/g, '""')}"`));
+            const csvContent = [csvHeaders.join(","), ...csvRows.map(r => r.join(","))].join("\n");
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "ets_price_report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
 
     // Initial load
     fetchData(true);
