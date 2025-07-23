@@ -231,8 +231,6 @@ override_whitelisted_methods = {
 
 # Request Events
 # ----------------
-before_request = ["cbam.override.restrict_guest.block_guest"]
-
 # before_request = ["cbam.utils.before_request"]
 # after_request = ["cbam.utils.after_request"]
 
