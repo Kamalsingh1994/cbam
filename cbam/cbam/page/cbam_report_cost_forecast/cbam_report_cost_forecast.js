@@ -237,11 +237,18 @@ frappe.pages['cbam-report-cost-forecast'].on_page_load = function(wrapper) {
                 scrollY: '500px',
                 scrollX: true,
                 className: 'frappe-datatable',
+                checkboxColumn: true,
+                events: {
+                    onCheckRow: update_export_button_state,
+                    onUncheckRow: update_export_button_state,
+                }
             });
         } else {
             datatable.refresh(data);
+            update_export_button_state();
         }
     }
+
 
     function render_chart(chart_data) {
         $('#chart-section').empty();
@@ -286,14 +293,38 @@ frappe.pages['cbam-report-cost-forecast'].on_page_load = function(wrapper) {
             }
         });
     }
-
+    function update_export_button_state() {
+            const selected = datatable?.rowmanager?.getCheckedRows?.() || [];
+            $('#export').prop('disabled', selected.length === 0);
+    }
+    function get_selected_rows_data() {
+        const selectedIndexes = datatable?.rowmanager?.getCheckedRows?.() || [];
+        return selectedIndexes.map(i => datatable.datamanager.data[i]);
+    }
     function load_highcharts(callback) {
         const script = document.createElement('script');
         script.src = 'https://code.highcharts.com/highcharts.js';
         script.onload = callback;
         document.head.appendChild(script);
     }
+     // Export selected rows to CSV
+    $(document).on("click", "#export", function () {
+        const selectedRows = get_selected_rows_data();
+        if (selectedRows.length === 0) return;
 
+        const csvHeaders = Object.keys(selectedRows[0]);
+        const csvRows = selectedRows.map(row => csvHeaders.map(key => `"${(row[key] || "").toString().replace(/"/g, '""')}"`));
+        const csvContent = [csvHeaders.join(","), ...csvRows.map(r => r.join(","))].join("\n");
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "cbam-report-cost-forecast.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
     function render_pagination_controls() {
         $('#pagination-controls').remove();
         if (!all_data.length) return;
@@ -313,6 +344,7 @@ frappe.pages['cbam-report-cost-forecast'].on_page_load = function(wrapper) {
                 </div>
                 <div class="ms-auto">
                     <button id="load-more" class="btn btn-primary btn-sm px-2" ${(all_data.length >= total_count) ? 'disabled' : ''}>Load More</button>
+                    <button id="export" class="btn btn-primary btn-sm px-2" disabled>${__("Export CSV")}</button>
                 </div>
             </div>
             <style>
