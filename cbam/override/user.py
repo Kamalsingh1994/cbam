@@ -78,7 +78,7 @@ def update_operating_company_contact(doc, method):
         op_doc.main_contact_employee_email = doc.email
         op_doc.commercial_contact_user = doc.email
         op_doc.main_contact_employee_phone_number = doc.phone
-        op_doc.save()
+        op_doc.save(ignore_permissions=True)
 
     cbam_companies = frappe.get_all("Operating Company", 
         filters={"cbam_representative_user": doc.name}, fields=["name"])
@@ -90,5 +90,5 @@ def update_operating_company_contact(doc, method):
         op_doc.cbam_representive_employee_email = doc.email
         op_doc.cbam_representative_user = doc.email
         op_doc.cbam_representive_employee_phone_number = doc.phone
-        op_doc.save()
+        op_doc.save(ignore_permissions=True)
 
