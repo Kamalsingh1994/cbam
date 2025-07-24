@@ -48,8 +48,6 @@ def extract_cbam_goods(pdf_path):
                     if i + 1 < len(page_lines):
                         importer_value = page_lines[i + 1].strip()
                         header_info["importer"] = importer_value
-                        # Log for debugging
-                        frappe.log_error(f"Found importer line: '{line}' -> value: '{importer_value}'", "CBAM Importer Debug")
                         break  # Stop after finding the first importer
 
     # Match section headers like "1. 73181535 | CN"
@@ -100,7 +98,6 @@ def extract_cbam_goods(pdf_path):
     # Final extraction
     extracted = []
     last_lines = None
-    frappe.log_error("Good Blocks", good_blocks)
     for idx, block in enumerate(good_blocks):
         section = block["Section"]
         lines = block["Lines"]
@@ -156,7 +153,6 @@ def extract_cbam_goods(pdf_path):
         if (data["operator_name"] or data["installation_name"]):
             extracted.append(data)
         last_lines = lines
-    frappe.log_error("Extracted CBAM Goods Data", extracted)
     return extracted
 
 
