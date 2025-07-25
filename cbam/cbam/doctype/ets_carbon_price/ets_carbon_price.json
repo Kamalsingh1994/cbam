@@ -8,15 +8,20 @@
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
-  "creation_date",
-  "price_date",
-  "column_break_moht",
-  "price",
   "ets_price_type",
-  "carbon_price_source"
+  "carbon_price_source",
+  "price",
+  "column_break_moht",
+  "price_date",
+  "creation_date",
+  "price_year",
+  "volume",
+  "high",
+  "low"
  ],
  "fields": [
   {
+   "description": "Closing Price",
    "fieldname": "price",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -27,7 +32,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "ETS price Type",
-   "options": "\nActual\nPrediction",
+   "options": "\nActual\nPrediction\nFuture",
    "set_only_once": 1
   },
   {
@@ -53,6 +58,7 @@
    "options": "ETS Carbon Price Source"
   },
   {
+   "depends_on": "eval:doc.ets_price_type != \"Future\"",
    "fieldname": "price_date",
    "fieldtype": "Date",
    "in_list_view": 1,
@@ -62,12 +68,34 @@
   {
    "fieldname": "column_break_moht",
    "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.ets_price_type == \"Future\"",
+   "fieldname": "price_year",
+   "fieldtype": "Link",
+   "label": "Price Year",
+   "options": "Year"
+  },
+  {
+   "fieldname": "volume",
+   "fieldtype": "Currency",
+   "label": "Volume"
+  },
+  {
+   "fieldname": "high",
+   "fieldtype": "Currency",
+   "label": "High"
+  },
+  {
+   "fieldname": "low",
+   "fieldtype": "Currency",
+   "label": "Low"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-02 11:53:16.039881",
+ "modified": "2025-07-22 07:56:47.792610",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "ETS Carbon Price",

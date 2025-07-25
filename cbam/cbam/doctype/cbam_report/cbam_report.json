@@ -48,15 +48,12 @@
   {
    "fieldname": "importer",
    "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Importer"
   },
   {
    "default": "0",
    "fieldname": "declarant_acts_as_importer",
    "fieldtype": "Check",
-   "in_list_view": 1,
    "label": "Declarant acts as Importer"
   },
   {
@@ -83,7 +80,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-14 07:20:58.942666",
+ "modified": "2025-07-24 07:27:15.495192",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Report",

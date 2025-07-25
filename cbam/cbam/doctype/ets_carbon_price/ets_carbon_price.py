@@ -11,23 +11,37 @@ class ETSCarbonPrice(Document):
 	
 	def autoname(self):
 		if not self.ets_price_type:
-			frappe.throw("ETS Price Type (Actual or Prediction) is required.")
+			frappe.throw("ETS Price Type (Actual or Prediction or Future) is required.")
+
+		if self.ets_price_type == "Future":
+			if not self.price_year:
+				frappe.throw("ETS Carbon Price Year is required for Future type.")
+
+			# Use Frappe's counter mechanism with date series
+			creation_date_str = formatdate(self.creation, "yyyy-MM-dd")
+			counter_prefix = f"ETS-{creation_date_str}-.####"
+			counter_id = make_autoname(counter_prefix)
+			self.creation_date = self.creation or today()
+			self.name = f"{counter_id}-F-{self.price_year}"
+			return
 
 		if not self.price_date:
 			frappe.throw("ETS Carbon Price Date is required.")
 
-        # Map Actual / Prediction to A / P
+		# Map Actual / Prediction to A / P
 		type_code = "A" if self.ets_price_type == "Actual" else "P"
 		price_date_str = formatdate(self.price_date, "yyyy-MM-dd")
-
-        # Use Frappe's counter mechanism with date series
+		# Use Frappe's counter mechanism with date series
 		creation_date_str = formatdate(self.creation, "yyyy-MM-dd")
-
-
 		counter_prefix = f"ETS-{creation_date_str}-.####"
 		counter_id = make_autoname(counter_prefix)
-
 		self.creation_date = self.creation or today()
 		self.name = f"{counter_id}-{type_code}-{price_date_str}"
+
+	def validate(self):
+		if self.ets_price_type == "Future":
+			self.price_date = None
+		elif self.ets_price_type in ["Actual", "Prediction"]:
+			self.price_year = None
 
 		

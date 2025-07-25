@@ -8,7 +8,14 @@
 
 frappe.provide('cbam.pages');
 
-frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
+frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
+    if (!sessionStorage.getItem('financial_evaluation_report_reloaded')) {
+        sessionStorage.setItem('financial_evaluation_report_reloaded', '1');
+        location.reload();
+        return;
+    } else {
+        sessionStorage.removeItem('financial_evaluation_report_reloaded');
+    }
     (function () {
         const page = frappe.ui.make_app_page({
             parent: wrapper,
@@ -34,11 +41,8 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
 
         // Initial Stats, Chart, and Table
         clear_stats();
-        cbam.update_chart(null);
+        // cbam.update_chart(null);
         load_report_table(true);
-
-        // Setup table toggle functionality
-        setup_table_toggle();
 
         // Helper: Get table data, optionally per tonne
         function get_table_data(data, per_tonne = false) {
@@ -110,6 +114,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
         function bind_datatable_selection_events() {
             if (!datatable) return;
             datatable.on('onCheckRow', function() {
+                update_export_button_state();
                 if ($('#selected-rows-toggle').is(':checked')) {
                     const selectedData = get_selected_rows_data();
                     const per_tonne = $('#table-toggle').is(':checked');
@@ -124,6 +129,12 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
                 }
             });
         }
+
+        function update_export_button_state() {
+            const selected = datatable?.rowmanager?.getCheckedRows?.() || [];
+            $('#export').prop('disabled', selected.length === 0);
+        }
+
 
         /**
          * Render the main page layout.
@@ -346,7 +357,8 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
                         } else {
                             chart_data_final = cbam.get_chart_data(all_data, per_tonne);
                         }
-                        cbam.update_chart(chart_data_final);
+                       
+                        setTimeout(() => cbam.update_chart(chart_data_final), 100);
                         render_pagination_controls();
                     }
                 },
@@ -379,6 +391,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
                     </div>
                     <div class="ms-auto">
                         <button id="load-more" class="btn btn-primary btn-sm px-2" ${(all_data.length >= total_count) ? 'disabled' : ''}>${__("Load More")}</button>
+                        <button id="export" class="btn btn-primary btn-sm px-2" disabled>${__("Export CSV")}</button>
                     </div>
                 </div>
                 <style>
@@ -407,6 +420,25 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
             });
         }
 
+        // Export selected rows to CSV
+        $(document).on("click", "#export", function () {
+            const selectedRows = get_selected_rows_data();
+            if (selectedRows.length === 0) return;
+
+            const csvHeaders = Object.keys(selectedRows[0]);
+            const csvRows = selectedRows.map(row => csvHeaders.map(key => `"${(row[key] || "").toString().replace(/"/g, '""')}"`));
+            const csvContent = [csvHeaders.join(","), ...csvRows.map(r => r.join(","))].join("\n");
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "financial_evaluation_report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
         /**
          * Render a compact stat card.
          * @param {string} label
@@ -422,20 +454,34 @@ frappe.pages['financial-evaluation-report'].on_page_load = function (wrapper) {
             `;
         }
 
-        /**
-         * Setup table toggle functionality.
-         */
-        function setup_table_toggle() {
-            // Table toggle functionality
-            $('#table-toggle').on('change', function() {
-                const isVisible = $(this).is(':checked');
-                
-                // You can add your custom actions here based on the toggle state
-                console.log('Table toggle changed:', isVisible);
-                
-                // Example: Show/hide table
-              
-            });
-        }
+        // Insert tab navigation just below the page title
+        $(page.body).prepend(`
+            <ul class="nav nav-tabs mb-3" id="dashboard-tabs">
+                <li class="nav-item">
+                    <a class="nav-link" href="/app/ets-price-dashboard">ETS Price Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/app/financial-evaluation-report">Financial Evaluation Report</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/app/cbam-report-cost-forecast">CBAM Report Cost Forecast</a>
+                </li>
+            </ul>
+        `);
+
+        // Add custom style for active tab background color (black) and bold font
+        $(`<style>
+          #dashboard-tabs .nav-link.active {
+            background-color: #000 !important;
+            color: #fff !important;
+            border-color: #000 #000 #fff !important;
+            font-weight: 600 !important;
+          }
+          #dashboard-tabs .nav-link {
+            color: #000;
+            font-weight: 500;
+          }
+        </style>`).appendTo('head');
     })();
+    
 };

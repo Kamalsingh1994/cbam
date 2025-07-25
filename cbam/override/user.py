@@ -60,3 +60,35 @@ def update_password(
     # Return success message instead of redirect
 	frappe.msgprint(_("Your password has been updated. Please log in manually."))
 	return "/login"
+
+def update_operating_company_contact(doc, method):
+    if frappe.flags.in_user_hook:
+        return
+
+    frappe.flags.in_user_hook = True
+
+    frappe.log_error("User Hook Triggered", f"User: {doc.name}")
+    operating_companies = frappe.get_all("Operating Company", 
+        filters={"commercial_contact_user": doc.name}, fields=["name"])
+
+    for op in operating_companies:
+        op_doc = frappe.get_doc("Operating Company", op.name)
+        op_doc.main_contact_employee_first_name = doc.first_name
+        op_doc.main_contact_employee_last_name = doc.last_name
+        op_doc.main_contact_employee_email = doc.email
+        op_doc.commercial_contact_user = doc.email
+        op_doc.main_contact_employee_phone_number = doc.phone
+        op_doc.save(ignore_permissions=True)
+
+    cbam_companies = frappe.get_all("Operating Company", 
+        filters={"cbam_representative_user": doc.name}, fields=["name"])
+
+    for op in cbam_companies:
+        op_doc = frappe.get_doc("Operating Company", op.name)
+        op_doc.cbam_representive_employee_first_name = doc.first_name
+        op_doc.cbam_representive_last_name = doc.last_name
+        op_doc.cbam_representive_employee_email = doc.email
+        op_doc.cbam_representative_user = doc.email
+        op_doc.cbam_representive_employee_phone_number = doc.phone
+        op_doc.save(ignore_permissions=True)
+
