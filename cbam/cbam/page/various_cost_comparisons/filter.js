@@ -83,7 +83,15 @@ cbam.get_all_selected_filters = function(filters) {
             ['ets_price_type', 'year', 'ets_price'].forEach(key => {
                 selected_filters[key] = filters[key]?.get_value?.() || '';
             });
-            selected_filters.cbam_factor = parseFloat($('[data-stat="cbam-factor"]').text()) || 0;
+            // Special handling for CBAM Factor - use data-original-value if available
+            let cbamFactorElement = $('[data-stat="cbam-factor"]');
+            let cbamFactor = 0;
+            if (cbamFactorElement.attr('data-original-value')) {
+                cbamFactor = parseFloat(cbamFactorElement.attr('data-original-value')) || 0;
+            } else {
+                cbamFactor = parseFloat(cbamFactorElement.text()) || 0;
+            }
+            selected_filters.cbam_factor = cbamFactor;
             selected_filters.bench_mark = parseFloat($('[data-stat="bench-mark-emission-value"]').text()) || 0;
             selected_filters.emission_value = parseFloat($('[data-stat="standard-emission-value"]').text()) || 0;
             selected_filters.ets_price_value = parseFloat($('[data-stat="ets-price"]').text()) || 0;

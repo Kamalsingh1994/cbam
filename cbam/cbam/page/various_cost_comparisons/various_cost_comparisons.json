@@ -4,12 +4,12 @@
  "docstatus": 0,
  "doctype": "Page",
  "idx": 0,
- "modified": "2025-07-01 13:19:42.161029",
+ "modified": "2025-08-05 07:59:27.815927",
  "modified_by": "Administrator",
  "module": "CBAM",
- "name": "financial-evaluation-report",
+ "name": "various-cost-comparisons",
  "owner": "Administrator",
- "page_name": "financial-evaluation-report",
+ "page_name": "various-cost-comparisons",
  "roles": [
   {
    "role": "Declarant"
@@ -22,5 +22,5 @@
  "standard": "Yes",
  "style": null,
  "system_page": 0,
- "title": "Financial Evaluation Report"
+ "title": "Various Cost Comparisons"
 }

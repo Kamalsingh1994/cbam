@@ -23,7 +23,6 @@ def get_report_data(filters=None, selected_filters=None, start=0, page_length=50
 
     data, total_count = get_data(filters, selected_filters, start, page_length)
     chart_data = get_chart_data(data)
-
     return {"columns": columns, "data": data, "chart_data": chart_data, "total_count": total_count}
 
 
@@ -33,15 +32,15 @@ def get_columns():
         {"fieldname": "article_number", "fieldtype": "Data", "label": "Article Number", "width": 200},
         {"fieldname": "supplier", "fieldtype": "Data", "label": "Supplier", "width": 200},
         {"fieldname": "raw_mass_tonne", "fieldtype": "Data", "label": "Mass [t]", "width": 150},
-        {"fieldname": "carbon_price_due", "fieldtype": "Data", "label": "Carbon Price Due", "width": 150},
+        # {"fieldname": "carbon_price_due", "fieldtype": "Data", "label": "Carbon Price Due", "width": 150},
         {"fieldname": "installation_country", "fieldtype": "Data", "label": "Installation Country", "width": 180},
-        {"fieldname": "real_emission_value", "fieldtype": "Data", "label": "Specific (Direct) Emission Value", "width": 250},
-        {"fieldname": "real_emission_cost", "fieldtype": "Data", "label": "Actual Cost", "width": 180},
         {"fieldname": "standard_emission_cost", "fieldtype": "Data", "label": "Standard Cost", "width": 180},
+        {"fieldname": "real_emission_value", "fieldtype": "Data", "label": "Specific (Direct) Emission Value [kgCO2e/kg]", "width": 325},
+        {"fieldname": "real_emission_cost", "fieldtype": "Data", "label": "Cost Based on Specific Emissions [€]", "width": 280},
     ]
 
-
 def get_data(filters=None, selected_filters=None, start=0, page_length=50):
+    print("filters", selected_filters)
     filters = filters or {}
     selected_filters = selected_filters or {}
     try:
@@ -340,5 +339,3 @@ def get_filter_options(txt=None, filter_type=None, cn_code=None, supplier=None):
     eg_options = fetch_external_good_options(filter_type, txt, declarants, cn_code_list, supplier_list)
     g_options = fetch_good_options(filter_type, txt, declarants, cn_code_list, supplier_list)
     return merge_and_format_options(eg_options, g_options)
-
-

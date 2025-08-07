@@ -3,20 +3,20 @@
 
 frappe.provide('cbam.pages');
 
-frappe.pages['cbam-report-cost-forecast'].on_page_load = function(wrapper) {
+frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
 
-    if (!sessionStorage.getItem('cbam_report_cost_forecast_reloaded')) {
-        sessionStorage.setItem('cbam_report_cost_forecast_reloaded', '1');
+    if (!sessionStorage.getItem('financial_exposure_forecast_reloaded')) {
+        sessionStorage.setItem('financial_exposure_forecast_reloaded', '1');
         location.reload();
         return;
     } else {
-        sessionStorage.removeItem('cbam_report_cost_forecast_reloaded');
+        sessionStorage.removeItem('financial_exposure_forecast_reloaded');
     }
     $(wrapper).empty();
     
     const page = frappe.ui.make_app_page({
         parent: wrapper,
-        title: __('CBAM Report Cost Forecast'),
+        title: __('Financial Dashboard'),
         single_column: true,
     });
 
@@ -42,14 +42,14 @@ frappe.pages['cbam-report-cost-forecast'].on_page_load = function(wrapper) {
     // Insert tab navigation at the top of .page-content for perfect alignment
     $('.page-content').prepend(`
         <ul class="nav nav-tabs mb-0" id="dashboard-tabs">
-            <li class="nav-item">
+            <!-- <li class="nav-item">
                 <a class="nav-link" href="/app/ets-price-dashboard">ETS Price Dashboard</a>
+            </li> -->
+			<li class="nav-item">
+                <a class="nav-link active" href="/app/financial-exposure-forecast">Financial Exposure Forecase</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/app/financial-evaluation-report">Financial Evaluation Report</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link active" href="/app/cbam-report-cost-forecast">CBAM Report Cost Forecast</a>
+                <a class="nav-link" href="/app/various-cost-comparisons">Various Cost Comparisons</a>
             </li>
         </ul>
     `);
@@ -69,7 +69,7 @@ frappe.pages['cbam-report-cost-forecast'].on_page_load = function(wrapper) {
 
     // Set default CBAM Report after filters are set up
     frappe.call({
-        method: 'cbam.cbam.page.cbam_report_cost_forecast.cbam_report_cost_forecast.get_default_cbam_report',
+        method: 'cbam.cbam.page.financial_exposure_forecast.financial_exposure_forecast.get_default_cbam_report',
         callback: function(r) {
             if (r.message && filters.cbam_report) {
                 filters.cbam_report.set_value([r.message]);
@@ -187,7 +187,7 @@ frappe.pages['cbam-report-cost-forecast'].on_page_load = function(wrapper) {
             return;
         }
         frappe.call({
-            method: 'cbam.cbam.page.cbam_report_cost_forecast.cbam_report_cost_forecast.get_cbam_report_data',
+            method: 'cbam.cbam.page.financial_exposure_forecast.financial_exposure_forecast.get_cbam_report_data',
             args: {
                 cbam_reports: selected_reports,
                 start,
@@ -276,7 +276,7 @@ frappe.pages['cbam-report-cost-forecast'].on_page_load = function(wrapper) {
                 labels: { rotation: 45, style: { fontSize: '12px' } },
                 title: { text: 'Year' }
             },
-            yAxis: { min: 0, title: { text: 'Cost' } },
+            yAxis: { min: 0, title: { text: 'Costs [€]' } },
             series: [
                 { ...chart_data.series[0], color: '#003366' },
                 chart_data.series[1]

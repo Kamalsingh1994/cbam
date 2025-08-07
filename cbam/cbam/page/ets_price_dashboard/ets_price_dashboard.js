@@ -34,10 +34,10 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
                 <a class="nav-link active" href="/app/ets-price-dashboard">ETS Price Dashboard</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/app/financial-evaluation-report">Financial Evaluation Report</a>
+                <a class="nav-link" href="/app/various-cost-comparisons">Various Cost Comparisons</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/app/cbam-report-cost-forecast">CBAM Report Cost Forecast</a>
+                <a class="nav-link" href="/app/financial-exposure-forecast">Financial Exposure Forecast</a>
             </li>
         </ul>
     `);
