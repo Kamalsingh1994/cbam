@@ -54,14 +54,18 @@ cbam.update_chart = function update_chart(chart_data) {
     }
 
     // Highcharts integration: create a scrollable container and chart div
-    const minWidth = Math.max(600, labels.length * 80); // 80px per label as a heuristic
-    $('#chart-section').append('<div id="highchart-scroll-inner" style="overflow-x: auto; width: 100%;"><div id="highchart-bar" style="min-width: ' + minWidth + 'px; max-height: 350px;"></div></div>');
+    //const minWidth = Math.max(600, labels.length * 80); // 80px per label as a heuristic
+    //$('#chart-section').append('<div id="highchart-scroll-inner" style="overflow-x: auto; width: 100%;"><div id="highchart-bar" style="min-width: ' + minWidth + 'px; max-height: 350px;"></div></div>');
+
+    // Highcharts integration: create chart div without scroll
+    $('#chart-section').append('<div id="highchart-bar" style="width: 100%; height: 350px;"></div>');
 
     function renderHighChart() {
         Highcharts.chart('highchart-bar', {
             chart: {
                 type: 'column',
-                height: 350
+                height: 350,
+                zoomType: 'x'
             },
             credits: {
                 enabled: false
@@ -75,7 +79,8 @@ cbam.update_chart = function update_chart(chart_data) {
                 }
             },
             yAxis: {
-                title: { text: __('Costs [€]') }
+                title: { text: __('Costs [€]') },
+                min: 0
             },
             legend: { align: 'center', verticalAlign: 'bottom', layout: 'horizontal' },
             series: [

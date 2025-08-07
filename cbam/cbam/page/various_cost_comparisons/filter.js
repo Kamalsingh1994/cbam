@@ -42,6 +42,15 @@ cbam.setup_filter_clear_buttons = function(filters, load_report_table) {
  * Setup listeners for filter changes.
  */
 cbam.setup_filter_listeners = function(filters, load_report_table, update_stat_card_values, refresh_ets_price_options) {
+    // Set initial state for year filter based on ETS Price Type
+    const initialEtsPriceType = filters.ets_price_type.get_value();
+    if (initialEtsPriceType === 'Future') {
+        if (filters.year && filters.year.$wrapper) {
+            const yearInput = filters.year.$wrapper.find('input');
+            yearInput.prop('disabled', true);
+            yearInput.addClass('disabled');
+        }
+    }
     ['cn_code', 'supplier', 'article_number', 'reporting_period'].forEach(key => {
         const ctrl = filters[key];
         if (ctrl) {
@@ -54,6 +63,26 @@ cbam.setup_filter_listeners = function(filters, load_report_table, update_stat_c
         const ctrl = filters[key];
         if (ctrl) {
             ctrl.df.onchange = () => {
+                // Handle year filter disable/enable for Future type
+                if (key === 'ets_price_type') {
+                    const etsPriceType = filters.ets_price_type.get_value();
+                    if (etsPriceType === 'Future') {
+                        // Disable year filter
+                        if (filters.year && filters.year.$wrapper) {
+                            const yearInput = filters.year.$wrapper.find('input');
+                            yearInput.prop('disabled', true);
+                            yearInput.addClass('disabled');
+                        }
+                    } else {
+                        // Enable year filter
+                        if (filters.year && filters.year.$wrapper) {
+                            const yearInput = filters.year.$wrapper.find('input');
+                            yearInput.prop('disabled', false);
+                            yearInput.removeClass('disabled');
+                        }
+                    }
+                }
+                
                 const selected_filters = {
                     ets_price_type: filters.ets_price_type.get_value(),
                     year: filters.year.get_value(),
@@ -102,36 +131,86 @@ cbam.get_all_selected_filters = function(filters) {
  * Refresh ETS Price options based on type and year.
  */
 cbam.refresh_ets_price_options = function(filters, ets_price_type, year) {
-    if (!ets_price_type || !year) return;
-            frappe.db.get_list('ETS Carbon Price', {
-                fields: ['name', 'price', 'price_date'],
-                filters: { ets_price_type },
-                order_by: 'price_date desc',
-                limit: 100,
-            }).then(res => {
-                const prices = res
-                    .filter(row => {
-                        const y = frappe.datetime.str_to_obj(row.price_date).getFullYear();
-                        return y == year;
-                    })
-                    .map(row => {
-                        let dateStr = '';
-                        if (row.price_date) {
-                            const d = frappe.datetime.str_to_obj(row.price_date);
-                            dateStr = ` (${d.getDate().toString().padStart(2, '0')}-${(d.getMonth()+1).toString().padStart(2, '0')}-${d.getFullYear()})`;
-                        }
-                        return {
-                            label: `${row.price}${dateStr}`,
-                            value: String(row.price)
-                        };
+    if (!ets_price_type) return;
+    
+    // For Future type, fetch all future prices regardless of year
+    if (ets_price_type === 'Future') {
+        const currentYear = new Date().getFullYear();
+        frappe.db.get_list('ETS Carbon Price', {
+            fields: ['name', 'price', 'price_year'],
+            filters: { ets_price_type: 'Future' },
+            order_by: 'price_year desc, price desc',
+            limit: 100,
+        }).then(res => {
+            const prices = res
+                .filter(row => {
+                    // Exclude current year prices for Future type
+                    return row.price_year > currentYear;
+                })
+                .map(row => {
+                    return {
+                        label: `${row.price} (${row.price_year})`,
+                        value: String(row.price),
+                        year: row.price_year
+                    };
+                });
+            
+            // Remove duplicates based on price AND year combination
+            const uniquePrices = [];
+            const seenCombinations = new Set();
+            prices.forEach(price => {
+                const combination = `${price.value}-${price.year}`;
+                if (!seenCombinations.has(combination)) {
+                    uniquePrices.push({
+                        label: price.label,
+                        value: price.value
                     });
-                filters.ets_price.df.options = prices;
-                filters.ets_price.refresh();
-                if (prices.length) {
-                    filters.ets_price.set_value(prices[0].value);
+                    seenCombinations.add(combination);
                 }
-            }).catch(() => {
-                filters.ets_price.df.options = [];
-                filters.ets_price.refresh();
             });
+            
+            filters.ets_price.df.options = uniquePrices;
+            filters.ets_price.refresh();
+            if (uniquePrices.length) {
+                filters.ets_price.set_value(uniquePrices[0].value);
+            }
+        }).catch(() => {
+            filters.ets_price.df.options = [];
+            filters.ets_price.refresh();
+        });
+    } else {
+        // For Actual/Prediction types, use the original logic with year filtering
+        if (!year) return;
+        frappe.db.get_list('ETS Carbon Price', {
+            fields: ['name', 'price', 'price_date'],
+            filters: { ets_price_type },
+            order_by: 'price_date desc',
+            limit: 100,
+        }).then(res => {
+            const prices = res
+                .filter(row => {
+                    const y = frappe.datetime.str_to_obj(row.price_date).getFullYear();
+                    return y == year;
+                })
+                .map(row => {
+                    let dateStr = '';
+                    if (row.price_date) {
+                        const d = frappe.datetime.str_to_obj(row.price_date);
+                        dateStr = ` (${d.getDate().toString().padStart(2, '0')}-${(d.getMonth()+1).toString().padStart(2, '0')}-${d.getFullYear()})`;
+                    }
+                    return {
+                        label: `${row.price}${dateStr}`,
+                        value: String(row.price)
+                    };
+                });
+            filters.ets_price.df.options = prices;
+            filters.ets_price.refresh();
+            if (prices.length) {
+                filters.ets_price.set_value(prices[0].value);
+            }
+        }).catch(() => {
+            filters.ets_price.df.options = [];
+            filters.ets_price.refresh();
+        });
+    }
 };

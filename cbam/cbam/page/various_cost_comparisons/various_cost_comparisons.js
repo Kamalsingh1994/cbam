@@ -199,7 +199,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                 article_number: cbam.create_filter('Article Number', 'MultiSelectList', 'article_number', '#filter-section-group-1', []),
                 reporting_period: cbam.create_filter('Reporting Period', 'MultiSelectList', 'reporting_period', '#filter-section-group-1', []),
                 year: cbam.create_filter('Year', 'Link', 'year', '#filter-section-group-2', null, 'Year', currentYear),
-                ets_price_type: cbam.create_filter('ETS Price Type', 'Select', 'ets_price_type', '#filter-section-group-2', ['', 'Actual', 'Prediction'], null, 'Actual'),
+                ets_price_type: cbam.create_filter('ETS Price Type', 'Select', 'ets_price_type', '#filter-section-group-2', ['', 'Actual', 'Future'], null, 'Actual'),
                 ets_price: cbam.create_filter('ETS Price', 'Select', 'ets_price', '#filter-section-group-2', []),
             };
 
