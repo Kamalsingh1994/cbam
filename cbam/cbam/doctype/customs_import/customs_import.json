@@ -9,6 +9,9 @@
  "field_order": [
   "import_name",
   "is_goods_import_complete",
+  "from_date",
+  "to_date",
+  "due_date",
   "column_break_n8bu",
   "current",
   "goods"
@@ -42,6 +45,21 @@
    "fieldname": "current",
    "fieldtype": "Check",
    "label": "Current"
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date"
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date"
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "label": "Due Date"
   }
  ],
  "grid_page_length": 50,
@@ -52,7 +70,7 @@
    "link_fieldname": "internal_customs_import_number"
   }
  ],
- "modified": "2025-07-15 10:15:28.076631",
+ "modified": "2025-08-08 12:47:52.716214",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Customs Import",

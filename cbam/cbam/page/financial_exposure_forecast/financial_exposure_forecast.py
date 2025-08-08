@@ -2,8 +2,7 @@ import frappe
 from frappe import _
 from datetime import datetime
 from collections import defaultdict
-
-from pypika import Column
+import re
 
 @frappe.whitelist()
 def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=None, to_year=None):
@@ -43,19 +42,87 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
         else:
             return 0
 
+    def get_quarter_from_dates(from_date, to_date):
+        """Get quarter number from from_date and to_date"""
+        if not from_date or not to_date:
+            return None
+        
+        # Convert to datetime if string
+        if isinstance(from_date, str):
+            from_date = datetime.strptime(from_date, '%Y-%m-%d')
+        if isinstance(to_date, str):
+            to_date = datetime.strptime(to_date, '%Y-%m-%d')
+        
+        # Determine quarter based on to_date
+        month = to_date.month
+        if month <= 3:
+            return 1
+        elif month <= 6:
+            return 2
+        elif month <= 9:
+            return 3
+        else:
+            return 4
+
+    def get_quarter_end_month(quarter):
+        """Get the end month name for a quarter"""
+        quarter_end_months = {1: "Mar", 2: "Jun", 3: "Sep", 4: "Dec"}
+        return quarter_end_months.get(quarter, "")
+
+    def extract_numeric_value(value):
+        """Extract numeric value from strings that may contain units like '0 t CO2/unit'"""
+        if value is None:
+            return 0.0
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            # Try to extract the first number from the string
+            match = re.search(r'(\d+(?:\.\d+)?)', value)
+            if match:
+                return float(match.group(1))
+        return 0.0
+
+    # Track uploaded quarters for forecasting
+    uploaded_quarters = set()
+    years_with_reports = set()
+    current_year = datetime.now().year
+
     for report in cbam_reports:
         parent = frappe.get_doc("CBAM Report", report)
         report_year = get_year_from_creation(parent.creation)
+        
+        # Get quarter from from_date and to_date
+        quarter = get_quarter_from_dates(parent.from_date, parent.to_date)
+        
+        # Determine the correct year for this quarter based on from_date and to_date
+        quarter_year = None
+        if parent.from_date:
+            if isinstance(parent.from_date, str):
+                quarter_year = datetime.strptime(parent.from_date, '%Y-%m-%d').year
+            else:
+                quarter_year = parent.from_date.year
+        elif parent.to_date:
+            if isinstance(parent.to_date, str):
+                quarter_year = datetime.strptime(parent.to_date, '%Y-%m-%d').year
+            else:
+                quarter_year = parent.to_date.year
+        else:
+            quarter_year = report_year
+        
+        if quarter and quarter_year:
+            uploaded_quarters.add((quarter_year, quarter))
+            years_with_reports.add(quarter_year)
+        
         for row in parent.get('cbam_report_data') or []:
             if row.external_good:
                 eg = frappe.get_doc("External Good", row.external_good)
                 cn_code = getattr(eg, "cn_code", "")
                 article_no = getattr(eg, "article_no", "")
                 supplier = getattr(eg, "supplier", "")
-                raw_mass_tonne = float(getattr(eg, "raw_mass_tonne", 0.0) or 0.0)
-                carbon_price_due = float(getattr(eg, "carbon_price_due", 0.0) or 0.0)
+                raw_mass_tonne = extract_numeric_value(getattr(eg, "raw_mass_tonne", 0.0))
+                carbon_price_due = extract_numeric_value(getattr(eg, "carbon_price_due", 0.0))
                 installation_country = getattr(eg, "installation_country", "")
-                specific_direct_embedded_emissions = float(getattr(eg, "specific_direct_embedded_emissions", 0.0) or 0.0)
+                specific_direct_embedded_emissions = extract_numeric_value(getattr(eg, "specific_direct_embedded_emissions", 0.0))
 
                 # Fetch all ETS prices for price_year >= report_year
                 future_ets_prices = frappe.get_all(
@@ -69,7 +136,7 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
                     # Filter by from_year and to_year if provided
                     if (from_year and year < from_year) or (to_year and year > to_year):
                         continue
-                    ets_price = float(ets.price or 0)
+                    ets_price = extract_numeric_value(ets.price)
 
                     # Fetch CBAM Factor for the year, only if not disabled
                     if year not in cbam_factor_cache:
@@ -83,13 +150,13 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
                     cbam_factor = cbam_factor_cache[year]
                     if cbam_factor is None:
                         continue  # Skip this year if CBAM Factor is disabled or missing
-                    cbam_factor = float(cbam_factor or 0.0)
+                    cbam_factor = extract_numeric_value(cbam_factor)
 
                     # Fetch Benchmark for year and cn_code
                     bench_mark_key = (year, cn_code)
                     if bench_mark_key not in bench_mark_cache:
                         bench_mark_cache[bench_mark_key] = frappe.db.get_value("CBAM Benchmark", {"year": year, "cn_code": cn_code}, "bench_mark") or 0.0
-                    bench_mark = float(bench_mark_cache[bench_mark_key] or 0.0)
+                    bench_mark = extract_numeric_value(bench_mark_cache[bench_mark_key])
 
                     # Fetch Standard Emission Value for year, country, cn_code
                     sev_key = (year, installation_country, cn_code)
@@ -99,7 +166,7 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
                             {"year": year, "country": installation_country, "cn_code": cn_code},
                             "emission_value"
                         ) or 0.0
-                    standard_emission_value = float(standard_emission_value_cache[sev_key] or 0.0)
+                    standard_emission_value = extract_numeric_value(standard_emission_value_cache[sev_key])
 
                     # Calculations
                     try:
@@ -141,24 +208,87 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
     total_count = len(all_rows)
     data = all_rows[start:start+page_length]
 
-    # Chart data: sum actual and standard cost by year
-    year_totals = defaultdict(lambda: {"actual": 0, "standard": 0})
-    for row in all_rows:
-        y = row["year"]
-        year_totals[y]["actual"] += row.get("real_emission_cost", 0) or 0
-        year_totals[y]["standard"] += row.get("standard_emission_cost", 0) or 0
+    # Chart data: sum actual and standard cost by quarter
+    quarter_totals = defaultdict(lambda: {"actual": 0, "standard": 0, "is_forecast": False})
+    
+    # Generate all quarters for years that have any reports
+    all_quarters = []
+    if years_with_reports:
+        for year in sorted(years_with_reports):
+            for quarter in range(1, 5):
+                all_quarters.append((year, quarter))
+    else:
+        # Fallback to current year if no years found
+        for quarter in range(1, 5):
+            all_quarters.append((current_year, quarter))
+    
+    # Mark uploaded quarters as actual data, others as forecast
+    for quarter_key in all_quarters:
+        if quarter_key in uploaded_quarters:
+            quarter_totals[quarter_key]["is_forecast"] = False
+        else:
+            quarter_totals[quarter_key]["is_forecast"] = True
+    
+    # Aggregate data by quarter - distribute data across quarters based on uploaded reports
+    if uploaded_quarters:
+        # Calculate average cost per quarter from uploaded data
+        total_actual_cost = sum(row.get("real_emission_cost", 0) or 0 for row in all_rows)
+        total_standard_cost = sum(row.get("standard_emission_cost", 0) or 0 for row in all_rows)
+        
+        uploaded_quarter_count = len(uploaded_quarters)
+        avg_actual_per_quarter = total_actual_cost / uploaded_quarter_count if uploaded_quarter_count > 0 else 0
+        avg_standard_per_quarter = total_standard_cost / uploaded_quarter_count if uploaded_quarter_count > 0 else 0
+        
+        # Distribute actual data to uploaded quarters
+        for quarter_key in uploaded_quarters:
+            quarter_totals[quarter_key]["actual"] = avg_actual_per_quarter
+            quarter_totals[quarter_key]["standard"] = avg_standard_per_quarter
+        
+        # For forecast quarters, use the average as forecast
+        for quarter_key in all_quarters:
+            if quarter_key not in uploaded_quarters:
+                quarter_totals[quarter_key]["actual"] = avg_actual_per_quarter
+                quarter_totals[quarter_key]["standard"] = avg_standard_per_quarter
+    else:
+        # If no uploaded quarters, distribute evenly across all quarters
+        total_actual_cost = sum(row.get("real_emission_cost", 0) or 0 for row in all_rows)
+        total_standard_cost = sum(row.get("standard_emission_cost", 0) or 0 for row in all_rows)
+        
+        total_quarters = len(all_quarters) if all_quarters else 4
+        avg_actual_per_quarter = total_actual_cost / total_quarters
+        avg_standard_per_quarter = total_standard_cost / total_quarters
+        
+        for quarter_key in all_quarters:
+            quarter_totals[quarter_key]["actual"] = avg_actual_per_quarter
+            quarter_totals[quarter_key]["standard"] = avg_standard_per_quarter
+    
+    # Create chart data with quarter labels
+    chart_categories = []
+    actual_data = []
+    forecast_info = []
+    
+    for quarter_key in sorted(quarter_totals.keys()):
+        year, quarter = quarter_key
+        month_name = get_quarter_end_month(quarter)
+        category_label = f"{month_name} {year}"
+        chart_categories.append(category_label)
+        
+        actual_data.append(quarter_totals[quarter_key]["actual"])
+        forecast_info.append(quarter_totals[quarter_key]["is_forecast"])
+    
     chart_data = {
-        "categories": sorted(year_totals.keys()),
+        "categories": chart_categories,
         "series": [
-            {"name": "Actual Cost", "data": [year_totals[y]["actual"] for y in sorted(year_totals.keys())]},
-            {"name": "Standard Cost", "data": [year_totals[y]["standard"] for y in sorted(year_totals.keys())]},
-        ]
+            {"name": "Actual Cost", "data": actual_data},
+        ],
+        "forecast_info": forecast_info
     }
 
     return {"columns": columns, "data": data, "chart_data": chart_data, "total_count": total_count}
     
 @frappe.whitelist()
-def get_default_cbam_report():
+def get_all_cbam_reports():
+    """Get all CBAM reports for the current user"""
     user = frappe.session.user
     # Check if user is a System Manager
     user_roles = frappe.get_roles(user)
@@ -170,15 +300,14 @@ def get_default_cbam_report():
         if declarant:
             filters["declarant"] = declarant
 
-    # Get the last imported CBAM Report (for this declarant or any)
-    report = frappe.db.get_list(
+    # Get all CBAM Reports (for this declarant or any)
+    reports = frappe.db.get_list(
         "CBAM Report",
         filters=filters,
         fields=["name"],
-        order_by="creation desc",
-        limit=1
+        order_by="creation desc"
     )
-    return report[0]["name"] if report else None
+    return [report["name"] for report in reports]
 
 def get_columns():
     columns = [

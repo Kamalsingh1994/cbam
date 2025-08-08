@@ -8,8 +8,11 @@
  "field_order": [
   "report_id",
   "reporting_period",
-  "declarant",
+  "from_date",
+  "to_date",
+  "due_date",
   "column_break_fenp",
+  "declarant",
   "importer",
   "declarant_acts_as_importer",
   "report_attachment",
@@ -75,12 +78,33 @@
   {
    "fieldname": "column_break_queg",
    "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "reporting_period.from_date",
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "reporting_period.to_date",
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "reporting_period.due_date",
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "label": "Due Date",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-24 07:27:15.495192",
+ "modified": "2025-08-08 12:49:42.737467",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Report",

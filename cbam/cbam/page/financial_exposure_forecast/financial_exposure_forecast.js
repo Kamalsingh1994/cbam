@@ -67,12 +67,12 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
     render_layout(page.body);
     filters = setup_filters();
 
-    // Set default CBAM Report after filters are set up
+    // Set all CBAM Reports by default after filters are set up
     frappe.call({
-        method: 'cbam.cbam.page.financial_exposure_forecast.financial_exposure_forecast.get_default_cbam_report',
+        method: 'cbam.cbam.page.financial_exposure_forecast.financial_exposure_forecast.get_all_cbam_reports',
         callback: function(r) {
-            if (r.message && filters.cbam_report) {
-                filters.cbam_report.set_value([r.message]);
+            if (r.message && r.message.length > 0 && filters.cbam_report) {
+                filters.cbam_report.set_value(r.message);
                 start = 0;
                 all_data = [];
                 load_report_table(true);
@@ -262,6 +262,42 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             return;
         }
 
+        // Prepare series data with different colors for actual vs forecast
+        const series = [];
+        const forecastInfo = chart_data.forecast_info || [];
+        
+        // Create separate series for actual and forecast data
+        const actualData = [];
+        const forecastData = [];
+        
+        chart_data.series[0].data.forEach((value, index) => {
+            if (forecastInfo[index]) {
+                // Forecast data
+                forecastData.push(value);
+                actualData.push(null); // No data for actual series
+            } else {
+                // Actual data
+                actualData.push(value);
+                forecastData.push(null); // No data for forecast series
+            }
+        });
+        
+        // Actual Cost series
+        const actualSeries = {
+            name: 'Actual Cost',
+            data: actualData,
+            color: '#003366'
+        };
+        
+        // Forecast Cost series
+        const forecastSeries = {
+            name: 'Forecast Cost',
+            data: forecastData,
+            color: '#d3d3d3'
+        };
+        
+        series.push(actualSeries, forecastSeries);
+
         // Do NOT set min-width or use a scrollable wrapper. Let Highcharts fit the chart to the container.
         Highcharts.chart('chart-section', {
             chart: {
@@ -270,26 +306,32 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 zoomType: 'x' // Enable default Highcharts zoom and reset zoom button
             },
             credits: { enabled: false },
-            title: { text: 'Total Actual vs Standard Cost by Year' },
+            title: { text: 'Quarterly Financial Exposure Forecast' },
             xAxis: {
                 categories: chart_data.categories,
                 labels: { rotation: 45, style: { fontSize: '12px' } },
-                title: { text: 'Year' }
+                title: { text: 'Quarter' }
             },
             yAxis: { min: 0, title: { text: 'Costs [€]' } },
-            series: [
-                { ...chart_data.series[0], color: '#003366' },
-                chart_data.series[1]
-            ],
+            series: series,
             plotOptions: {
                 column: {
-                    grouping: true,
+                    grouping: false, // No grouping since we want separate bars
                     shadow: false,
                     borderWidth: 0,
-                    pointPadding: 0, // No gap between bars in a group
-                    groupPadding: 0.1, // No gap between groups
+                    pointPadding: 0.1, // Small gap between bars
+                    groupPadding: 0.1,
                     maxPointWidth: 40 // Limit bar width for small datasets
                 }
+            },
+            tooltip: {
+                formatter: function() {
+                    return `<b>${this.x}</b><br/>
+                            <span style="color:${this.color}">●</span> ${this.series.name}: <b>€${this.y.toLocaleString()}</b>`;
+                }
+            },
+            legend: {
+                enabled: true
             }
         });
     }
