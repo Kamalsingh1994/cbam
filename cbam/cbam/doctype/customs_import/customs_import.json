@@ -49,17 +49,23 @@
   {
    "fieldname": "from_date",
    "fieldtype": "Date",
-   "label": "From Date"
+   "in_list_view": 1,
+   "label": "From Date",
+   "reqd": 1
   },
   {
    "fieldname": "to_date",
    "fieldtype": "Date",
-   "label": "To Date"
+   "in_list_view": 1,
+   "label": "To Date",
+   "reqd": 1
   },
   {
    "fieldname": "due_date",
    "fieldtype": "Date",
-   "label": "Due Date"
+   "in_list_view": 1,
+   "label": "Due Date",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
@@ -70,7 +76,7 @@
    "link_fieldname": "internal_customs_import_number"
   }
  ],
- "modified": "2025-08-08 12:47:52.716214",
+ "modified": "2025-08-11 17:16:37.681670",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Customs Import",
