@@ -471,8 +471,9 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 extraLineSeries.push({
                     name: `Accumulated Exposure to Due (${reportingYear})`,
                     type: 'line',
-                    color: '#ff0000', // changed to red
+                    color: 'rgb(135, 206, 235)', // changed to blue
                     lineWidth: 2,
+                    dashStyle: 'Dash', // make the line dashed
                     marker: { enabled: false },
                     data: [
                         [decIdx, value],
@@ -486,11 +487,11 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 extraDiamondSeries.push({
                     name: `Due Diamond (${reportingYear})`,
                     type: 'scatter',
-                    color: '#ff0000', // changed to red
+                    color: 'rgb(135, 206, 235)', // changed to blue
                     marker: {
                         symbol: 'diamond',
                         fillColor: '#fff',
-                        lineColor: '#ff0000', // changed to red
+                        lineColor: 'rgb(135, 206, 235)', // changed to blue
                         lineWidth: 2,
                         radius: 8
                     },
@@ -508,7 +509,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 type: 'column',
                 height: 600,
                 zoomType: 'x',
-                spacingBottom: 100
+                spacingBottom: 20 // reduced from 100
             },
             credits: { enabled: false },
             title: { text: 'Financial Exposure Forecast' },
