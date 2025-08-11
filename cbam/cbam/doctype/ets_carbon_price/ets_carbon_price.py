@@ -42,6 +42,9 @@ class ETSCarbonPrice(Document):
 		if self.ets_price_type == "Future":
 			self.price_date = None
 		elif self.ets_price_type in ["Actual", "Prediction"]:
-			self.price_year = None
+			# Set price_year to the year from price_date
+			if self.price_date:
+				from frappe.utils import getdate
+				self.price_year = str(getdate(self.price_date).year)
 
 		

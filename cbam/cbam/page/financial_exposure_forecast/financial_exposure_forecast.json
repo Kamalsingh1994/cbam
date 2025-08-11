@@ -3,13 +3,13 @@
  "creation": "2025-07-17 06:59:23.837187",
  "docstatus": 0,
  "doctype": "Page",
- "idx": 0,
- "modified": "2025-07-17 06:59:23.837187",
+ "idx": 1,
+ "modified": "2025-08-05 08:02:34.824671",
  "modified_by": "Administrator",
  "module": "CBAM",
- "name": "cbam-report-cost-forecast",
+ "name": "financial-exposure-forecast",
  "owner": "Administrator",
- "page_name": "cbam-report-cost-forecast",
+ "page_name": "financial-exposure-forecast",
  "roles": [
   {
    "role": "System Manager"
@@ -22,5 +22,5 @@
  "standard": "Yes",
  "style": null,
  "system_page": 0,
- "title": "CBAM Report Cost Forecast"
+ "title": "Financial Exposure Forecast"
 }

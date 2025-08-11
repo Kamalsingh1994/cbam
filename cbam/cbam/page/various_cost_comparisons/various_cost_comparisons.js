@@ -8,18 +8,18 @@
 
 frappe.provide('cbam.pages');
 
-frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
-    if (!sessionStorage.getItem('financial_evaluation_report_reloaded')) {
-        sessionStorage.setItem('financial_evaluation_report_reloaded', '1');
+frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
+    if (!sessionStorage.getItem('various_cost_comparisons_reloaded')) {
+        sessionStorage.setItem('various_cost_comparisons_reloaded', '1');
         location.reload();
         return;
     } else {
-        sessionStorage.removeItem('financial_evaluation_report_reloaded');
+        sessionStorage.removeItem('various_cost_comparisons_reloaded');
     }
     (function () {
         const page = frappe.ui.make_app_page({
             parent: wrapper,
-            title: __('Financial Evaluation Report'),
+            title: __('Financial Dashboard'),
             single_column: true,
         });
 
@@ -167,13 +167,13 @@ frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
                     <div class="frappe-card mb-4" id="chart-section"></div>
                     <div class="frappe-card mb-4" id="table-toggle-section">
                         <div class="p-2 d-flex align-items-center gap-5">
-                            <span class="ms-2 small">Show Cost per tonne</span>&nbsp;
+                            <span class="ms-2 small">Show Cost per tonne of Product</span>&nbsp;
                             <label class="switch-compact mb-0 me-4 ms-2">
                                 <input type="checkbox" id="table-toggle">
                                 <span class="slider-compact round"></span>
                             </label>
                             <span class="vr mx-3"></span>
-                            <span class="ms-2 small">Show Selected rows</span>&nbsp;
+                            <span class="ms-2 small">Show Selected Items Only</span>&nbsp;
                             <label class="switch-compact mb-0 ms-2">
                                 <input type="checkbox" id="selected-rows-toggle">
                                 <span class="slider-compact round"></span>
@@ -199,7 +199,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
                 article_number: cbam.create_filter('Article Number', 'MultiSelectList', 'article_number', '#filter-section-group-1', []),
                 reporting_period: cbam.create_filter('Reporting Period', 'MultiSelectList', 'reporting_period', '#filter-section-group-1', []),
                 year: cbam.create_filter('Year', 'Link', 'year', '#filter-section-group-2', null, 'Year', currentYear),
-                ets_price_type: cbam.create_filter('ETS Price Type', 'Select', 'ets_price_type', '#filter-section-group-2', ['', 'Actual', 'Prediction'], null, 'Actual'),
+                ets_price_type: cbam.create_filter('ETS Price Type', 'Select', 'ets_price_type', '#filter-section-group-2', ['', 'Actual', 'Future'], null, 'Actual'),
                 ets_price: cbam.create_filter('ETS Price', 'Select', 'ets_price', '#filter-section-group-2', []),
             };
 
@@ -215,7 +215,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
             // Helper to fetch filter options from backend
             function fetch_filter_options({ txt, filter_type, cn_code = [], supplier = [] }) {
                 return frappe.call({
-                    method: "cbam.cbam.page.financial_evaluation_report.financial_evaluation_report.get_filter_options",
+                    method: "cbam.cbam.page.various_cost_comparisons.various_cost_comparisons.get_filter_options",
                     args: {
                         txt,
                         filter_type,
@@ -257,7 +257,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
             }
             clear_stats();
             frappe.call({
-                method: 'cbam.cbam.page.financial_evaluation_report.financial_evaluation_report.get_cards_value',
+                method: 'cbam.cbam.page.various_cost_comparisons.various_cost_comparisons.get_cards_value',
                 args: { filters },
                 callback: function (r) {
                     if (!r.message) return;
@@ -269,7 +269,17 @@ frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
                         'year': filters.year || frappe.datetime.get_today().split('-')[0],
                     };
                     Object.entries(updated_values).forEach(([key, val]) => {
-                        $('.stat-value[data-stat="' + key + '"]').text(val);
+                        let displayValue = val;
+                        // Special formatting for CBAM Factor - convert to percentage
+                        if (key === 'cbam-factor' && val !== 0.0 && val !== null && val !== undefined) {
+                            const numValue = parseFloat(val);
+                            if (!isNaN(numValue)) {
+                                displayValue = (numValue * 100).toFixed(0) + '%';
+                                // Store original value in data attribute for calculations
+                                $('.stat-value[data-stat="' + key + '"]').attr('data-original-value', val);
+                            }
+                        }
+                        $('.stat-value[data-stat="' + key + '"]').text(displayValue);
                     });
                 },
                 error: function () {
@@ -283,15 +293,16 @@ frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
          */
         function clear_stats() {
             const compact_stats = [
-                { label: 'Standard Emission Value', value: '--' },
-                { label: 'Bench Mark Emission Value', value: '--' },
+                { label: 'Standard Emission Value', value: '--', display_label: 'Standard Emissions Factor [t CO2/t Product]' },
+                { label: 'Bench Mark Emission Value', value: '--', display_label: 'Benchmark [t CO2/t Product]' },
                 { label: 'CBAM Factor', value: '--' },
-                { label: 'ETS Price', value: '--' },
+                { label: 'ETS Price', value: '--', display_label: 'EUA Price [€/t CO2]' },
                 { label: 'Year', value: 2025 },
             ];
             $('#compact-stat-row').empty();
             compact_stats.forEach(stat => {
-                $('#compact-stat-row').append(`<div class='col mb-2'>${render_compact_card(stat.label, stat.value)}</div>`);
+                const displayLabel = stat.display_label || stat.label;
+                $('#compact-stat-row').append(`<div class='col mb-2'>${render_compact_card_with_data_stat(displayLabel, stat.value, stat.label)}</div>`);
             });
         }
 
@@ -311,7 +322,7 @@ frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
             }
             const selected_filters = cbam.get_all_selected_filters(filters);
             frappe.call({
-                method: 'cbam.cbam.page.financial_evaluation_report.financial_evaluation_report.get_report_data',
+                method: 'cbam.cbam.page.various_cost_comparisons.various_cost_comparisons.get_report_data',
                 args: { filters: filters_arg, selected_filters, start, page_length },
                 callback: function (r) {
                     if (r.message) {
@@ -433,23 +444,24 @@ frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
-            link.setAttribute("download", "financial_evaluation_report.csv");
+            link.setAttribute("download", "various_cost_comparisons.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         });
 
         /**
-         * Render a compact stat card.
-         * @param {string} label
-         * @param {string|number} value
+         * Render a compact stat card with separate display label and data-stat label.
+         * @param {string} displayLabel - The label to display
+         * @param {string|number} value - The value to display
+         * @param {string} dataStatLabel - The label to use for data-stat attribute
          * @returns {string}
          */
-        function render_compact_card(label, value) {
+        function render_compact_card_with_data_stat(displayLabel, value, dataStatLabel) {
             return `
                 <div class="frappe-card d-flex flex-column justify-content-center align-items-center border rounded shadow-sm p-3 text-center stat-card h-100">
-                    <div class="text-muted small">${label}</div>
-                    <div class="fw-bold fs-5 mt-1 stat-value" data-stat="${label.toLowerCase().replace(/ /g, '-')}">${value}</div>
+                    <div class="text-muted small">${displayLabel}</div>
+                    <div class="fw-bold fs-5 mt-1 stat-value" data-stat="${dataStatLabel.toLowerCase().replace(/ /g, '-')}">${value}</div>
                 </div>
             `;
         }
@@ -457,14 +469,14 @@ frappe.pages['financial-evaluation-report'].on_page_load = function(wrapper) {
         // Insert tab navigation just below the page title
         $(page.body).prepend(`
             <ul class="nav nav-tabs mb-3" id="dashboard-tabs">
-                <li class="nav-item">
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="/app/ets-price-dashboard">ETS Price Dashboard</a>
+                </li> -->  
+                <li class="nav-item">
+                    <a class="nav-link" href="/app/financial-exposure-forecast">Financial Exposure Forecast</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="/app/financial-evaluation-report">Financial Evaluation Report</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/app/cbam-report-cost-forecast">CBAM Report Cost Forecast</a>
+                    <a class="nav-link active" href="/app/various-cost-comparisons">Various Cost Comparisons</a>
                 </li>
             </ul>
         `);

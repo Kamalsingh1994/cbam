@@ -3,20 +3,20 @@
 
 frappe.provide('cbam.pages');
 
-frappe.pages['cbam-report-cost-forecast'].on_page_load = function(wrapper) {
+frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
 
-    if (!sessionStorage.getItem('cbam_report_cost_forecast_reloaded')) {
-        sessionStorage.setItem('cbam_report_cost_forecast_reloaded', '1');
+    if (!sessionStorage.getItem('financial_exposure_forecast_reloaded')) {
+        sessionStorage.setItem('financial_exposure_forecast_reloaded', '1');
         location.reload();
         return;
     } else {
-        sessionStorage.removeItem('cbam_report_cost_forecast_reloaded');
+        sessionStorage.removeItem('financial_exposure_forecast_reloaded');
     }
     $(wrapper).empty();
     
     const page = frappe.ui.make_app_page({
         parent: wrapper,
-        title: __('CBAM Report Cost Forecast'),
+        title: __('Financial Dashboard'),
         single_column: true,
     });
 
@@ -42,14 +42,14 @@ frappe.pages['cbam-report-cost-forecast'].on_page_load = function(wrapper) {
     // Insert tab navigation at the top of .page-content for perfect alignment
     $('.page-content').prepend(`
         <ul class="nav nav-tabs mb-0" id="dashboard-tabs">
-            <li class="nav-item">
+            <!-- <li class="nav-item">
                 <a class="nav-link" href="/app/ets-price-dashboard">ETS Price Dashboard</a>
+            </li> -->
+			<li class="nav-item">
+                <a class="nav-link active" href="/app/financial-exposure-forecast">Financial Exposure Forecase</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/app/financial-evaluation-report">Financial Evaluation Report</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link active" href="/app/cbam-report-cost-forecast">CBAM Report Cost Forecast</a>
+                <a class="nav-link" href="/app/various-cost-comparisons">Various Cost Comparisons</a>
             </li>
         </ul>
     `);
@@ -67,12 +67,12 @@ frappe.pages['cbam-report-cost-forecast'].on_page_load = function(wrapper) {
     render_layout(page.body);
     filters = setup_filters();
 
-    // Set default CBAM Report after filters are set up
+    // Set all CBAM Reports by default after filters are set up
     frappe.call({
-        method: 'cbam.cbam.page.cbam_report_cost_forecast.cbam_report_cost_forecast.get_default_cbam_report',
+        method: 'cbam.cbam.page.financial_exposure_forecast.financial_exposure_forecast.get_all_cbam_reports',
         callback: function(r) {
-            if (r.message && filters.cbam_report) {
-                filters.cbam_report.set_value([r.message]);
+            if (r.message && r.message.length > 0 && filters.cbam_report) {
+                filters.cbam_report.set_value(r.message);
                 start = 0;
                 all_data = [];
                 load_report_table(true);
@@ -187,7 +187,7 @@ frappe.pages['cbam-report-cost-forecast'].on_page_load = function(wrapper) {
             return;
         }
         frappe.call({
-            method: 'cbam.cbam.page.cbam_report_cost_forecast.cbam_report_cost_forecast.get_cbam_report_data',
+            method: 'cbam.cbam.page.financial_exposure_forecast.financial_exposure_forecast.get_cbam_report_data',
             args: {
                 cbam_reports: selected_reports,
                 start,
@@ -253,45 +253,187 @@ frappe.pages['cbam-report-cost-forecast'].on_page_load = function(wrapper) {
     function render_chart(chart_data) {
         $('#chart-section').empty();
 
-        if (!chart_data || !chart_data.categories || !chart_data.series || chart_data.categories.length === 0) {
-            $('#chart-section').html('<div class="text-center text-muted p-4">No chart data available for the selected filters.</div>');
-            return;
-        }
+        // Check if Highcharts is loaded
         if (typeof Highcharts === 'undefined') {
             load_highcharts(() => render_chart(chart_data));
             return;
         }
 
-        // Do NOT set min-width or use a scrollable wrapper. Let Highcharts fit the chart to the container.
+        // Debug: Log what we're receiving from backend
+        console.log('Backend chart_data:', chart_data);
+
+        // Check if we have chart data from the backend
+        if (!chart_data || !chart_data.series || !chart_data.series.length) {
+            $('#chart-section').html('<div class="text-center text-muted p-4">No chart data available. Please select CBAM Reports to view the chart.</div>');
+            return;
+        }
+
+        // Extract data from the backend response
+        const categories = chart_data.categories || [];
+        const actualData = chart_data.series[0]?.data || [];
+        const forecastData = chart_data.series[1]?.data || [];
+
+        // Calculate accumulated exposure (cumulative sum)
+        const accumulatedExposure = [];
+        let cumulative = 0;
+        for (let i = 0; i < categories.length; i++) {
+            const value = actualData[i] ?? forecastData[i];
+            if (value !== null && value !== undefined) {
+                cumulative += value;
+            }
+            accumulatedExposure.push(cumulative);
+        }
+
+        // Calculate minimum required account balance series (diamonds) for legend
+        // For each quarter, plot 50% of accumulated exposure, except for the last quarter, plot 100%
+        const minRequiredActual = [];
+        const minRequiredForecast = [];
+        for (let i = 0; i < categories.length; i++) {
+            const isLast = (i === categories.length - 1);
+            const acc = accumulatedExposure[i];
+            // If actualData exists for this quarter, use it for 'actual' series
+            if (actualData[i] && actualData[i] > 0) {
+                minRequiredActual.push(isLast ? acc : acc * 0.5);
+                minRequiredForecast.push(null);
+            } else if (forecastData[i] && forecastData[i] > 0) {
+                minRequiredActual.push(null);
+                minRequiredForecast.push(isLast ? acc : acc * 0.5);
+            } else {
+                minRequiredActual.push(null);
+                minRequiredForecast.push(null);
+            }
+        }
+
+        console.log('Processed data:', {
+            actualData: actualData,
+            forecastData: forecastData,
+            accumulatedExposure: accumulatedExposure
+        });
+
+        // Create chart
         Highcharts.chart('chart-section', {
             chart: {
                 type: 'column',
-                height: 400,
-                zoomType: 'x' // Enable default Highcharts zoom and reset zoom button
+                height: 600,
+                zoomType: 'x',
+                spacingBottom: 100
             },
             credits: { enabled: false },
-            title: { text: 'Total Actual vs Standard Cost by Year' },
+            title: { text: 'Financial Exposure Forecast' },
             xAxis: {
-                categories: chart_data.categories,
+                categories: categories,
                 labels: { rotation: 45, style: { fontSize: '12px' } },
-                title: { text: 'Year' }
+                title: { text: 'Quarter' }
             },
-            yAxis: { min: 0, title: { text: 'Cost' } },
+            yAxis: { 
+                min: 0,
+                title: { text: 'Financial Exposure over Time [€]' } 
+            },
             series: [
-                { ...chart_data.series[0], color: '#003366' },
-                chart_data.series[1]
+                {
+                    name: 'Quarterly Financial Exposure Based on Real Data',
+                    data: actualData,
+                    color: '#003366',
+                    type: 'column',
+                    zIndex: 2
+                },
+                {
+                    name: 'Quarterly Financial Exposure Based on Forecasts',
+                    data: forecastData,
+                    color: '#87ceeb',
+                    type: 'column',
+                    borderColor: '#5fa7c6', // subtle border for accessibility
+                    borderWidth: 2,
+                    zIndex: 2
+                },
+                {
+                    name: 'Accumulated Financial Exposure Based on Forecasts',
+                    data: accumulatedExposure,
+                    type: 'line',
+                    color: '#87ceeb',
+                    lineWidth: 2,
+                    dashStyle: 'dash',
+                    marker: {
+                        symbol: 'circle',
+                        radius: 6,
+                        fillColor: '#87ceeb',
+                        lineWidth: 2,
+                        lineColor: '#87ceeb'
+                    },
+                    zIndex: 1
+                },
+                {
+                    name: 'Minimum Required Account Balance',
+                    data: minRequiredActual,
+                    type: 'scatter',
+                    marker: {
+                        symbol: 'diamond',
+                        fillColor: '#fff', // White fill for visibility
+                        lineColor: '#003366',
+                        lineWidth: 2,
+                        radius: 7
+                    },
+                    color: '#003366',
+                    showInLegend: true,
+                    tooltip: { pointFormat: '<b>ETS Certificates Required</b><br/>Based on actual data: <b>€{point.y:,.0f}</b>' },
+                    zIndex: 3
+                },
+                {
+                    name: 'Minimum Required Account Balance Based on Forecast',
+                    data: minRequiredForecast,
+                    type: 'scatter',
+                    marker: {
+                        symbol: 'diamond',
+                        fillColor: '#fff', // White fill for visibility
+                        lineColor: '#87ceeb',
+                        lineWidth: 2,
+                        radius: 7
+                    },
+                    color: '#87ceeb',
+                    showInLegend: true,
+                    tooltip: { pointFormat: '<b>Minimum Required Account Balance</b><br/>Based on forecast: <b>€{point.y:,.0f}</b>' },
+                    zIndex: 3
+                }
             ],
             plotOptions: {
                 column: {
-                    grouping: true,
+                    grouping: false,
                     shadow: false,
                     borderWidth: 0,
-                    pointPadding: 0, // No gap between bars in a group
-                    groupPadding: 0.1, // No gap between groups
-                    maxPointWidth: 40 // Limit bar width for small datasets
+                    pointPadding: 0.1,
+                    groupPadding: 0.1,
+                    maxPointWidth: 40
                 }
+            },
+            tooltip: {
+                formatter: function() {
+                    return `<b>${this.x}</b><br/>
+                            <span style="color:${this.color}">●</span> ${this.series.name}: <b>€${this.y.toLocaleString()}</b>`;
+                }
+            },
+            legend: {
+                enabled: true,
+                useHTML: true,
+                // Custom order: Real, Forecast, Accum, Min Actual, Min Forecast
+                labelFormatter: function() {
+                    if (this.name === 'Quarterly Financial Exposure Based on Real Data') {
+                        return '<span style="color:#003366">●</span> ' + this.name;
+                    } else if (this.name === 'Quarterly Financial Exposure Based on Forecasts') {
+                        return '<span style="color:#87ceeb">●</span> ' + this.name;
+                    } else if (this.name === 'Accumulated Financial Exposure Based on Forecasts') {
+                        return '<span style="color:#87ceeb">---○</span> ' + this.name;
+                    } else if (this.name === 'Minimum Required Account Balance') {
+                        return '<span style="color:#003366">◆</span> ' + this.name;
+                    } else if (this.name === 'Minimum Required Account Balance Based on Forecast') {
+                        return '<span style="color:#87ceeb">◆</span> ' + this.name;
+                    }
+                    return this.name;
+                },
+                // Custom legend order
+                // Highcharts does not support direct legend order, so order in series array
             }
         });
+        
     }
     function update_export_button_state() {
             const selected = datatable?.rowmanager?.getCheckedRows?.() || [];
