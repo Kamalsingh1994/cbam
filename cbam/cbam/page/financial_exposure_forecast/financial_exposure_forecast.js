@@ -256,10 +256,12 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         originalCategories.forEach((cat, i) => {
             const [mon, yr] = cat.split(' ');
             const monthIdx = new Date(Date.parse(mon + ' 1, 2000')).getMonth();
-            const idx = categories.findIndex(c => {
-                const [m, y] = c.split(' ');
-                return y === yr && new Date(Date.parse(m + ' 1, 2000')).getMonth() === monthIdx;
-            });
+            const shortLabel = new Date(yr, monthIdx, 1).toLocaleString('default', { month: 'short' }) + ' ' + yr;
+            const longLabel = new Date(yr, monthIdx, 1).toLocaleString('default', { month: 'long' }) + ' ' + yr;
+            const idx = categories.findIndex(c =>
+                c.trim().toLowerCase() === shortLabel.toLowerCase() ||
+                c.trim().toLowerCase() === longLabel.toLowerCase()
+            );
             if (idx !== -1) arr[idx] = data[i];
         });
         return arr;
@@ -336,19 +338,30 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             }
         }
 
-        // Build month categories for the full range
+        // Carefully extend categories to include all months from the earliest year in your data up to the latest due date
         const allYears = categories.map(cat => parseInt(cat.match(/\b(\d{4})\b/)[1])).filter(Boolean);
         const minYear = Math.min(...allYears);
-        const maxYear = Math.max(...allYears);
-        const monthCategories = getMonthCategories(minYear, maxYear);
-
-        // Map all series to monthCategories
-        const actualDataMonth = mapDataToMonths(actualData, monthCategories, categories);
-        const forecastDataMonth = mapDataToMonths(forecastData, monthCategories, categories);
-        const minRequiredActualMonth = mapDataToMonths(minRequiredActual, monthCategories, categories);
-        const minRequiredForecastMonth = mapDataToMonths(minRequiredForecast, monthCategories, categories);
-        const accumulatedExposureMonth = mapDataToMonths(accumulatedExposure, monthCategories, categories);
+        const allDueDates = Object.values(yearDueDatesMap).map(d => new Date(d));
+        const latestDueDate = new Date(Math.max(...allDueDates.map(d => d.getTime())));
+        const maxYear = latestDueDate.getFullYear();
+        const maxMonth = latestDueDate.getMonth(); // 0-based
+        const monthCategories = [];
+        for (let year = minYear; year <= maxYear; year++) {
+            for (let m = 0; m < 12; m++) {
+                if (year === maxYear && m > maxMonth) break;
+                const date = new Date(year, m, 1);
+                const label = date.toLocaleString('default', { month: 'short' }) + ' ' + year;
+                monthCategories.push(label);
+            }
+        }
         categories = monthCategories;
+
+        // Remap all data series to only appear at quarter-ends
+        const actualDataMonth = mapDataToMonths(actualData, categories, chart_data.categories || []);
+        const forecastDataMonth = mapDataToMonths(forecastData, categories, chart_data.categories || []);
+        const minRequiredActualMonth = mapDataToMonths(minRequiredActual, categories, chart_data.categories || []);
+        const minRequiredForecastMonth = mapDataToMonths(minRequiredForecast, categories, chart_data.categories || []);
+        const accumulatedExposureMonth = mapDataToMonths(accumulatedExposure, categories, chart_data.categories || []);
 
         // Build yearDueDates array for plotLines
         let yearDueDates = [];
@@ -364,12 +377,40 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         if (categories.length > 0 && lastYear) {
             yearDueDates.push({ idx: categories.length - 1, year: lastYear });
         }
-        // Build plotLines array with due date label from backend, formatted
-        const plotLines = yearDueDates.map(({ idx, year }) => {
-            const dueDateRaw = yearDueDatesMap[year];
-            const labelText = dueDateRaw ? `${formatDueDate(dueDateRaw)}` : '31 Dec ' + year; // fallback for debug
+        // Debug: log due date, label, index, and categories for each plotLine
+        Object.entries(yearDueDatesMap).forEach(([reportingYear, dueDateRaw]) => {
+            const d = new Date(dueDateRaw);
+            const monthShort = d.toLocaleString('default', { month: 'short' });
+            const monthLong = d.toLocaleString('default', { month: 'long' });
+            const yearStr = d.getFullYear().toString();
+            const idx = categories.findIndex(cat => {
+                const c = cat.trim().toLowerCase();
+                return (
+                    c === `${monthShort} ${yearStr}`.toLowerCase() ||
+                    c === `${monthLong} ${yearStr}`.toLowerCase()
+                );
+            });
+            console.log('Year:', reportingYear, 'Due:', dueDateRaw, 'Label:', `${monthShort} ${yearStr}`, 'Idx:', idx, 'Categories:', categories);
+        });
+        // Plot a vertical line for every reporting year at its due date (even if due date is in the following year)
+        const plotLines = Object.entries(yearDueDatesMap).map(([reportingYear, dueDateRaw]) => {
+            const d = new Date(dueDateRaw);
+            const monthShort = d.toLocaleString('default', { month: 'short' });
+            const monthLong = d.toLocaleString('default', { month: 'long' });
+            const yearStr = d.getFullYear().toString();
+            // Robustly find the index in categories for the due date month and year
+            const idx = categories.findIndex(c => {
+                const cstr = c.trim().toLowerCase();
+                return (
+                    cstr === `${monthShort} ${yearStr}`.toLowerCase() ||
+                    cstr === `${monthLong} ${yearStr}`.toLowerCase()
+                );
+            });
+            // Subtract one from the reporting year for the label
+            const labelYear = (parseInt(reportingYear, 10) - 1).toString();
+            const labelText = `${labelYear} Due: ${formatDueDate(dueDateRaw)}`;
             return {
-                value: idx + 0.5,
+                value: idx,
                 color: '#ff0000',
                 width: 2,
                 dashStyle: 'Dash',
