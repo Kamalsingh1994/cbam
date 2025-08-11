@@ -88,6 +88,16 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
     years_with_reports = set()
     current_year = datetime.now().year
 
+    # Collect due dates for each year from the CBAM reports
+    year_due_dates = {}
+    for report in cbam_reports:
+        parent = frappe.get_doc("CBAM Report", report)
+        due_date = getattr(parent, 'due_date', None)
+        if due_date:
+            # Extract year from due_date string (assume format YYYY-MM-DD)
+            year = str(due_date)[:4]
+            year_due_dates[year] = str(due_date)
+
     for report in cbam_reports:
         parent = frappe.get_doc("CBAM Report", report)
         report_year = get_year_from_creation(parent.creation)
@@ -265,6 +275,7 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
             {"name": "Actual Cost", "data": actual_data},
             {"name": "Forecast", "data": forecast_data},
         ],
+        "year_due_dates": year_due_dates
     }
 
     return {"columns": columns, "data": data, "chart_data": chart_data, "total_count": total_count}

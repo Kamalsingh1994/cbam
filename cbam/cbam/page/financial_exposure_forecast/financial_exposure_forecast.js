@@ -206,7 +206,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         all_data = all_data.concat(data || []);
                     }
                     render_table(columns, all_data);
-                    render_chart(chart_data);
+                    load_highcharts(() => render_chart(chart_data));
                     render_pagination_controls();
                 } else {
                     $('#table-section').html('<div class="text-center text-muted p-4">No data found for selected CBAM Report(s).</div>');
@@ -250,26 +250,51 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
     }
 
 
+    // Helper: Map data to month categories, only at quarter-end months
+    function mapDataToMonths(data, categories, originalCategories) {
+        const arr = Array(categories.length).fill(null);
+        originalCategories.forEach((cat, i) => {
+            const [mon, yr] = cat.split(' ');
+            const monthIdx = new Date(Date.parse(mon + ' 1, 2000')).getMonth();
+            const shortLabel = new Date(yr, monthIdx, 1).toLocaleString('default', { month: 'short' }) + ' ' + yr;
+            const longLabel = new Date(yr, monthIdx, 1).toLocaleString('default', { month: 'long' }) + ' ' + yr;
+            const idx = categories.findIndex(c =>
+                c.trim().toLowerCase() === shortLabel.toLowerCase() ||
+                c.trim().toLowerCase() === longLabel.toLowerCase()
+            );
+            if (idx !== -1) arr[idx] = data[i];
+        });
+        return arr;
+    }
+
+    // Helper: Build month categories for the full range
+    function getMonthCategories(startYear, endYear) {
+        const months = [];
+        for (let year = startYear; year <= endYear; year++) {
+            for (let m = 0; m < 12; m++) {
+                const date = new Date(year, m, 1);
+                const label = date.toLocaleString('default', { month: 'short' }) + ' ' + year;
+                months.push(label);
+            }
+        }
+        return months;
+    }
+
+    // Helper: Format due date as '31 Dec 2025'
+    function formatDueDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d)) return dateStr;
+        const day = d.getDate().toString().padStart(2, '0');
+        const month = d.toLocaleString('default', { month: 'short' });
+        const year = d.getFullYear();
+        return `${day} ${month} ${year}`;
+    }
+
     function render_chart(chart_data) {
-        $('#chart-section').empty();
-
-        // Check if Highcharts is loaded
-        if (typeof Highcharts === 'undefined') {
-            load_highcharts(() => render_chart(chart_data));
-            return;
-        }
-
-        // Debug: Log what we're receiving from backend
-        console.log('Backend chart_data:', chart_data);
-
-        // Check if we have chart data from the backend
-        if (!chart_data || !chart_data.series || !chart_data.series.length) {
-            $('#chart-section').html('<div class="text-center text-muted p-4">No chart data available. Please select CBAM Reports to view the chart.</div>');
-            return;
-        }
-
-        // Extract data from the backend response
-        const categories = chart_data.categories || [];
+        // Extract and prepare categories
+        let categories = chart_data.categories || [];
+        let yearDueDatesMap = chart_data.year_due_dates || {};
         const actualData = chart_data.series[0]?.data || [];
         const forecastData = chart_data.series[1]?.data || [];
 
@@ -284,76 +309,244 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             accumulatedExposure.push(cumulative);
         }
 
-        // Calculate minimum required account balance series (diamonds) for legend
-        // For each quarter, plot 50% of accumulated exposure, except for the last quarter, plot 100%
+        // Calculate per-year accumulated exposure and diamond positions
         const minRequiredActual = [];
         const minRequiredForecast = [];
+        let yearAccum = 0;
+        let year = null;
         for (let i = 0; i < categories.length; i++) {
-            const isLast = (i === categories.length - 1);
-            const acc = accumulatedExposure[i];
-            // If actualData exists for this quarter, use it for 'actual' series
+            // Extract year from category label (e.g., 'March 2025')
+            const match = categories[i].match(/\b(\d{4})\b/);
+            const thisYear = match ? match[1] : null;
+            if (thisYear !== year) {
+                year = thisYear;
+                yearAccum = 0;
+            }
+            const value = actualData[i] ?? forecastData[i];
+            if (value && value > 0) {
+                yearAccum += value;
+            }
             if (actualData[i] && actualData[i] > 0) {
-                minRequiredActual.push(isLast ? acc : acc * 0.5);
+                minRequiredActual.push(yearAccum * 0.5);
                 minRequiredForecast.push(null);
             } else if (forecastData[i] && forecastData[i] > 0) {
                 minRequiredActual.push(null);
-                minRequiredForecast.push(isLast ? acc : acc * 0.5);
+                minRequiredForecast.push(yearAccum * 0.5);
             } else {
                 minRequiredActual.push(null);
                 minRequiredForecast.push(null);
             }
         }
 
-        console.log('Processed data:', {
-            actualData: actualData,
-            forecastData: forecastData,
-            accumulatedExposure: accumulatedExposure
+        // Carefully extend categories to include all months from the earliest year in your data up to the latest due date
+        const allYears = categories.map(cat => parseInt(cat.match(/\b(\d{4})\b/)[1])).filter(Boolean);
+        const minYear = Math.min(...allYears);
+        const allDueDates = Object.values(yearDueDatesMap).map(d => new Date(d));
+        const latestDueDate = new Date(Math.max(...allDueDates.map(d => d.getTime())));
+        const maxYear = latestDueDate.getFullYear();
+        const maxMonth = latestDueDate.getMonth(); // 0-based
+        const monthCategories = [];
+        for (let year = minYear; year <= maxYear; year++) {
+            for (let m = 0; m < 12; m++) {
+                if (year === maxYear && m > maxMonth) break;
+                const date = new Date(year, m, 1);
+                const label = date.toLocaleString('default', { month: 'short' }) + ' ' + year;
+                monthCategories.push(label);
+            }
+        }
+        categories = monthCategories;
+
+        // Remap all data series to only appear at quarter-ends
+        const actualDataMonth = mapDataToMonths(actualData, categories, chart_data.categories || []);
+        const forecastDataMonth = mapDataToMonths(forecastData, categories, chart_data.categories || []);
+        const minRequiredActualMonth = mapDataToMonths(minRequiredActual, categories, chart_data.categories || []);
+        const minRequiredForecastMonth = mapDataToMonths(minRequiredForecast, categories, chart_data.categories || []);
+        const accumulatedExposureMonth = mapDataToMonths(accumulatedExposure, categories, chart_data.categories || []);
+
+        // Build yearDueDates array for plotLines
+        let yearDueDates = [];
+        let lastYear = null;
+        categories.forEach((cat, idx) => {
+            const match = cat.match(/\b(\d{4})\b/);
+            const thisYear = match ? match[1] : null;
+            if (thisYear !== lastYear && lastYear !== null) {
+                yearDueDates.push({ idx: idx - 1, year: lastYear });
+            }
+            lastYear = thisYear;
+        });
+        if (categories.length > 0 && lastYear) {
+            yearDueDates.push({ idx: categories.length - 1, year: lastYear });
+        }
+        // Debug: log due date, label, index, and categories for each plotLine
+        Object.entries(yearDueDatesMap).forEach(([reportingYear, dueDateRaw]) => {
+            const d = new Date(dueDateRaw);
+            const monthShort = d.toLocaleString('default', { month: 'short' });
+            const monthLong = d.toLocaleString('default', { month: 'long' });
+            const yearStr = d.getFullYear().toString();
+            const idx = categories.findIndex(cat => {
+                const c = cat.trim().toLowerCase();
+                return (
+                    c === `${monthShort} ${yearStr}`.toLowerCase() ||
+                    c === `${monthLong} ${yearStr}`.toLowerCase()
+                );
+            });
+        });
+        // Plot a vertical line for every reporting year at its due date (even if due date is in the following year)
+        const plotLines = Object.entries(yearDueDatesMap).map(([reportingYear, dueDateRaw]) => {
+            const d = new Date(dueDateRaw);
+            const monthShort = d.toLocaleString('default', { month: 'short' });
+            const monthLong = d.toLocaleString('default', { month: 'long' });
+            const yearStr = d.getFullYear().toString();
+            // Robustly find the index in categories for the due date month and year
+            const idx = categories.findIndex(c => {
+                const cstr = c.trim().toLowerCase();
+                return (
+                    cstr === `${monthShort} ${yearStr}`.toLowerCase() ||
+                    cstr === `${monthLong} ${yearStr}`.toLowerCase()
+                );
+            });
+            // Subtract one from the reporting year for the label
+            const labelYear = (parseInt(reportingYear, 10) - 1).toString();
+            const labelText = `${labelYear} Due: ${formatDueDate(dueDateRaw)}`;
+            return {
+                value: idx,
+                color: '#ff0000',
+                width: 2,
+                dashStyle: 'Dash',
+                label: {
+                    text: labelText,
+                    rotation: 270, // vertical label
+                    x: 20,         // horizontal gap from the line
+                    y: 120,        // negative value to center vertically on the line
+                    style: { color: '#ff0000', fontWeight: 'bold' },
+                    align: 'center'
+                },
+                zIndex: 5
+            };
         });
 
-        // Create chart
+        // Add a line from December of the previous year to the due date, and a diamond at the due date
+        const extraLineSeries = [];
+        const extraDiamondSeries = [];
+        Object.entries(yearDueDatesMap).forEach(([reportingYear, dueDateRaw]) => {
+            // Use previous year for December
+            const prevYear = (parseInt(reportingYear, 10) - 1).toString();
+            const decLabelShort = 'Dec ' + prevYear;
+            const decLabelLong = 'December ' + prevYear;
+            const decIdx = categories.findIndex(cat =>
+                cat.trim().toLowerCase() === decLabelShort.toLowerCase() ||
+                cat.trim().toLowerCase() === decLabelLong.toLowerCase()
+            );
+
+            // Find the last non-null value in accumulatedExposureMonth for the previous year
+            const yearIndices = categories
+                .map((cat, idx) => ({ cat, idx }))
+                .filter(({ cat }) => cat.endsWith(prevYear))
+                .map(({ idx }) => idx);
+
+            let value = null;
+            for (let i = yearIndices.length - 1; i >= 0; i--) {
+                const idx = yearIndices[i];
+                if (accumulatedExposureMonth[idx] !== null) {
+                    value = accumulatedExposureMonth[idx];
+                    break;
+                }
+            }
+
+            // Find due date index
+            const d = new Date(dueDateRaw);
+            const dueMonthShort = d.toLocaleString('default', { month: 'short' });
+            const dueMonthLong = d.toLocaleString('default', { month: 'long' });
+            const dueYearStr = d.getFullYear().toString();
+            const dueIdx = categories.findIndex(cat => {
+                const c = cat.trim().toLowerCase();
+                return (
+                    c === `${dueMonthShort} ${dueYearStr}`.toLowerCase() ||
+                    c === `${dueMonthLong} ${dueYearStr}`.toLowerCase()
+                );
+            });
+
+            if (decIdx !== -1 && dueIdx !== -1 && value !== null) {
+                // Add the connecting line
+                extraLineSeries.push({
+                    name: `Accumulated Exposure to Due (${reportingYear})`,
+                    type: 'line',
+                    color: 'rgb(135, 206, 235)', // changed to blue
+                    lineWidth: 2,
+                    dashStyle: 'Dash', // make the line dashed
+                    marker: { enabled: false },
+                    data: [
+                        [decIdx, value],
+                        [dueIdx, value]
+                    ],
+                    enableMouseTracking: false,
+                    showInLegend: false,
+                    zIndex: 2
+                });
+                // Add the diamond at the due date
+                extraDiamondSeries.push({
+                    name: `Due Diamond (${reportingYear})`,
+                    type: 'scatter',
+                    color: 'rgb(135, 206, 235)', // changed to blue
+                    marker: {
+                        symbol: 'diamond',
+                        fillColor: '#fff',
+                        lineColor: 'rgb(135, 206, 235)', // changed to blue
+                        lineWidth: 2,
+                        radius: 8
+                    },
+                    data: [[dueIdx, value]],
+                    enableMouseTracking: false,
+                    showInLegend: false,
+                    zIndex: 3
+                });
+            }
+        });
+
+        // Render the chart
         Highcharts.chart('chart-section', {
             chart: {
                 type: 'column',
                 height: 600,
                 zoomType: 'x',
-                spacingBottom: 100
+                spacingBottom: 20 // reduced from 100
             },
             credits: { enabled: false },
             title: { text: 'Financial Exposure Forecast' },
             xAxis: {
                 categories: categories,
                 labels: { rotation: 45, style: { fontSize: '12px' } },
-                title: { text: 'Quarter' }
+                title: { text: 'Month' },
+                plotLines: plotLines
             },
-            yAxis: { 
+            yAxis: {
                 min: 0,
-                title: { text: 'Financial Exposure over Time [€]' } 
+                title: { text: 'Financial Exposure over Time [€]' }
             },
             series: [
                 {
                     name: 'Quarterly Financial Exposure Based on Real Data',
-                    data: actualData,
+                    data: actualDataMonth,
                     color: '#003366',
                     type: 'column',
                     zIndex: 2
                 },
                 {
                     name: 'Quarterly Financial Exposure Based on Forecasts',
-                    data: forecastData,
+                    data: forecastDataMonth,
                     color: '#87ceeb',
                     type: 'column',
-                    borderColor: '#5fa7c6', // subtle border for accessibility
+                    borderColor: '#5fa7c6',
                     borderWidth: 2,
                     zIndex: 2
                 },
                 {
                     name: 'Accumulated Financial Exposure Based on Forecasts',
-                    data: accumulatedExposure,
-                    type: 'line',
+                    data: accumulatedExposureMonth,
+                    type: 'scatter',
                     color: '#87ceeb',
-                    lineWidth: 2,
-                    dashStyle: 'dash',
                     marker: {
+                        enabled: true,
                         symbol: 'circle',
                         radius: 6,
                         fillColor: '#87ceeb',
@@ -364,11 +557,11 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 },
                 {
                     name: 'Minimum Required Account Balance',
-                    data: minRequiredActual,
+                    data: minRequiredActualMonth,
                     type: 'scatter',
                     marker: {
                         symbol: 'diamond',
-                        fillColor: '#fff', // White fill for visibility
+                        fillColor: '#fff',
                         lineColor: '#003366',
                         lineWidth: 2,
                         radius: 7
@@ -380,11 +573,11 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 },
                 {
                     name: 'Minimum Required Account Balance Based on Forecast',
-                    data: minRequiredForecast,
+                    data: minRequiredForecastMonth,
                     type: 'scatter',
                     marker: {
                         symbol: 'diamond',
-                        fillColor: '#fff', // White fill for visibility
+                        fillColor: '#fff',
                         lineColor: '#87ceeb',
                         lineWidth: 2,
                         radius: 7
@@ -393,7 +586,9 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     showInLegend: true,
                     tooltip: { pointFormat: '<b>Minimum Required Account Balance</b><br/>Based on forecast: <b>€{point.y:,.0f}</b>' },
                     zIndex: 3
-                }
+                },
+                ...extraLineSeries,
+                ...extraDiamondSeries
             ],
             plotOptions: {
                 column: {
@@ -414,7 +609,6 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             legend: {
                 enabled: true,
                 useHTML: true,
-                // Custom order: Real, Forecast, Accum, Min Actual, Min Forecast
                 labelFormatter: function() {
                     if (this.name === 'Quarterly Financial Exposure Based on Real Data') {
                         return '<span style="color:#003366">●</span> ' + this.name;
@@ -428,12 +622,21 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         return '<span style="color:#87ceeb">◆</span> ' + this.name;
                     }
                     return this.name;
-                },
-                // Custom legend order
-                // Highcharts does not support direct legend order, so order in series array
+                }
             }
         });
-        
+    }
+
+    // Loader for Highcharts
+    function load_highcharts(callback) {
+        if (typeof Highcharts !== 'undefined') {
+            callback();
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://code.highcharts.com/highcharts.js';
+        script.onload = callback;
+        document.head.appendChild(script);
     }
     function update_export_button_state() {
             const selected = datatable?.rowmanager?.getCheckedRows?.() || [];
@@ -442,12 +645,6 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
     function get_selected_rows_data() {
         const selectedIndexes = datatable?.rowmanager?.getCheckedRows?.() || [];
         return selectedIndexes.map(i => datatable.datamanager.data[i]);
-    }
-    function load_highcharts(callback) {
-        const script = document.createElement('script');
-        script.src = 'https://code.highcharts.com/highcharts.js';
-        script.onload = callback;
-        document.head.appendChild(script);
     }
      // Export selected rows to CSV
     $(document).on("click", "#export", function () {
