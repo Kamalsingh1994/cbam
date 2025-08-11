@@ -3,6 +3,7 @@ from frappe import _
 from datetime import datetime
 from collections import defaultdict
 import re
+import calendar
 
 @frappe.whitelist()
 def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=None, to_year=None):
@@ -124,14 +125,14 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
                 installation_country = getattr(eg, "installation_country", "")
                 specific_direct_embedded_emissions = extract_numeric_value(getattr(eg, "specific_direct_embedded_emissions", 0.0))
 
-                # Fetch all ETS prices for price_year >= report_year
-                future_ets_prices = frappe.get_all(
+                # Only fetch ETS prices for the quarter_year (not all years >= report_year)
+                ets_prices = frappe.get_all(
                     "ETS Carbon Price",
-                    filters={"price_year": [">=", report_year]},
+                    filters={"price_year": quarter_year},
                     fields=["price_year", "price"],
                     order_by="price_year asc"
                 )
-                for ets in future_ets_prices:
+                for ets in ets_prices:
                     year = int(ets.price_year)
                     # Filter by from_year and to_year if provided
                     if (from_year and year < from_year) or (to_year and year > to_year):
@@ -189,6 +190,8 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
 
                     row_data = {
                         "year": year,
+                        "quarter": quarter,  # Add quarter to the data row
+                        "quarter_year": quarter_year,  # Add quarter_year to the data row
                         "cn_code": cn_code,
                         "article_no": article_no,
                         "supplier": supplier,
@@ -202,6 +205,8 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
                         "ets_price": ets_price,
                         "real_emission_cost": real_emission_cost,
                         "standard_emission_cost": standard_emission_cost,
+                        "from_date": parent.from_date,
+                        "to_date": parent.to_date,
                     }
                     all_rows.append(row_data)
 
@@ -210,78 +215,56 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
 
     # Chart data: sum actual and standard cost by quarter
     quarter_totals = defaultdict(lambda: {"actual": 0, "standard": 0, "is_forecast": False})
-    
-    # Generate all quarters for years that have any reports
-    all_quarters = []
-    if years_with_reports:
-        for year in sorted(years_with_reports):
-            for quarter in range(1, 5):
-                all_quarters.append((year, quarter))
-    else:
-        # Fallback to current year if no years found
-        for quarter in range(1, 5):
-            all_quarters.append((current_year, quarter))
-    
+    # Aggregate data by quarter using the new fields in all_rows
+    for row in all_rows:
+        qkey = (row.get("quarter_year"), row.get("quarter"))
+        if qkey[0] and qkey[1]:
+            quarter_totals[qkey]["actual"] += row.get("real_emission_cost", 0) or 0
+            quarter_totals[qkey]["standard"] += row.get("standard_emission_cost", 0) or 0
     # Mark uploaded quarters as actual data, others as forecast
-    for quarter_key in all_quarters:
+    for quarter_key in quarter_totals:
         if quarter_key in uploaded_quarters:
             quarter_totals[quarter_key]["is_forecast"] = False
         else:
             quarter_totals[quarter_key]["is_forecast"] = True
-    
-    # Aggregate data by quarter - distribute data across quarters based on uploaded reports
-    if uploaded_quarters:
-        # Calculate average cost per quarter from uploaded data
-        total_actual_cost = sum(row.get("real_emission_cost", 0) or 0 for row in all_rows)
-        total_standard_cost = sum(row.get("standard_emission_cost", 0) or 0 for row in all_rows)
-        
-        uploaded_quarter_count = len(uploaded_quarters)
-        avg_actual_per_quarter = total_actual_cost / uploaded_quarter_count if uploaded_quarter_count > 0 else 0
-        avg_standard_per_quarter = total_standard_cost / uploaded_quarter_count if uploaded_quarter_count > 0 else 0
-        
-        # Distribute actual data to uploaded quarters
-        for quarter_key in uploaded_quarters:
-            quarter_totals[quarter_key]["actual"] = avg_actual_per_quarter
-            quarter_totals[quarter_key]["standard"] = avg_standard_per_quarter
-        
-        # For forecast quarters, use the average as forecast
-        for quarter_key in all_quarters:
-            if quarter_key not in uploaded_quarters:
-                quarter_totals[quarter_key]["actual"] = avg_actual_per_quarter
-                quarter_totals[quarter_key]["standard"] = avg_standard_per_quarter
-    else:
-        # If no uploaded quarters, distribute evenly across all quarters
-        total_actual_cost = sum(row.get("real_emission_cost", 0) or 0 for row in all_rows)
-        total_standard_cost = sum(row.get("standard_emission_cost", 0) or 0 for row in all_rows)
-        
-        total_quarters = len(all_quarters) if all_quarters else 4
-        avg_actual_per_quarter = total_actual_cost / total_quarters
-        avg_standard_per_quarter = total_standard_cost / total_quarters
-        
-        for quarter_key in all_quarters:
-            quarter_totals[quarter_key]["actual"] = avg_actual_per_quarter
-            quarter_totals[quarter_key]["standard"] = avg_standard_per_quarter
-    
-    # Create chart data with quarter labels
+
+    # Build a list of all quarters for each year with reports
+    all_quarters = []
+    for year in sorted(years_with_reports):
+        for quarter in range(1, 5):
+            all_quarters.append((year, quarter))
+    # Ensure quarter_totals has an entry for every quarter
+    for q in all_quarters:
+        if q not in quarter_totals:
+            quarter_totals[q] = {"actual": 0, "standard": 0, "is_forecast": True}
+    # Create chart data with quarter labels and separate actual/forecast series
     chart_categories = []
     actual_data = []
-    forecast_info = []
-    
-    for quarter_key in sorted(quarter_totals.keys()):
-        year, quarter = quarter_key
-        month_name = get_quarter_end_month(quarter)
-        category_label = f"{month_name} {year}"
-        chart_categories.append(category_label)
-        
-        actual_data.append(quarter_totals[quarter_key]["actual"])
-        forecast_info.append(quarter_totals[quarter_key]["is_forecast"])
-    
+    forecast_data = []
+    import calendar
+    for year in sorted(years_with_reports):
+        year_quarters = [(year, q) for q in range(1, 5)]
+        # Calculate average of actuals for this year only
+        actual_values = [quarter_totals[q]["actual"] for q in year_quarters if not quarter_totals[q]["is_forecast"] and quarter_totals[q]["actual"] is not None]
+        avg_actual = sum(actual_values) / len(actual_values) if actual_values else 0
+        for q in year_quarters:
+            _, quarter = q
+            last_month = {1: 3, 2: 6, 3: 9, 4: 12}[quarter]
+            month_name = calendar.month_name[last_month]
+            category_label = f"{month_name} {year}"
+            chart_categories.append(category_label)
+            if quarter_totals[q]["is_forecast"]:
+                actual_data.append(None)
+                forecast_data.append(avg_actual)
+            else:
+                actual_data.append(quarter_totals[q]["actual"])
+                forecast_data.append(None)
     chart_data = {
         "categories": chart_categories,
         "series": [
             {"name": "Actual Cost", "data": actual_data},
+            {"name": "Forecast", "data": forecast_data},
         ],
-        "forecast_info": forecast_info
     }
 
     return {"columns": columns, "data": data, "chart_data": chart_data, "total_count": total_count}
@@ -312,6 +295,8 @@ def get_all_cbam_reports():
 def get_columns():
     columns = [
         {"id": "year", "name": _( "Year"), "width": 80},
+        {"id": "quarter", "name": _( "Quarter"), "width": 80},
+        {"id": "quarter_year", "name": _( "Quarter Year"), "width": 120},
         {"id": "cn_code", "name": _( "CN Code"), "width": 100},
         {"id": "article_no", "name": _( "Article No."), "width": 120},
         {"id": "supplier", "name": _( "Supplier"), "width": 280},
