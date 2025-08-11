@@ -284,20 +284,29 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             accumulatedExposure.push(cumulative);
         }
 
-        // Calculate minimum required account balance series (diamonds) for legend
-        // For each quarter, plot 50% of accumulated exposure, except for the last quarter, plot 100%
+        // Calculate per-year accumulated exposure and diamond positions
         const minRequiredActual = [];
         const minRequiredForecast = [];
+        let yearAccum = 0;
+        let year = null;
         for (let i = 0; i < categories.length; i++) {
-            const isLast = (i === categories.length - 1);
-            const acc = accumulatedExposure[i];
-            // If actualData exists for this quarter, use it for 'actual' series
+            // Extract year from category label (e.g., 'March 2025')
+            const match = categories[i].match(/\b(\d{4})\b/);
+            const thisYear = match ? match[1] : null;
+            if (thisYear !== year) {
+                year = thisYear;
+                yearAccum = 0;
+            }
+            const value = actualData[i] ?? forecastData[i];
+            if (value && value > 0) {
+                yearAccum += value;
+            }
             if (actualData[i] && actualData[i] > 0) {
-                minRequiredActual.push(isLast ? acc : acc * 0.5);
+                minRequiredActual.push(yearAccum * 0.5);
                 minRequiredForecast.push(null);
             } else if (forecastData[i] && forecastData[i] > 0) {
                 minRequiredActual.push(null);
-                minRequiredForecast.push(isLast ? acc : acc * 0.5);
+                minRequiredForecast.push(yearAccum * 0.5);
             } else {
                 minRequiredActual.push(null);
                 minRequiredForecast.push(null);
