@@ -70,7 +70,7 @@ cbam.update_chart = function update_chart(chart_data) {
             credits: {
                 enabled: false
             },
-            title: { text: __('Standard vs Actual Cost') },
+            title: { text: __('Cost Exposure of Articles @ [selected ETS Price basis]') },
             xAxis: {
                 categories: labels,
                 labels: {
