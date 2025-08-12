@@ -143,15 +143,6 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
         function render_layout(body) {
             $(body).html(`
                 <div class="container p-0">
-                    <div class="row mb-3 align-items-center">
-                        <div class="col">
-                            <div class="section-title mb-2">🧾 Select Article</div>
-                            <div class="row gx-2" id="filter-section-group-1"></div>
-                        </div>
-                        <div class="col-auto d-flex align-items-center" style="margin-top: 22px;">
-                            <button class="btn btn-primary btn-xs clear-selections text-nowrap filter-clear-btn" id="clear-group-1">Clear All</button>
-                        </div>
-                    </div>
                     <div class="row mb-4 align-items-center">
                         <div class="col">
                             <div class="section-title mb-2">📅 Calculation Based On</div>
@@ -165,6 +156,16 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                         <div class="row gx-3" id="compact-stat-row"></div>
                     </div>
                     <div class="frappe-card mb-4" id="chart-section"></div>
+                    <!-- Select Article filter section -->
+                    <div class="row mb-3 align-items-center">
+                        <div class="col">
+                            <div class="section-title mb-2">🧾 Select Article</div>
+                            <div class="row gx-2" id="filter-section-group-1"></div>
+                        </div>
+                        <div class="col-auto d-flex align-items-center" style="margin-top: 22px;">
+                            <button class="btn btn-primary btn-xs clear-selections text-nowrap filter-clear-btn" id="clear-group-1">Clear All</button>
+                        </div>
+                    </div>
                     <div class="frappe-card mb-4" id="table-toggle-section">
                         <div class="p-2 d-flex align-items-center gap-5">
                             <span class="ms-2 small">Show Cost per tonne of Product</span>&nbsp;
@@ -180,6 +181,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                             </label>
                         </div>
                     </div>
+                    
                     <div class="frappe-card mb-4" id="table-scroll-container" style="overflow-x: auto;">
                         <div id="table-section"></div>
                     </div>
