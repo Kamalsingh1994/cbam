@@ -46,7 +46,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 <a class="nav-link" href="/app/ets-price-dashboard">ETS Price Dashboard</a>
             </li> -->
 			<li class="nav-item">
-                <a class="nav-link active" href="/app/financial-exposure-forecast">Financial Exposure Forecase</a>
+                <a class="nav-link active" href="/app/financial-exposure-forecast">Financial Exposure Forecast</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/app/various-cost-comparisons">Various Cost Comparisons</a>
@@ -568,7 +568,6 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     },
                     color: '#003366',
                     showInLegend: true,
-                    tooltip: { pointFormat: '<b>ETS Certificates Required</b><br/>Based on actual data: <b>€{point.y:,.0f}</b>' },
                     zIndex: 3
                 },
                 {
@@ -584,7 +583,6 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     },
                     color: '#87ceeb',
                     showInLegend: true,
-                    tooltip: { pointFormat: '<b>Minimum Required Account Balance</b><br/>Based on forecast: <b>€{point.y:,.0f}</b>' },
                     zIndex: 3
                 },
                 ...extraLineSeries,
@@ -601,9 +599,58 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 }
             },
             tooltip: {
+                shared: false,
+                useHTML: true,
                 formatter: function() {
-                    return `<b>${this.x}</b><br/>
-                            <span style="color:${this.color}">●</span> ${this.series.name}: <b>€${this.y.toLocaleString()}</b>`;
+                    // Show both Amount Due and Required Certificates for ALL series
+                    let cost = this.y;  // Use this.y directly
+                    let certText = '';
+                    
+                    // Calculate certificates for ALL series if ETS price is available
+                    if (cost !== null && !isNaN(cost) && typeof this.point.index === 'number' && Array.isArray(chart_data.ets_prices)) {
+                        let ets_price = chart_data.ets_prices[this.point.index];
+                        
+                        // Frontend fallback: if index is beyond array length, use last available price
+                        if (ets_price === undefined && chart_data.ets_prices.length > 0) {
+                            ets_price = chart_data.ets_prices[chart_data.ets_prices.length - 1];
+                        }
+                        
+                        // Validate ETS price before calculation
+                        if (ets_price && !isNaN(ets_price) && isFinite(ets_price) && ets_price > 0) {
+                            let certificates = cost / ets_price;
+                            
+                            // Validate certificate calculation result
+                            if (!isNaN(certificates) && isFinite(certificates) && certificates >= 0) {
+                                // Only show certificates for diamond/overlay series
+                                if (this.series.name.includes('ETS Certificates') || this.series.name.includes('Minimum Required Account Balance')) {
+                                    certText = `<br/><span style=\"color:#888\">Required Certificates:</span> <b>${certificates.toLocaleString(undefined, {maximumFractionDigits: 2})}</b>`;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Always show Amount Due in € - ensure cost is displayed
+                    let costDisplay = '';
+                    if (cost !== null && !isNaN(cost)) {
+                        costDisplay = `€${cost.toLocaleString()}`;
+                    } else {
+                        costDisplay = '€0';  // Fallback if no cost
+                    }
+                    
+                    // Show different labels based on series type
+                    let seriesLabel = '';
+                    if (this.series.name.includes('ETS Certificates') || this.series.name.includes('Minimum Required Account Balance')) {
+                        // For diamond/overlay series, show "Amount Due"
+                        seriesLabel = 'Amount Due';
+                    } else {
+                        // For main bars, show the original series name
+                        seriesLabel = this.series.name;
+                    }
+                    
+                    let finalTooltip = `<b>${this.x}</b><br/>
+                            <span style=\"color:${this.color}\">●</span> ${seriesLabel}: <b>${costDisplay}</b>${certText}`;
+                    
+                    return finalTooltip;
                 }
             },
             legend: {
