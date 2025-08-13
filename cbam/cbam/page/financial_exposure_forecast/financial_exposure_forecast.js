@@ -291,7 +291,120 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         return `${day} ${month} ${year}`;
     }
 
+    function ensureObjectPoints(arr) {
+        return arr.map(pt => {
+            if (pt && typeof pt === 'object' && 'y' in pt) return pt;
+            return {y: pt === null || pt === undefined ? null : pt, required_certificates: null};
+        });
+    }
+
     function render_chart(chart_data) {
+        // Remove any existing toggle switch to prevent duplicates
+        $('.tooltip-toggle-container').remove();
+        
+        // Add toggle switch above the chart
+        const toggleHtml = `
+            <div class="tooltip-toggle-container mb-3" style="text-align: center;">
+                <div class="btn-group" role="group" aria-label="Tooltip Display Toggle">
+                    <input type="radio" class="btn-check" name="tooltip-view" id="view-cost" checked>
+                    <label class="btn btn-outline-primary" for="view-cost">
+                        <i class="fas fa-euro-sign"></i> Amount Due in €
+                    </label>
+                    
+                    <input type="radio" class="btn-check" name="tooltip-view" id="view-certificates">
+                    <label class="btn btn-outline-primary" for="view-certificates">
+                        Required Certificates
+                    </label>
+                    
+                    <input type="radio" class="btn-check" name="tooltip-view" id="view-both">
+                    <label class="btn btn-outline-primary" for="view-both">
+                        Both Views
+                    </label>
+                </div>
+            </div>
+            <style>
+                .tooltip-toggle-container {
+                    background: #f8f9fa;
+                    border: 1px solid #e3e6eb;
+                    border-radius: 0.5rem;
+                    padding: 1rem;
+                    margin-bottom: 1rem;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                }
+                .tooltip-toggle-container .btn-group {
+                    display: inline-flex;
+                    flex-wrap: wrap;
+                    gap: 0.25rem;
+                }
+                .tooltip-toggle-container .btn {
+                    border-radius: 0.375rem;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                    padding: 0.5rem 1rem;
+                    transition: all 0.2s ease;
+                    background-color: #ffffff;
+                    border-color: #000000;
+                    color: #000000;
+                }
+                .tooltip-toggle-container .btn-check {
+                    display: none;
+                }
+                .tooltip-toggle-container .btn-check:checked + .btn {
+                    background-color: #000000 !important;
+                    border-color: #000000 !important;
+                    color: white !important;
+                    box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.25);
+                }
+                .tooltip-toggle-container .btn:hover:not(.btn-check:checked + .btn) {
+                    background-color: #e9ecef;
+                    border-color: #adb5bd;
+                    color: #495057;
+                }
+                .tooltip-toggle-container .btn-check:checked + .btn:hover {
+                    background-color: #333333 !important;
+                    border-color: #000000 !important;
+                }
+                .tooltip-toggle-container .btn:focus {
+                    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+                    outline: none;
+                }
+                @media (max-width: 768px) {
+                    .tooltip-toggle-container .btn-group {
+                        flex-direction: column;
+                        width: 100%;
+                    }
+                    .tooltip-toggle-container .btn {
+                        width: 100%;
+                        margin-bottom: 0.25rem;
+                    }
+                }
+            </style>
+        `;
+        
+        // Insert toggle above the chart
+        $('#chart-section').before(toggleHtml);
+        
+        // Store the current view preference
+        let currentTooltipView = 'cost'; // 'cost', 'certificates', or 'both'
+        
+        // Handle toggle changes
+        $('input[name="tooltip-view"]').on('change', function() {
+            currentTooltipView = this.id.replace('view-', '');
+            console.log('Tooltip view changed to:', currentTooltipView);
+            
+            // Ensure only one option is selected
+            $('input[name="tooltip-view"]').prop('checked', false);
+            $(this).prop('checked', true);
+            
+            // Add visual feedback
+            $('.tooltip-toggle-container .btn').removeClass('active');
+            $(this).next('label').addClass('active');
+        });
+        
+        // Initialize the first option as selected
+        $('#view-cost').prop('checked', true);
+        $('#view-cost').next('label').addClass('active');
+        
         // Extract and prepare categories
         let categories = chart_data.categories || [];
         let yearDueDatesMap = chart_data.year_due_dates || {};
@@ -377,6 +490,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         if (categories.length > 0 && lastYear) {
             yearDueDates.push({ idx: categories.length - 1, year: lastYear });
         }
+        
         // Debug: log due date, label, index, and categories for each plotLine
         Object.entries(yearDueDatesMap).forEach(([reportingYear, dueDateRaw]) => {
             const d = new Date(dueDateRaw);
@@ -391,6 +505,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 );
             });
         });
+        
         // Plot a vertical line for every reporting year at its due date (even if due date is in the following year)
         const plotLines = Object.entries(yearDueDatesMap).map(([reportingYear, dueDateRaw]) => {
             const d = new Date(dueDateRaw);
@@ -503,7 +618,11 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             }
         });
 
-        // Render the chart
+        // Only sanitize main cost/forecast series before rendering chart
+        if (Array.isArray(chart_data.series)) {
+            chart_data.series.forEach(s => { s.data = ensureObjectPoints(s.data); });
+        }
+        // Do NOT touch overlays/diamonds logic at all
         Highcharts.chart('chart-section', {
             chart: {
                 type: 'column',
@@ -602,9 +721,10 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 shared: false,
                 useHTML: true,
                 formatter: function() {
-                    // Show both Amount Due and Required Certificates for ALL series
+                    // Show content based on toggle selection
                     let cost = this.y;  // Use this.y directly
                     let certText = '';
+                    let costDisplay = '';
                     
                     // Calculate certificates for ALL series if ETS price is available
                     if (cost !== null && !isNaN(cost) && typeof this.point.index === 'number' && Array.isArray(chart_data.ets_prices)) {
@@ -629,8 +749,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         }
                     }
                     
-                    // Always show Amount Due in € - ensure cost is displayed
-                    let costDisplay = '';
+                    // Always prepare cost display
                     if (cost !== null && !isNaN(cost)) {
                         costDisplay = `€${cost.toLocaleString()}`;
                     } else {
@@ -647,10 +766,40 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         seriesLabel = this.series.name;
                     }
                     
-                    let finalTooltip = `<b>${this.x}</b><br/>
-                            <span style=\"color:${this.color}\">●</span> ${seriesLabel}: <b>${costDisplay}</b>${certText}`;
+                    // Build tooltip content based on toggle selection
+                    let tooltipContent = '';
                     
-                    return finalTooltip;
+                    // Get current toggle selection
+                    const selectedView = $('input[name="tooltip-view"]:checked').attr('id').replace('view-', '');
+                    
+                    switch(selectedView) {
+                        case 'cost':
+                            // Show only Amount Due
+                            tooltipContent = `<b>${this.x}</b><br/>
+                                <span style=\"color:${this.color}\">●</span> ${seriesLabel}: <b>${costDisplay}</b>`;
+                            break;
+                            
+                        case 'certificates':
+                            // Show only Required Certificates (if available)
+                            if (certText) {
+                                tooltipContent = `<b>${this.x}</b><br/>
+                                    <span style=\"color:${this.color}\">●</span> Required Certificates: <b>${certText.replace('<br/><span style=\"color:#888\">Required Certificates:</span> ', '')}</b>`;
+                            } else {
+                                // Fallback to cost if no certificates available
+                                tooltipContent = `<b>${this.x}</b><br/>
+                                    <span style=\"color:${this.color}\">●</span> ${seriesLabel}: <b>${costDisplay}</b>`;
+                            }
+                            break;
+                            
+                        case 'both':
+                        default:
+                            // Show both Amount Due and Required Certificates
+                            tooltipContent = `<b>${this.x}</b><br/>
+                                <span style=\"color:${this.color}\">●</span> ${seriesLabel}: <b>${costDisplay}</b>${certText}`;
+                            break;
+                    }
+                    
+                    return tooltipContent;
                 }
             },
             legend: {
