@@ -1,6 +1,7 @@
 import frappe
 import json
 from datetime import datetime
+import re
 
 @frappe.whitelist()
 def get_report_data(filters=None, selected_filters=None, start=0, page_length=50):
@@ -51,7 +52,7 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
         page_length = int(page_length)
     except Exception:
         page_length = 50
-
+ 
     # Merge selected_filters into filters, but only non-empty values
     for key, value in selected_filters.items():
         if value is not None and value != '' and value != []:
@@ -73,7 +74,18 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
     cbam_factor = float(selected_filters.get('cbam_factor', 0.0) or 0.0)
     bench_mark = float(selected_filters.get('bench_mark', 0.0) or 0.0)
     emission_value = float(selected_filters.get('emission_value', 0.0) or 0.0)
-    ets_carbon_price = float(selected_filters.get('ets_price_value', 0.0) or selected_filters.get('ets_price', 0.0) or 0.0)
+    
+    # Handle ETS price value safely - extract numeric part if it contains display text
+    ets_price_raw = selected_filters.get('ets_price_value', 0.0) or selected_filters.get('ets_price', 0.0) or 0.0
+    if isinstance(ets_price_raw, str) and '(' in ets_price_raw:
+        # Extract numeric part from display value like "22 (2025)"
+        numeric_match = re.match(r'^([\d.]+)', ets_price_raw)
+        if numeric_match:
+            ets_price_raw = float(numeric_match.group(1))
+        else:
+            ets_price_raw = 0.0
+    
+    ets_carbon_price = float(ets_price_raw) if ets_price_raw else 0.0
 
     # Count total rows for pagination
     total_count = get_count(where_sql, where_sql_eg)
@@ -243,6 +255,25 @@ def get_cards_value(filters=None):
     import json
 
     filters = json.loads(filters) if filters else {}
+    
+    # Map frontend display names to backend values
+    ets_price_type_mapping = {
+        'Spot Price': 'Actual',
+        'Future': 'Future'
+    }
+    
+    # Provide default values for missing keys
+    year = filters.get('year', datetime.now().year) # Fixed datetime access
+    ets_price_type = filters.get('ets_price_type', 'Spot Price')  # Default to Spot Price if not provided
+    
+    # Convert frontend display name to backend value
+    backend_ets_price_type = ets_price_type_mapping.get(ets_price_type, 'Actual')
+    
+    # Create a safe parameters dict for SQL
+    sql_params = {
+        'year': year,
+        'ets_price_type': backend_ets_price_type
+    }
 
     sql = """
         SELECT 
@@ -256,12 +287,13 @@ def get_cards_value(filters=None):
         LEFT JOIN `tabStandard Emission Value` sev 
             ON sev.year = %(year)s
         LEFT JOIN `tabETS Carbon Price` ecp 
-            ON YEAR(ecp.price_date) = %(year)s AND ecp.ets_price_type = %(ets_price_type)s
+            ON ecp.price_year = %(year)s AND ecp.ets_price_type = %(ets_price_type)s
         WHERE cf.year = %(year)s
+
         LIMIT 1
     """
 
-    result = list(frappe.db.sql(sql, filters, as_dict=True))
+    result = list(frappe.db.sql(sql, sql_params, as_dict=True))
     return result[0] if result else {}
 
 
@@ -339,3 +371,57 @@ def get_filter_options(txt=None, filter_type=None, cn_code=None, supplier=None):
     eg_options = fetch_external_good_options(filter_type, txt, declarants, cn_code_list, supplier_list)
     g_options = fetch_good_options(filter_type, txt, declarants, cn_code_list, supplier_list)
     return merge_and_format_options(eg_options, g_options)
+
+
+@frappe.whitelist()
+def get_latest_ets_price(year=None, ets_price_type=None):
+    """Get the latest available ETS price for given year and type"""
+    print(f"get_latest_ets_price called with year={year}, ets_price_type={ets_price_type}")
+    
+    if not year or not ets_price_type:
+        print("Missing year or ets_price_type")
+        return None
+    
+    # Convert year to integer if it's a string
+    try:
+        year = int(year)
+    except (ValueError, TypeError):
+        print(f"Invalid year format: {year}")
+        return None
+    
+    # Use different ordering logic based on ETS price type
+    if ets_price_type == 'Actual':
+        # For Actual prices: order by price_date, then by modified to handle same-date ties
+        order_clause = "ORDER BY price_date DESC, modified DESC"
+        print(f"Using Actual ordering: {order_clause}")
+    else:
+        # For Future prices: order by creation date to get most recently announced/created price
+        order_clause = "ORDER BY modified DESC"
+        print(f"Using Future ordering: {order_clause}")
+    
+    sql = f"""
+        SELECT 
+            price,
+            price_date,
+            ets_price_type,
+            price_year
+        FROM `tabETS Carbon Price`
+        WHERE price_year = %(year)s 
+        AND ets_price_type = %(ets_price_type)s
+        {order_clause}
+        LIMIT 1
+    """
+    
+    sql_params = {"year": year, "ets_price_type": ets_price_type}
+    print(f"SQL query: {sql}")
+    print(f"SQL params: {sql_params}")
+    
+    result = frappe.db.sql(sql, sql_params, as_dict=True)
+    print(f"SQL result: {result}")
+    
+    if result:
+        print(f"Returning: {result[0]}")
+        return result[0]
+    else:
+        print("No result found")
+        return None
