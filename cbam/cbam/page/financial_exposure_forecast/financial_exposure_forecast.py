@@ -247,34 +247,87 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
     for q in all_quarters:
         if q not in quarter_totals:
             quarter_totals[q] = {"actual": 0, "standard": 0, "is_forecast": True}
+    
     # Create chart data with quarter labels and separate actual/forecast series
     chart_categories = []
     actual_data = []
     forecast_data = []
     import calendar
+    ets_prices = []
+    
     for year in sorted(years_with_reports):
         year_quarters = [(year, q) for q in range(1, 5)]
-        # Calculate average of actuals for this year only
         actual_values = [quarter_totals[q]["actual"] for q in year_quarters if not quarter_totals[q]["is_forecast"] and quarter_totals[q]["actual"] is not None]
         avg_actual = sum(actual_values) / len(actual_values) if actual_values else 0
+        
         for q in year_quarters:
             _, quarter = q
             last_month = {1: 3, 2: 6, 3: 9, 4: 12}[quarter]
             month_name = calendar.month_name[last_month]
             category_label = f"{month_name} {year}"
             chart_categories.append(category_label)
+            
+            # Get ETS price from the data rows for this quarter
+            ets_price = None
+            for row in data:
+                if row.get("year") == year and row.get("quarter") == quarter:
+                    ets_price = row.get("ets_price")
+                    if ets_price is not None:
+                        break
+            
+            # If no ETS price found for this quarter, use fallback logic
+            if ets_price is None:
+                # First try: look for ETS price in previous quarters of the same year
+                fallback_ets_price = None
+                for prev_q in year_quarters:
+                    if prev_q < q:  # Only look at previous quarters
+                        for row in data:
+                            if row.get("year") == year and row.get("quarter") == prev_q[1]:
+                                fallback_ets_price = row.get("ets_price")
+                                if fallback_ets_price is not None:
+                                    break
+                        if fallback_ets_price is not None:
+                            break
+                
+                # Second try: if still no price, look in previous years
+                if fallback_ets_price is None:
+                    for prev_year in sorted(years_with_reports):
+                        if prev_year < year:
+                            for row in data:
+                                if row.get("year") == prev_year:
+                                    fallback_ets_price = row.get("ets_price")
+                                    if fallback_ets_price is not None:
+                                        break
+                            if fallback_ets_price is not None:
+                                break
+                
+                # Use fallback price if found
+                if fallback_ets_price is not None:
+                    ets_price = fallback_ets_price
+            
+            ets_prices.append(ets_price)
+            
             if quarter_totals[q]["is_forecast"]:
                 actual_data.append(None)
                 forecast_data.append(avg_actual)
             else:
                 actual_data.append(quarter_totals[q]["actual"])
                 forecast_data.append(None)
+    
+    # Ensure ets_prices array covers ALL chart categories (including overlays)
+    # If there are more categories than ETS prices, extend the array with fallback values
+    while len(ets_prices) < len(chart_categories):
+        # Use the last available ETS price as fallback for additional categories
+        last_ets_price = ets_prices[-1] if ets_prices else None
+        ets_prices.append(last_ets_price)
+    
     chart_data = {
         "categories": chart_categories,
         "series": [
             {"name": "Actual Cost", "data": actual_data},
             {"name": "Forecast", "data": forecast_data},
         ],
+        "ets_prices": ets_prices,
         "year_due_dates": year_due_dates
     }
 
