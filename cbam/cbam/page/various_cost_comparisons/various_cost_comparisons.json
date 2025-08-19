@@ -4,7 +4,7 @@
  "docstatus": 0,
  "doctype": "Page",
  "idx": 0,
- "modified": "2025-08-05 07:59:27.815927",
+ "modified": "2025-08-19 11:13:47.160869",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "various-cost-comparisons",
@@ -16,6 +16,9 @@
   },
   {
    "role": "System Manager"
+  },
+  {
+   "role": "Financial Dashboard User"
   }
  ],
  "script": null,

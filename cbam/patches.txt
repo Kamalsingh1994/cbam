@@ -15,3 +15,4 @@ cbam.patches.v15_4_3.update_good_installation_name
 cbam.patches.v15_4_3.truncate_cn_code
 cbam.patches.v15_4_3.update_rawmass_t
 cbam.patches.v15_4_3.remove_old_pages
+cbam.patches.v15_4_3.add_system_manager_role_to_workspaces

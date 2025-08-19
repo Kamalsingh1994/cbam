@@ -35,7 +35,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-21 16:08:41.775297",
+ "modified": "2025-08-19 11:28:06.701069",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Declarant",
@@ -66,6 +66,15 @@
   {
    "read": 1,
    "role": "CBAM Representative"
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Financial Dashboard User",
+   "share": 1
   }
  ],
  "row_format": "Dynamic",

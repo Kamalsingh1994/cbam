@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"huNlzC7Tud\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">CBAM Analysis Dashboard</span>\",\"col\":12}},{\"id\":\"0vrxcaJCdn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Financial Exposure Forecast\",\"col\":3}},{\"id\":\"rvU7ialmRl\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Various Cost Comparisons\",\"col\":3}}]",
+ "content": "[{\"id\":\"huNlzC7Tud\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">CBAM Analysis Dashboard</span>\",\"col\":12}},{\"id\":\"0vrxcaJCdn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Financial Exposure Forecast\",\"col\":3}},{\"id\":\"rvU7ialmRl\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Various Cost Comparisons\",\"col\":3}},{\"id\":\"QXfjFAA3EF\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"CBAM Report\",\"col\":3}}]",
  "creation": "2025-07-07 12:11:13.553729",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,7 +13,7 @@
  "is_hidden": 0,
  "label": "Financial Dashboard",
  "links": [],
- "modified": "2025-08-05 08:11:30.800050",
+ "modified": "2025-08-19 08:55:42.985039",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Financial Dashboard",
@@ -28,6 +28,9 @@
   },
   {
    "role": "Declarant"
+  },
+  {
+   "role": "Financial Dashboard User"
   }
  ],
  "sequence_id": 28.0,
@@ -38,6 +41,14 @@
    "label": "Financial Exposure Forecast",
    "link_to": "financial-exposure-forecast",
    "type": "Page"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "New",
+   "label": "CBAM Report",
+   "link_to": "CBAM Report",
+   "stats_filter": "[]",
+   "type": "DocType"
   },
   {
    "color": "Grey",
