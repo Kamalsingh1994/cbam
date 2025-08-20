@@ -179,7 +179,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                         const selectedYear = parseInt($(this).val());
                         const currentYear = new Date().getFullYear();
                         
-                        console.log('Year changed to:', selectedYear, 'Current year:', currentYear);
+
                         
                         if (selectedYear && selectedYear > currentYear) {
                             // Future year: set ETS Price Type to Future (Dec) and make read-only
@@ -198,7 +198,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                         // Trigger filter change to update ETS Price
                         if (selectedYear) {
                             const selectedEtsType = etsPriceTypeField.val();
-                            console.log('Triggering ETS price update for year:', selectedYear, 'type:', selectedEtsType);
+
                             if (selectedEtsType) {
                                 // Manually trigger the filter change to update ETS Price
                                 cbam.refresh_ets_price_options(filters, selectedEtsType, selectedYear);
@@ -209,7 +209,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                     // Add change event listener to ETS Price Type field
                     etsPriceTypeField.on('change', function() {
                         const selectedEtsType = $(this).val();
-                        console.log('ETS Price Basis changed to:', selectedEtsType);
+
                         
                         // Ensure Year field is never read-only
                         yearField.prop('disabled', false);
@@ -217,7 +217,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                         
                         // Update ETS Price when ETS Price Type changes
                         const selectedYear = parseInt(yearField.val());
-                        console.log('Triggering ETS price update for year:', selectedYear, 'type:', selectedEtsType);
+
                         if (selectedYear && selectedEtsType) {
                             // Manually trigger the filter change to update ETS Price
                             cbam.refresh_ets_price_options(filters, selectedEtsType, selectedYear);
@@ -299,12 +299,6 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                 ets_price_type: cbam.create_filter('ETS Price Basis', 'Select', 'ets_price_type', '#filter-section-group-2', ['', 'Spot Price', 'Future (Dec)'], null, 'Spot Price'),
             };
 
-            console.log('Filters created:', filters);
-            console.log('ETS Price Type filter:', filters.ets_price_type);
-            console.log('Year filter:', filters.year);
-            console.log('Year filter type:', filters.year.df.fieldtype);
-            console.log('Year filter initial options:', filters.year.df.options);
-
             // Populate year filter with available years from ETS Carbon Price
             populate_year_filter(filters.year);
 
@@ -355,11 +349,10 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
          * @param {Object} yearFilter - The year filter control
          */
         function populate_year_filter(yearFilter) {
-            console.log('Populating year filter...');
             frappe.call({
                 method: 'cbam.cbam.page.various_cost_comparisons.various_cost_comparisons.get_available_years',
                 callback: function(r) {
-                    console.log('Backend response for years:', r);
+
                     if (r.message && r.message.length > 0) {
                         // Set the options for the Select field
                         yearFilter.df.options = r.message;
@@ -376,11 +369,8 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                         } else if (availableYears.length > 0) {
                             yearFilter.set_value(availableYears[0]);
                         }
-                        
-                        console.log('Year filter populated with:', availableYears);
-                        console.log('Year filter options after population:', yearFilter.df.options);
                     } else {
-                        console.log('No available years found in ETS Carbon Price table');
+
                         // Fallback to current year
                         const currentYear = frappe.datetime.get_today().split('-')[0];
                         yearFilter.df.options = [currentYear];
@@ -410,7 +400,6 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                 const displayValue = etsPriceValue !== 0.0 ? `€${etsPriceValue}` : '0.0';
                 $('.stat-value[data-stat="ets-price"]').text(displayValue);
                 // After updating ETS Price, reload table and chart with new value
-                console.log('ETS Price updated, reloading table and chart...');
                 load_report_table(true, filters);
                 return;
             }
@@ -449,7 +438,6 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                     });
                     
                     // After updating stat cards, reload table and chart with new values
-                    console.log('Stat cards updated, reloading table and chart...');
                     load_report_table(true, filters);
                 },
                 error: function () {
@@ -463,7 +451,6 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
         function clear_stats() {
             // Check if stat cards already exist to prevent duplication
             if ($('#compact-stat-row .stat-card').length > 0) {
-                console.log('Stat cards already exist, skipping creation');
                 return;
             }
             
@@ -476,7 +463,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                 const displayLabel = stat.display_label || stat.label;
                 $('#compact-stat-row').append(`<div class='me-2'>${render_compact_card_with_data_stat(displayLabel, stat.value, stat.label)}</div>`);
             });
-            console.log('Stat cards created:', $('#compact-stat-row .stat-card').length);
+
         }
 
         /**
