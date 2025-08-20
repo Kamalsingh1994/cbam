@@ -21,7 +21,7 @@ def get_columns():
     ]
 
 def get_data(filters):
-    conditions = {"ets_price_type": "Actual"}
+    conditions = {"ets_price_type": "Spot Price"}
 
     # Apply date filter only if both from and to dates are provided
     if filters.get("from_date") and filters.get("to_date"):
