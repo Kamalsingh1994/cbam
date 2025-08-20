@@ -4,7 +4,7 @@
  "docstatus": 0,
  "doctype": "Page",
  "idx": 1,
- "modified": "2025-08-05 08:02:34.824671",
+ "modified": "2025-08-19 11:13:33.146703",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "financial-exposure-forecast",
@@ -16,6 +16,9 @@
   },
   {
    "role": "Declarant"
+  },
+  {
+   "role": "Financial Dashboard User"
   }
  ],
  "script": null,

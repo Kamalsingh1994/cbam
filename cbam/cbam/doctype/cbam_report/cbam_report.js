@@ -14,6 +14,24 @@ frappe.ui.form.on('CBAM Report', {
                     }
                     frm.set_df_property('declarant', 'read_only', 1);
                 }
+                else{
+                    // Check if logged in user exists in declarant_user child table
+                    frappe.call({
+                        method: 'cbam.cbam.doctype.cbam_report.cbam_report.get_declarant_by_user',
+                        args: {
+                            user: frappe.session.user
+                        },
+                        callback: function(child_res) {
+                            if (child_res.message && child_res.message.declarant) {
+                                const declarant_name = child_res.message.declarant;
+                                if (frm.is_new()) {
+                                    frm.set_value('declarant', declarant_name);
+                                }
+                                frm.set_df_property('declarant', 'read_only', 1);
+                            }
+                        }
+                    });
+                }
             }
         });
 
