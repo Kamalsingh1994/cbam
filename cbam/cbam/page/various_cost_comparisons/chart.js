@@ -29,7 +29,6 @@ cbam.get_chart_data = function get_chart_data(data, per_tonne = false) {
     };
 }
 
-
 cbam.update_chart = function update_chart(chart_data) {
     $('#chart-section').empty();
 
@@ -38,26 +37,10 @@ cbam.update_chart = function update_chart(chart_data) {
         return;
     }
 
-    // Custom: Concatenate article and supplier for x-axis labels if available
+    // Use chart labels directly
     let labels = chart_data.labels;
-    let label_map = {};
-    if (chart_data.articles && chart_data.suppliers && Array.isArray(chart_data.articles) && Array.isArray(chart_data.suppliers)) {
-        labels = chart_data.articles.map((article, idx) => {
-            const supplier = chart_data.suppliers[idx] || '';
-            const label = `${article} (${supplier})`;
-            label_map[idx] = label;
-            return label;
-        });
-    } else {
-        labels = chart_data.labels;
-        labels.forEach((l, idx) => { label_map[idx] = l; });
-    }
 
-    // Highcharts integration: create a scrollable container and chart div
-    //const minWidth = Math.max(600, labels.length * 80); // 80px per label as a heuristic
-    //$('#chart-section').append('<div id="highchart-scroll-inner" style="overflow-x: auto; width: 100%;"><div id="highchart-bar" style="min-width: ' + minWidth + 'px; max-height: 350px;"></div></div>');
-
-    // Highcharts integration: create chart div without scroll
+    // Create chart div
     $('#chart-section').append('<div id="highchart-bar" style="width: 100%; height: 350px;"></div>');
 
     function renderHighChart() {
@@ -79,7 +62,7 @@ cbam.update_chart = function update_chart(chart_data) {
                 }
             },
             yAxis: {
-                title: { text: __('Costs [€]') },
+                title: { text: __('Cost [€]') },
                 min: 0
             },
             legend: { align: 'center', verticalAlign: 'bottom', layout: 'horizontal' },

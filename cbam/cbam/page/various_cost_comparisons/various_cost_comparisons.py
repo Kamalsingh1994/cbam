@@ -1,7 +1,7 @@
 import frappe
 import json
 from datetime import datetime
-import re
+
 
 @frappe.whitelist()
 def get_report_data(filters=None, selected_filters=None, start=0, page_length=50):
@@ -33,15 +33,15 @@ def get_columns():
         {"fieldname": "article_number", "fieldtype": "Data", "label": "Article Number", "width": 200},
         {"fieldname": "supplier", "fieldtype": "Data", "label": "Supplier", "width": 200},
         {"fieldname": "raw_mass_tonne", "fieldtype": "Data", "label": "Mass [t]", "width": 150},
-        # {"fieldname": "carbon_price_due", "fieldtype": "Data", "label": "Carbon Price Due", "width": 150},
         {"fieldname": "installation_country", "fieldtype": "Data", "label": "Installation Country", "width": 180},
-        {"fieldname": "standard_emission_cost", "fieldtype": "Data", "label": "Standard Cost", "width": 180},
-        {"fieldname": "real_emission_value", "fieldtype": "Data", "label": "Specific (Direct) Emission Value [kgCO2e/kg]", "width": 325},
+        {"fieldname": "cbam_benchmark", "fieldtype": "Data", "label": "CBAM Benchmark [tCO2/t product]", "width": 200},
+        {"fieldname": "standard_emission_factor", "fieldtype": "Data", "label": "Standard Emission Factor [tCO2/t product]", "width": 220},
+        {"fieldname": "standard_emission_cost", "fieldtype": "Data", "label": "Standard Cost [€]", "width": 180},
+        {"fieldname": "real_emission_value", "fieldtype": "Data", "label": "Specific (Direct) Emission Value [tCO2/t product]", "width": 280},
         {"fieldname": "real_emission_cost", "fieldtype": "Data", "label": "Cost Based on Specific Emissions [€]", "width": 280},
     ]
 
 def get_data(filters=None, selected_filters=None, start=0, page_length=50):
-    print("filters", selected_filters)
     filters = filters or {}
     selected_filters = selected_filters or {}
     try:
@@ -70,25 +70,83 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
 
     #set where conditions
     where_sql, where_sql_eg = set_conditions(declarants, filters, where_clauses, where_clauses_eg)
-
-    cbam_factor = float(selected_filters.get('cbam_factor', 0.0) or 0.0)
-    bench_mark = float(selected_filters.get('bench_mark', 0.0) or 0.0)
-    emission_value = float(selected_filters.get('emission_value', 0.0) or 0.0)
+    # Initialize ETS price
+    ets_carbon_price = 0.0
     
-    # Handle ETS price value safely - extract numeric part if it contains display text
-    ets_price_raw = selected_filters.get('ets_price_value', 0.0) or selected_filters.get('ets_price', 0.0) or 0.0
-    if isinstance(ets_price_raw, str) and '(' in ets_price_raw:
-        # Extract numeric part from display value like "22 (2025)"
-        numeric_match = re.match(r'^([\d.]+)', ets_price_raw)
-        if numeric_match:
-            ets_price_raw = float(numeric_match.group(1))
-        else:
-            ets_price_raw = 0.0
+    # Initialize values with default values
+    bench_mark = 0.0
+    emission_value = 0.0
+    cbam_factor = 0.0
     
-    ets_carbon_price = float(ets_price_raw) if ets_price_raw else 0.0
-
+    # Fetch bench_mark, emission_value, and cbam_factor from backend based on year
+    year = selected_filters.get('year', None)
+    ets_price_type = selected_filters.get('ets_price_type', None)
+    
+    if year and ets_price_type:
+        # Get the values from the same tables used in get_cards_value
+        sql_params = {
+            'year': year,
+            'ets_price_type': ets_price_type
+        }
+        
+        sql = """
+            SELECT 
+                cf.cbam_factor,
+                cnb.bench_mark,
+                sev.emission_value,
+                ecp.price AS ets_price
+            FROM `tabCBAM Factor` cf
+            LEFT JOIN `tabCBAM Benchmark` cnb 
+                ON cnb.year = %(year)s
+            LEFT JOIN `tabStandard Emission Value` sev 
+                ON sev.year = %(year)s
+            LEFT JOIN (
+                -- Get the latest price_date within the selected year for the specific ETS price type
+                SELECT 
+                    price_year,
+                    ets_price_type,
+                    price,
+                    price_date
+                FROM `tabETS Carbon Price` ecp_inner
+                WHERE ecp_inner.price_year = %(year)s
+                AND ecp_inner.ets_price_type = %(ets_price_type)s
+                ORDER BY
+                    CASE
+                        WHEN %(ets_price_type)s = 'Spot Price' THEN ecp_inner.price_date
+                        ELSE ecp_inner.modified
+                    END DESC
+                LIMIT 1
+            ) ecp ON ecp.price_year = %(year)s AND ecp.ets_price_type = %(ets_price_type)s
+            WHERE cf.year = %(year)s
+            LIMIT 1
+        """
+        
+        result = frappe.db.sql(sql, sql_params, as_dict=True)
+        if result:
+            cbam_factor = float(result[0].get('cbam_factor', 0.0) or 0.0)
+            bench_mark = float(result[0].get('bench_mark', 0.0) or 0.0)
+            emission_value = float(result[0].get('emission_value', 0.0) or 0.0)
+            ets_carbon_price = float(result[0].get('ets_price', 0.0) or 0.0)
+    
     # Count total rows for pagination
     total_count = get_count(where_sql, where_sql_eg)
+
+    # Helper function to build cost calculation expressions
+    def build_cost_calculations(table_alias):
+        return f"""
+            {bench_mark} AS cbam_benchmark,
+            {emission_value} AS standard_emission_factor,
+            ((
+                {emission_value}
+                - ({bench_mark} * {cbam_factor})
+                - (({emission_value} * IFNULL({table_alias}.carbon_price_due, 0.0)) / {ets_carbon_price})
+            ) * IFNULL({table_alias}.raw_mass_tonne, 0.0) * {ets_carbon_price}) AS standard_emission_cost,
+            IFNULL({table_alias}.specific_direct_embedded_emissions,0.0) AS real_emission_value,
+            ((
+                IFNULL({table_alias}.specific_direct_embedded_emissions,0.0) - ({cbam_factor} * {bench_mark})
+                - ((IFNULL({table_alias}.specific_direct_embedded_emissions,0.0) * IFNULL({table_alias}.carbon_price_due, 0.0)) / {ets_carbon_price})
+            ) * IFNULL({table_alias}.raw_mass_tonne, 0.0) * {ets_carbon_price}) AS real_emission_cost
+        """
 
     # Main data query with LIMIT/OFFSET for pagination
     data_query = f"""
@@ -98,19 +156,9 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
                 eg.article_no AS article_number,
                 eg.supplier,
                 IFNULL(eg.raw_mass_tonne,0.0) AS raw_mass_tonne,
-                IFNULL(eg.carbon_price_due,0.0) as carbon_price_due,
                 eg.installation_country,
-                IFNULL(eg.specific_direct_embedded_emissions,0.0) AS real_emission_value,             
-                ((
-                    IFNULL(eg.specific_direct_embedded_emissions,0.0) - ({cbam_factor} * {bench_mark})
-                    - ((IFNULL(eg.specific_direct_embedded_emissions,0.0) * IFNULL(eg.carbon_price_due, 0.0)) / {ets_carbon_price})
-                ) * IFNULL(eg.raw_mass_tonne, 0.0) * {ets_carbon_price}) AS real_emission_cost,
-
-                ((
-                    {emission_value}
-                    - ({bench_mark} * {cbam_factor})
-                    - (({emission_value} * IFNULL(eg.carbon_price_due, 0.0)) / {ets_carbon_price})
-                ) * IFNULL(eg.raw_mass_tonne, 0.0) * {ets_carbon_price}) AS standard_emission_cost
+                {build_cost_calculations('eg')},
+                eg.name
             FROM `tabExternal Good` eg
             {where_sql_eg}
             UNION
@@ -119,19 +167,9 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
                 g.article_number,
                 g.supplier_name AS supplier,
                 IFNULL(g.raw_mass_tonne,0.0) AS raw_mass_tonne,
-                IFNULL(g.carbon_price_due,0.0) AS carbon_price_due,
                 g.installation_country,    
-                IFNULL(g.specific_direct_embedded_emissions,0.0) AS real_emission_value,
-                ((
-                    IFNULL(g.specific_direct_embedded_emissions,0.0) - ({cbam_factor} * {bench_mark})
-                    - ((IFNULL(g.specific_direct_embedded_emissions,0.0) * IFNULL(g.carbon_price_due,0.0)) / {ets_carbon_price})
-                ) * IFNULL(g.raw_mass_tonne,0.0) * {ets_carbon_price}) AS real_emission_cost,
-                ((
-                    {emission_value}
-                    - ({bench_mark} * {cbam_factor})
-                    - (({emission_value} * IFNULL(g.carbon_price_due, 0.0)) / {ets_carbon_price})
-                )
-                * IFNULL(g.raw_mass_tonne, 0.0) * {ets_carbon_price}) AS standard_emission_cost
+                {build_cost_calculations('g')},
+                g.name
             FROM `tabGood` g
             {where_sql}
         ) AS main_table
@@ -170,13 +208,8 @@ def set_conditions(declarants, filters, where_clauses, where_clauses_eg):
     # Only fetch Good records with status = 'Data Submitted'
     where_clauses.append("g.status = 'Data Submitted'")
 
-    where_sql = ""
-    if where_clauses:
-        where_sql = "WHERE " + " AND ".join(where_clauses)
-        
-    where_sql_eg = ""
-    if where_clauses_eg:
-        where_sql_eg = "WHERE " + " AND ".join(where_clauses_eg) if where_clauses_eg else ""
+    where_sql = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
+    where_sql_eg = "WHERE " + " AND ".join(where_clauses_eg) if where_clauses_eg else ""
 
     return where_sql, where_sql_eg
 
@@ -184,32 +217,29 @@ def get_count(where_sql, where_sql_eg):
     count_query = f"""
         SELECT COUNT(*) FROM (
             SELECT 
-                eg.cn_code, eg.article_no as article_number, eg.supplier, eg.raw_mass_tonne, eg.installation_country,
+                eg.name, eg.cn_code, eg.article_no as article_number, eg.supplier, eg.raw_mass_tonne, eg.installation_country,
                 eg.specific_direct_embedded_emissions, eg.carbon_price_due
             FROM `tabExternal Good` eg
             {where_sql_eg}
-            
             UNION
             SELECT 
-                g.cn_code, g.article_number, g.supplier_name as supplier, g.raw_mass_tonne, g.installation_country,
+                g.name, g.cn_code, g.article_number, g.supplier_name as supplier, g.raw_mass_tonne, g.installation_country,
                 g.specific_direct_embedded_emissions, g.carbon_price_due
             FROM `tabGood` g
             {where_sql}
         ) AS count_table
 
     """
-    result = list(frappe.db.sql(count_query))
-    total_count = result[0][0] if result else 0
-    return total_count
+    result = frappe.db.sql(count_query)
+    return result[0][0] if result else 0
 
 def get_chart_data(data):
     """Process data to create chart data grouped by article and supplier for bar chart"""
+    if not data:
+        return {'labels': [], 'articles': [], 'suppliers': [], 'actual_costs': [], 'standard_costs': []}
+    
     # If data contains article_number and supplier, use those for x-axis
-    articles = []
-    suppliers = []
-    actual_costs = []
-    standard_costs = []
-    labels = []
+    articles, suppliers, actual_costs, standard_costs, labels = [], [], [], [], []
 
     for row in data:
         article = row.get('article_number', '')
@@ -218,16 +248,8 @@ def get_chart_data(data):
         suppliers.append(supplier)
         labels.append(f"{article} ({supplier})")
         # Ensure costs are numbers, not objects
-        actual_cost = row.get('real_emission_cost', 0.0)
-        standard_cost = row.get('standard_emission_cost', 0.0)
-        try:
-            actual_cost = float(actual_cost)
-        except Exception:
-            actual_cost = 0.0
-        try:
-            standard_cost = float(standard_cost)
-        except Exception:
-            standard_cost = 0.0
+        actual_cost = float(row.get('real_emission_cost', 0.0) or 0.0)
+        standard_cost = float(row.get('standard_emission_cost', 0.0) or 0.0)
         actual_costs.append(actual_cost)
         standard_costs.append(standard_cost)
 
@@ -256,23 +278,14 @@ def get_cards_value(filters=None):
 
     filters = json.loads(filters) if filters else {}
     
-    # Map frontend display names to backend values
-    ets_price_type_mapping = {
-        'Spot Price': 'Actual',
-        'Future': 'Future'
-    }
-    
     # Provide default values for missing keys
     year = filters.get('year', datetime.now().year) # Fixed datetime access
     ets_price_type = filters.get('ets_price_type', 'Spot Price')  # Default to Spot Price if not provided
     
-    # Convert frontend display name to backend value
-    backend_ets_price_type = ets_price_type_mapping.get(ets_price_type, 'Actual')
-    
     # Create a safe parameters dict for SQL
     sql_params = {
         'year': year,
-        'ets_price_type': backend_ets_price_type
+        'ets_price_type': ets_price_type
     }
 
     sql = """
@@ -286,10 +299,24 @@ def get_cards_value(filters=None):
             ON cnb.year = %(year)s
         LEFT JOIN `tabStandard Emission Value` sev 
             ON sev.year = %(year)s
-        LEFT JOIN `tabETS Carbon Price` ecp 
-            ON ecp.price_year = %(year)s AND ecp.ets_price_type = %(ets_price_type)s
+        LEFT JOIN (
+            -- Get the latest price_date within the selected year for the specific ETS price type
+            SELECT 
+                price_year,
+                ets_price_type,
+                price,
+                price_date
+            FROM `tabETS Carbon Price` ecp_inner
+            WHERE ecp_inner.price_year = %(year)s 
+            AND ecp_inner.ets_price_type = %(ets_price_type)s
+            ORDER BY 
+                CASE 
+                    WHEN %(ets_price_type)s = 'Spot Price' THEN ecp_inner.price_date
+                    ELSE ecp_inner.modified
+                END DESC
+            LIMIT 1
+        ) ecp ON ecp.price_year = %(year)s AND ecp.ets_price_type = %(ets_price_type)s
         WHERE cf.year = %(year)s
-
         LIMIT 1
     """
 
@@ -297,58 +324,50 @@ def get_cards_value(filters=None):
     return result[0] if result else {}
 
 
-def fetch_external_good_options(filter_type, txt, declarants, cn_code_list, supplier_list):
+def _build_filter_options(filter_type, txt, declarants, cn_code_list, supplier_list, table_name, field_mappings):
+    """Helper function to build filter options for both Good and External Good tables"""
     filters = []
     if declarants:
         filters.append(["declarant", "in", declarants])
     if cn_code_list:
         filters.append(["cn_code", "in", cn_code_list])
+    
+    supplier_field = field_mappings["supplier"]
     if supplier_list and filter_type != "supplier":
-        filters.append(["supplier", "in", supplier_list])
+        filters.append([supplier_field, "in", supplier_list])
+    
     if txt:
         if filter_type == "supplier":
-            filters.append(["supplier", "like", f"%{txt}%"])
+            filters.append([supplier_field, "like", f"%{txt}%"])
         elif filter_type == "article_number":
-            filters.append(["article_no", "like", f"%{txt}%"])
+            filters.append([field_mappings["article_number"], "like", f"%{txt}%"])
         elif filter_type == "reporting_period":
-            filters.append(["reporting_period", "like", f"%{txt}%"])
-    field_map = {
+            filters.append([field_mappings["reporting_period"], "like", f"%{txt}%"])
+    
+    field = field_mappings.get(filter_type)
+    if not field:
+        return []
+    
+    results = frappe.db.get_list(table_name, fields=[field], filters=filters, distinct=True, limit=20)
+    return [row.get(field) for row in results if row.get(field)]
+
+
+def fetch_external_good_options(filter_type, txt, declarants, cn_code_list, supplier_list):
+    field_mappings = {
         "supplier": "supplier",
         "article_number": "article_no",
         "reporting_period": "reporting_period"
     }
-    field = field_map.get(filter_type)
-    if not field:
-        return []
-    results = frappe.db.get_list("External Good", fields=[field], filters=filters, distinct=True, limit=20)
-    return [row.get(field) for row in results if row.get(field)]
+    return _build_filter_options(filter_type, txt, declarants, cn_code_list, supplier_list, "External Good", field_mappings)
 
 
 def fetch_good_options(filter_type, txt, declarants, cn_code_list, supplier_list):
-    filters = []
-    if declarants:
-        filters.append(["declarant", "in", declarants])
-    if cn_code_list:
-        filters.append(["cn_code", "in", cn_code_list])
-    if supplier_list and filter_type != "supplier":
-        filters.append(["supplier_name", "in", supplier_list])
-    if txt:
-        if filter_type == "supplier":
-            filters.append(["supplier_name", "like", f"%{txt}%"])
-        elif filter_type == "article_number":
-            filters.append(["article_number", "like", f"%{txt}%"])
-        elif filter_type == "reporting_period":
-            filters.append(["internal_customs_import_number", "like", f"%{txt}%"])
-    field_map = {
+    field_mappings = {
         "supplier": "supplier_name",
         "article_number": "article_number",
         "reporting_period": "internal_customs_import_number"
     }
-    field = field_map.get(filter_type)
-    if not field:
-        return []
-    results = frappe.db.get_list("Good", fields=[field], filters=filters, distinct=True, limit=20)
-    return [row.get(field) for row in results if row.get(field)]
+    return _build_filter_options(filter_type, txt, declarants, cn_code_list, supplier_list, "Good", field_mappings)
 
 
 def merge_and_format_options(*option_lists):
@@ -374,30 +393,44 @@ def get_filter_options(txt=None, filter_type=None, cn_code=None, supplier=None):
 
 
 @frappe.whitelist()
+def get_available_years():
+    """Get years from ETS Carbon Price table that have prices"""
+    # Get distinct years from ETS Carbon Price table that have prices
+    sql = """
+        SELECT DISTINCT price_year 
+        FROM `tabETS Carbon Price` 
+        WHERE price_year IS NOT NULL 
+        AND price IS NOT NULL 
+        AND price > 0
+        ORDER BY price_year ASC
+    """
+    
+    result = frappe.db.sql(sql, as_dict=True)
+    
+    # Extract years and format them for Link field
+    years = [str(row.price_year) for row in result if row.price_year]
+    
+    return years
+
+@frappe.whitelist()
 def get_latest_ets_price(year=None, ets_price_type=None):
     """Get the latest available ETS price for given year and type"""
-    print(f"get_latest_ets_price called with year={year}, ets_price_type={ets_price_type}")
-    
     if not year or not ets_price_type:
-        print("Missing year or ets_price_type")
         return None
     
     # Convert year to integer if it's a string
     try:
         year = int(year)
     except (ValueError, TypeError):
-        print(f"Invalid year format: {year}")
         return None
     
     # Use different ordering logic based on ETS price type
-    if ets_price_type == 'Actual':
-        # For Actual prices: order by price_date, then by modified to handle same-date ties
+    if ets_price_type == 'Spot Price':
+        # For Spot Price: order by price_date DESC to get the most recent price within the selected year
         order_clause = "ORDER BY price_date DESC, modified DESC"
-        print(f"Using Actual ordering: {order_clause}")
     else:
-        # For Future prices: order by creation date to get most recently announced/created price
+        # For Future (Dec) prices: order by creation date to get most recently announced/created price within the selected year
         order_clause = "ORDER BY modified DESC"
-        print(f"Using Future ordering: {order_clause}")
     
     sql = f"""
         SELECT 
@@ -413,15 +446,6 @@ def get_latest_ets_price(year=None, ets_price_type=None):
     """
     
     sql_params = {"year": year, "ets_price_type": ets_price_type}
-    print(f"SQL query: {sql}")
-    print(f"SQL params: {sql_params}")
-    
     result = frappe.db.sql(sql, sql_params, as_dict=True)
-    print(f"SQL result: {result}")
     
-    if result:
-        print(f"Returning: {result[0]}")
-        return result[0]
-    else:
-        print("No result found")
-        return None
+    return result[0] if result else None

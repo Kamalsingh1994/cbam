@@ -140,6 +140,12 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             });
         };
 
+        // Custom width for CBAM Report filter - make it wider since it's the only filter in this group
+            const cbamReportContainer = $('#filter-section-group-1 .frappe-control');
+            if (cbamReportContainer.length > 0) {
+                cbamReportContainer.closest('.col-3').removeClass('col-3').addClass('col-8');
+            }
+
         // Dynamic event: reload table/chart on change
         filters.cbam_report.df.onchange = function() {
             start = 0;

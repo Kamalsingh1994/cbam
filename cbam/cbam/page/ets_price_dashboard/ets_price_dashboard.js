@@ -187,8 +187,8 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
                 return false;
             }
 
-            // If the row's type is 'Future', include it regardless of the date range.
-            if (row.ets_price_type === 'Future') {
+            // If the row's type is 'Future (Dec)', include it regardless of the date range.
+            if (row.ets_price_type === 'Future (Dec)') {
                 return true;
             }
 
@@ -217,13 +217,13 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
         const etsTypes = etsPriceTypeFilter.get_value ? etsPriceTypeFilter.get_value() : [];
         let filters = {};
 
-        if (etsTypes.includes("Future")) {
-            // If both 'Actual' and 'Future' are selected, fetch both
-            if (etsTypes.includes("Actual")) {
-                filters = { ets_price_type: ["in", ["Actual", "Future"]] };
+        if (etsTypes.includes("Future (Dec)")) {
+            // If both 'Spot Price' and 'Future (Dec)' are selected, fetch both
+            if (etsTypes.includes("Spot Price")) {
+                filters = { ets_price_type: ["in", ["Spot Price", "Future (Dec)"]] };
             } else {
-                // Only fetch all 'Future' records, ignore date filters
-                filters = { ets_price_type: ["=", "Future"] };
+                // Only fetch all 'Future (Dec)' records, ignore date filters
+                filters = { ets_price_type: ["=", "Future (Dec)"] };
             }
         } else {
             // Use current date and type filters
@@ -335,9 +335,9 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
     }
 
     function renderChart(data) {
-        // Standard chart data: dated points for 'Actual' type only
+        // Standard chart data: dated points for 'Spot Price' type only
         const chartData = data
-            .filter(row => row.ets_price_type === 'Actual' && row.price_date && row.price)
+            .filter(row => row.ets_price_type === 'Spot Price' && row.price_date && row.price)
             .map(row => [
                 new Date(row.price_date).getTime(),
                 Number(row.price)
@@ -347,9 +347,9 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
         $('#ets-price-chart').css('min-width', '');
         // Always use allData for average-per-year series
         const avgYearSeries = getAveragePricePerYearSeries(allData);
-        // Determine if 'Future' is selected in the filter
+        // Determine if 'Future (Dec)' is selected in the filter
         const etsTypes = etsPriceTypeFilter.get_value ? etsPriceTypeFilter.get_value() : [];
-        const showFutureAvg = etsTypes.includes("Future");
+        const showFutureAvg = etsTypes.includes("Future (Dec)");
         // If no dated chart data, but price_year data exists, show average price per year as points
         let series = [];
         if (chartData.length === 0) {
