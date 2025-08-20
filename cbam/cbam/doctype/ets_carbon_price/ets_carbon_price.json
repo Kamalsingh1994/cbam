@@ -32,7 +32,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "ETS price Type",
-   "options": "\nActual\nPrediction\nFuture",
+   "options": "\nSpot Price\nFuture (Dec)",
    "set_only_once": 1
   },
   {
@@ -58,12 +58,10 @@
    "options": "ETS Carbon Price Source"
   },
   {
-   "depends_on": "eval:doc.ets_price_type != \"Future\"",
    "fieldname": "price_date",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "Price Date",
-   "set_only_once": 1
+   "label": "Price Date"
   },
   {
    "fieldname": "column_break_moht",
@@ -95,7 +93,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-22 07:56:47.792610",
+ "modified": "2025-08-19 13:32:44.461538",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "ETS Carbon Price",

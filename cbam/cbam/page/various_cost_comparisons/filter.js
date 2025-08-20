@@ -10,11 +10,11 @@ cbam.create_filter = function(label, fieldtype, fieldname, parentSelector, optio
     // Determine appropriate column class based on parent selector
     let columnClass = 'col mb-2';
     if (parentSelector === '#filter-section-group-2') {
-        // For group 2 (Year, ETS Price Type) - use slightly wider width
-        columnClass = 'col-md-4 col-lg-3 mb-2';
+        // For group 2 (Year, ETS Price Type) - use smaller width to prevent overlap
+        columnClass = 'col-4 mb-2';
     } else if (parentSelector === '#filter-section-group-1') {
-        // For group 1 (CN Code, Supplier, Article Number, Reporting Period) - use slightly wider width
-        columnClass = 'col-md-5 col-lg-4 mb-2';
+        // For group 1 (CN Code, Supplier, Article Number, Reporting Period) - use compact width for one line
+        columnClass = 'col-3 mb-2';
     }
     
     const control = frappe.ui.form.make_control({ parent: $('<div class="' + columnClass + '"></div>').appendTo(parentSelector), df });
@@ -104,7 +104,6 @@ cbam.get_all_selected_filters = function(filters) {
     
     ['ets_price_type', 'year'].forEach(key => {
         const value = filters[key]?.get_value?.();
-        console.log(`Filter ${key} value:`, value, 'Type:', typeof value);
         selected_filters[key] = value || '';
     });
     
@@ -114,11 +113,13 @@ cbam.get_all_selected_filters = function(filters) {
     
     // Get other stat values
     selected_filters.cbam_factor = cbam.get_stat_value('cbam-factor', true);
-    selected_filters.bench_mark = cbam.get_stat_value('bench-mark-emission-value');
-    selected_filters.emission_value = cbam.get_stat_value('standard-emission-value');
+    
+    // Get bench_mark and emission_value from backend since stat cards were removed
+    // These will be fetched by the backend when get_report_data is called
+    selected_filters.bench_mark = 0.0; // Will be fetched from backend
+    selected_filters.emission_value = 0.0; // Will be fetched from backend
     selected_filters.ets_price_value = etsPriceValue;
     
-    console.log('Final selected_filters:', selected_filters);
     return selected_filters;
 };
 
@@ -126,43 +127,24 @@ cbam.get_all_selected_filters = function(filters) {
  * Get ETS Price value from stat card with proper parsing.
  */
 cbam.get_ets_price_from_stat_card = function() {
-    console.log('get_ets_price_from_stat_card called');
-    
     const etsPriceElements = $('[data-stat="ets-price"]');
-    console.log(`Found ${etsPriceElements.length} elements with data-stat="ets-price":`);
     
     let finalValue = 0.0;
     etsPriceElements.each(function(index) {
         const element = $(this);
         const elementText = element.text();
-        const elementSelector = element.prop('tagName') + (element.attr('class') ? '.' + element.attr('class').split(' ').join('.') : '');
-        
-        console.log(`Element ${index} (${elementSelector}): "${elementText}"`);
         
         if (index === 0) { // Use the first element for the actual value
             if (!elementText || elementText === '--') {
-                console.log('Element text is empty or "--", returning 0.0');
                 finalValue = 0.0;
             } else {
-                // Extract numeric part from display value like "22 (2025)"
-                if (elementText.includes('(')) {
-                    const numericMatch = elementText.match(/^([\d.]+)/);
-                    if (numericMatch) {
-                        finalValue = parseFloat(numericMatch[1]) || 0.0;
-                        console.log('Extracted numeric ETS Price:', finalValue);
-                    } else {
-                        console.log('No numeric match found, returning 0.0');
-                        finalValue = 0.0;
-                    }
-                } else {
-                    finalValue = parseFloat(elementText) || 0.0;
-                    console.log('Parsed ETS Price directly:', finalValue);
-                }
+                // Parse numeric value, removing Euro symbol if present
+                const cleanText = elementText.replace('€', '').trim();
+                finalValue = parseFloat(cleanText) || 0.0;
             }
         }
     });
     
-    console.log('Final ETS Price value returned:', finalValue);
     return finalValue;
 };
 
@@ -184,37 +166,19 @@ cbam.get_stat_value = function(statName, useOriginalValue = false) {
  * Update ETS Price stat card with new value.
  */
 cbam.update_ets_price_stat_card = function(displayValue) {
-    console.log('update_ets_price_stat_card called with:', displayValue);
-    
     const selectors = [
         '[data-stat="ets-price"]',
         '.stat-value[data-stat="ets-price"]'
     ];
     
-    let updatedCount = 0;
     selectors.forEach(selector => {
         const elements = $(selector);
-        console.log(`Selector "${selector}" found ${elements.length} elements:`, elements);
-        
-        elements.each(function(index) {
-            const element = $(this);
-            const oldValue = element.text();
-            element.text(displayValue);
-            console.log(`Updated element ${index}: "${oldValue}" → "${displayValue}"`);
-            updatedCount++;
-        });
+        if (elements.length > 0) {
+            elements.each(function() {
+                $(this).text(displayValue);
+            });
+        }
     });
-    
-    console.log(`Total elements updated: ${updatedCount}`);
-    
-    // Verify the update worked
-    setTimeout(() => {
-        const allElements = $('[data-stat="ets-price"]');
-        console.log('Verification - all ets-price elements after update:');
-        allElements.each(function(index) {
-            console.log(`Element ${index}: "${$(this).text()}"`);
-        });
-    }, 100);
 };
 
 /**
@@ -222,35 +186,25 @@ cbam.update_ets_price_stat_card = function(displayValue) {
  */
 cbam.refresh_ets_price_options = function(filters, ets_price_type, year) {
     if (!ets_price_type || !year) {
-        console.log('Missing required parameters for ETS price refresh');
         return;
     }
-    
-    console.log('Refreshing ETS Price options for:', { ets_price_type, year });
     
     // Fetch latest price for the selected year and type
     frappe.call({
         method: 'cbam.cbam.page.various_cost_comparisons.various_cost_comparisons.get_latest_ets_price',
         args: { year: year, ets_price_type: ets_price_type },
         callback: function(r) {
-            console.log('Backend response:', r);
-            
             if (r.message) {
                 const priceData = r.message;
-                const displayValue = `${priceData.price} (${priceData.price_year})`;
-                
-                console.log('Price data received:', priceData);
-                console.log('Display value for stat card:', displayValue);
+                const displayValue = `€${priceData.price}`;
                 
                 // Update the ETS Price stat card
                 cbam.update_ets_price_stat_card(displayValue);
             } else {
-                console.log('No ETS price data found for year:', year, 'type:', ets_price_type);
                 cbam.update_ets_price_stat_card('0.0');
             }
         },
         error: function(err) {
-            console.log('Error fetching ETS price:', err);
             cbam.update_ets_price_stat_card('0.0');
         }
     });
