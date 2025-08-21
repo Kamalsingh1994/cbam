@@ -356,6 +356,87 @@ def get_all_cbam_reports():
     )
     return [report["name"] for report in reports]
 
+@frappe.whitelist()
+def get_available_years():
+    """Get available years from CBAM report from_date and to_date"""
+    user = frappe.session.user
+    current_year = datetime.now().year
+    
+    # Check if user is a System Manager
+    user_roles = frappe.get_roles(user)
+    is_system_manager = 'System Manager' in user_roles
+    filters = {}
+    if not is_system_manager:
+        # Try to find a declarant linked to this user
+        declarant = frappe.db.get_value("Declarant", {"email": user}, "name")
+        if declarant:
+            filters["declarant"] = declarant
+
+    # Get all CBAM Reports and extract years from from_date and to_date
+    reports = frappe.db.get_list(
+        "CBAM Report",
+        filters=filters,
+        fields=["from_date", "to_date"],
+        order_by="creation desc"
+    )
+    
+    available_years = set()
+    for report in reports:
+        # Try to get year from from_date first, then to_date
+        year = None
+        if report.get("from_date"):
+            try:
+                if isinstance(report["from_date"], str):
+                    year = datetime.strptime(report["from_date"], '%Y-%m-%d').year
+                else:
+                    year = report["from_date"].year
+            except:
+                pass
+        
+        if not year and report.get("to_date"):
+            try:
+                if isinstance(report["to_date"], str):
+                    year = datetime.strptime(report["to_date"], '%Y-%m-%d').year
+                else:
+                    year = report["to_date"].year
+            except:
+                pass
+        
+        if year and year <= current_year:  # Only include past and current years
+            available_years.add(year)
+    
+    # Return sorted list of available years (descending order)
+    return sorted(list(available_years), reverse=True)
+
+@frappe.whitelist()
+def get_cbam_reports_by_year(year):
+    """Get CBAM reports for a specific year based on from_date and to_date"""
+    user = frappe.session.user
+    
+    # Check if user is a System Manager
+    user_roles = frappe.get_roles(user)
+    is_system_manager = 'System Manager' in user_roles
+    filters = {}
+    if not is_system_manager:
+        # Try to find a declarant linked to this user
+        declarant = frappe.db.get_value("Declarant", {"email": user}, "name")
+        if declarant:
+            filters["declarant"] = declarant
+    
+    # Add year filter using from_date and to_date
+    year = int(year)
+    filters["from_date"] = [">=", f"{year}-01-01"]
+    filters["to_date"] = ["<=", f"{year}-12-31"]
+
+    # Get CBAM Reports for the specified year
+    reports = frappe.db.get_list(
+        "CBAM Report",
+        filters=filters,
+        fields=["name"],
+        order_by="creation desc"
+    )
+    return [report["name"] for report in reports]
+
 def get_columns():
     columns = [
         {"id": "year", "name": _( "Year"), "width": 80},
