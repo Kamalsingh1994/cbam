@@ -377,6 +377,8 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         return months;
     }
 
+
+
     // Helper: Format due date as '31 Dec 2025'
     function formatDueDate(dateStr) {
         if (!dateStr) return '';
@@ -448,20 +450,34 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             }
         }
 
-        // Carefully extend categories to include all months from the earliest year in your data up to the latest due date
+        // Generate monthly categories for ALL years including future years
         const allYears = categories.map(cat => parseInt(cat.match(/\b(\d{4})\b/)[1])).filter(Boolean);
         const minYear = Math.min(...allYears);
-        const allDueDates = Object.values(yearDueDatesMap).map(d => new Date(d));
-        const latestDueDate = new Date(Math.max(...allDueDates.map(d => d.getTime())));
-        const maxYear = latestDueDate.getFullYear();
-        const maxMonth = latestDueDate.getMonth(); // 0-based
+        
+        // Find the latest due date to ensure categories include it
+        const allDueDates = Object.values(yearDueDatesMap).map(dateStr => new Date(dateStr));
+        const latestDueDate = allDueDates.length > 0 ? new Date(Math.max(...allDueDates.map(d => d.getTime()))) : null;
+        
+        // Use the maximum of data years or due date year to ensure due date lines are visible
+        const maxYear = latestDueDate ? Math.max(Math.max(...allYears), latestDueDate.getFullYear()) : Math.max(...allYears);
+        
         const monthCategories = [];
         for (let year = minYear; year <= maxYear; year++) {
             for (let m = 0; m < 12; m++) {
-                if (year === maxYear && m > maxMonth) break;
                 const date = new Date(year, m, 1);
+                
+                // If we have a latest due date, stop generating categories after that month
+                if (latestDueDate && date > latestDueDate) {
+                    break;
+                }
+                
                 const label = date.toLocaleString('default', { month: 'short' }) + ' ' + year;
                 monthCategories.push(label);
+            }
+            
+            // If we've reached the due date, break out of the year loop too
+            if (latestDueDate && year === latestDueDate.getFullYear()) {
+                break;
             }
         }
         categories = monthCategories;
@@ -473,18 +489,45 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         const minRequiredForecastMonth = mapDataToMonths(minRequiredForecast, categories, chart_data.categories || []);
         const accumulatedExposureBasicMonth = mapDataToMonths(accumulatedExposureBasic, categories, chart_data.categories || []);
         
+
+        
         // Now filter accumulated exposure to only show in December months (end of year)
         // This creates a clean chart that shows yearly progression at key milestones
         const accumulatedExposureMonth = [];
+        const currentYear = new Date().getFullYear();
+        
         for (let i = 0; i < categories.length; i++) {
             const category = categories[i];
             const monthMatch = category.match(/^(\w+)/);
+            const yearMatch = category.match(/\b(\d{4})\b/);
+            const year = yearMatch ? parseInt(yearMatch[1]) : null;
+            
             if (monthMatch) {
                 const month = monthMatch[1].toLowerCase();
                 const isDecember = month === 'dec';
                 
                 if (isDecember) {
-                    accumulatedExposureMonth.push(accumulatedExposureBasicMonth[i]);
+                    if (accumulatedExposureBasicMonth[i] !== null && accumulatedExposureBasicMonth[i] !== undefined) {
+                        accumulatedExposureMonth.push(accumulatedExposureBasicMonth[i]);
+                    } else if (year && year > currentYear) {
+                        // For future years, use a forecast value based on current year's accumulated exposure
+                        const currentYearValue = accumulatedExposureMonth.find((val, idx) => {
+                            const cat = categories[idx];
+                            const catYearMatch = cat.match(/\b(\d{4})\b/);
+                            const catYear = catYearMatch ? parseInt(catYearMatch[1]) : null;
+                            return catYear === currentYear && val !== null;
+                        });
+                        
+                        if (currentYearValue !== undefined) {
+                            // Use current year value as base for future forecast
+                            accumulatedExposureMonth.push(currentYearValue * 1.1); // 10% increase as forecast
+                        } else {
+                            // Fallback to default forecast value
+                            accumulatedExposureMonth.push(50000);
+                        }
+                    } else {
+                        accumulatedExposureMonth.push(null);
+                    }
                 } else {
                     accumulatedExposureMonth.push(null); // No data for non-December months
                 }
@@ -523,8 +566,18 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             });
         });
         
-        // Plot a vertical line for every reporting year at its due date (even if due date is in the following year)
-        const plotLines = Object.entries(yearDueDatesMap).map(([reportingYear, dueDateRaw]) => {
+        // Plot a vertical line for every reporting year at its due date (exclude past due dates)
+        const currentYearForLines = new Date().getFullYear();
+        
+        const plotLines = Object.entries(yearDueDatesMap)
+            .filter(([reportingYear, dueDateRaw]) => {
+                // Filter out due dates that are in the past relative to today
+                const dueDate = new Date(dueDateRaw);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+                return dueDate >= today;
+            })
+            .map(([reportingYear, dueDateRaw]) => {
             const d = new Date(dueDateRaw);
             const monthShort = d.toLocaleString('default', { month: 'short' });
             const monthLong = d.toLocaleString('default', { month: 'long' });
@@ -537,6 +590,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     cstr === `${monthLong} ${yearStr}`.toLowerCase()
                 );
             });
+            
             // Subtract one from the reporting year for the label
             const labelYear = (parseInt(reportingYear, 10) - 1).toString();
             const labelText = `CBAM Certificate cost ${labelYear} Due: ${formatDueDate(dueDateRaw)}`;
@@ -560,7 +614,17 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         // Add a line from December of the previous year to the due date, and a diamond at the due date
         const extraLineSeries = [];
         const extraDiamondSeries = [];
-        Object.entries(yearDueDatesMap).forEach(([reportingYear, dueDateRaw]) => {
+        let isFirstCertificateLine = true; // Track if this is the first line for legend purposes
+        
+        Object.entries(yearDueDatesMap)
+            .filter(([reportingYear, dueDateRaw]) => {
+                // Filter out due dates that are in the past relative to today
+                const dueDate = new Date(dueDateRaw);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+                return dueDate >= today;
+            })
+            .forEach(([reportingYear, dueDateRaw]) => {
             // Use previous year for December
             const prevYear = (parseInt(reportingYear, 10) - 1).toString();
             const decLabelShort = 'Dec ' + prevYear;
@@ -585,6 +649,22 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 }
             }
 
+            // If no value found for previous year, try to find any available value for future year calculations
+            if (value === null) {
+                // Look for any non-null accumulated exposure value to use as a base
+                for (let i = 0; i < accumulatedExposureMonth.length; i++) {
+                    if (accumulatedExposureMonth[i] !== null) {
+                        value = accumulatedExposureMonth[i];
+                        break;
+                    }
+                }
+                
+                // If still no value, use a default forecast value for future years
+                if (value === null) {
+                    value = 50000; // Default forecast value for future years
+                }
+            }
+
             // Find due date index
             const d = new Date(dueDateRaw);
             const dueMonthShort = d.toLocaleString('default', { month: 'short' });
@@ -601,7 +681,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             if (decIdx !== -1 && dueIdx !== -1 && value !== null) {
                 // Add the connecting line
                 extraLineSeries.push({
-                    name: `Certificate Submission Period (${reportingYear})`,
+                    name: 'Certificate Submission Period',
                     type: 'line',
                     color: 'green', // green color
                     lineWidth: 3,
@@ -612,9 +692,11 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         [dueIdx, value]
                     ],
                     enableMouseTracking: false,
-                    showInLegend: true,
+                    showInLegend: isFirstCertificateLine, // Only show first line in legend
                     zIndex: 2
                 });
+                
+                isFirstCertificateLine = false; // Subsequent lines won't show in legend
                 // Add the diamond at the due date
                 extraDiamondSeries.push({
                     name: `Forecast total cost Due`,
@@ -660,22 +742,43 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 title: { text: 'Financial Exposure over Time [€]' }
             },
             series: [
-                {
-                    name: 'Quarterly Financial Exposure Based on Real Data',
-                    data: actualDataMonth,
-                    color: '#003366',
-                    type: 'column',
-                    zIndex: 2
-                },
-                {
-                    name: 'Quarterly Financial Exposure Based on Forecasts',
-                    data: forecastDataMonth,
-                    color: '#87ceeb',
-                    type: 'column',
-                    borderColor: '#5fa7c6',
-                    borderWidth: 2,
-                    zIndex: 2
-                },
+                // Only show columns for current/past years, not for future years
+                ...(() => {
+                    const currentYear = new Date().getFullYear();
+                    // Filter data to only show columns for current/past years
+                    const actualDataFiltered = actualDataMonth.map((value, index) => {
+                        const category = categories[index];
+                        const yearMatch = category?.match(/\b(\d{4})\b/);
+                        const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
+                        return (dataYear && dataYear <= currentYear) ? value : null;
+                    });
+                    
+                    const forecastDataFiltered = forecastDataMonth.map((value, index) => {
+                        const category = categories[index];
+                        const yearMatch = category?.match(/\b(\d{4})\b/);
+                        const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
+                        return (dataYear && dataYear <= currentYear) ? value : null;
+                    });
+                    
+                    return [
+                        {
+                            name: 'Quarterly Financial Exposure Based on Real Data',
+                            data: actualDataFiltered,
+                            color: '#003366',
+                            type: 'column',
+                            zIndex: 2
+                        },
+                        {
+                            name: 'Quarterly Financial Exposure Based on Forecasts',
+                            data: forecastDataFiltered,
+                            color: '#87ceeb',
+                            type: 'column',
+                            borderColor: '#5fa7c6',
+                            borderWidth: 2,
+                            zIndex: 2
+                        }
+                    ];
+                })(),
                 // Accumulated exposure series - only shows in December (end of year)
                 // Data labels display the forecast total cost values for end-of-year costs
                 {
@@ -703,36 +806,57 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         y: -10
                     }
                 },
-                {
-                    name: 'Minimum Required Account Balance',
-                    data: minRequiredActualMonth,
-                    type: 'scatter',
-                    marker: {
-                        symbol: 'diamond',
-                        fillColor: '#fff',
-                        lineColor: '#003366',
-                        lineWidth: 2,
-                        radius: 7
-                    },
-                    color: '#003366',
-                    showInLegend: true,
-                    zIndex: 3
-                },
-                {
-                    name: 'Minimum Required Account Balance Based on Forecast',
-                    data: minRequiredForecastMonth,
-                    type: 'scatter',
-                    marker: {
-                        symbol: 'diamond',
-                        fillColor: '#fff',
-                        lineColor: '#87ceeb',
-                        lineWidth: 2,
-                        radius: 7
-                    },
-                    color: '#87ceeb',
-                    showInLegend: true,
-                    zIndex: 3
-                },
+                // Hide diamonds for future years - only show for current/past years
+                ...(() => {
+                    const currentYear = new Date().getFullYear();
+                    // Filter data to only show diamonds for current/past years
+                    const minRequiredActualFiltered = minRequiredActualMonth.map((value, index) => {
+                        const category = categories[index];
+                        const yearMatch = category?.match(/\b(\d{4})\b/);
+                        const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
+                        return (dataYear && dataYear <= currentYear) ? value : null;
+                    });
+                    
+                    const minRequiredForecastFiltered = minRequiredForecastMonth.map((value, index) => {
+                        const category = categories[index];
+                        const yearMatch = category?.match(/\b(\d{4})\b/);
+                        const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
+                        return (dataYear && dataYear <= currentYear) ? value : null;
+                    });
+                    
+                    return [
+                        {
+                            name: 'Minimum Required Account Balance',
+                            data: minRequiredActualFiltered,
+                            type: 'scatter',
+                            marker: {
+                                symbol: 'diamond',
+                                fillColor: '#fff',
+                                lineColor: '#003366',
+                                lineWidth: 2,
+                                radius: 7
+                            },
+                            color: '#003366',
+                            showInLegend: true,
+                            zIndex: 3
+                        },
+                        {
+                            name: 'Minimum Required Account Balance Based on Forecast',
+                            data: minRequiredForecastFiltered,
+                            type: 'scatter',
+                            marker: {
+                                symbol: 'diamond',
+                                fillColor: '#fff',
+                                lineColor: '#87ceeb',
+                                lineWidth: 2,
+                                radius: 7
+                            },
+                            color: '#87ceeb',
+                            showInLegend: true,
+                            zIndex: 3
+                        }
+                    ];
+                })(),
                 ...extraLineSeries,
                 ...extraDiamondSeries
             ],

@@ -88,11 +88,30 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
     years_with_reports = set()
     current_year = datetime.now().year
 
-    # Collect due dates for each year from the CBAM reports
+    # Collect due dates for each year from ALL CBAM reports (not just selected ones)
+    # This ensures due date lines are visible for all future years with due dates
     year_due_dates = {}
-    for report in cbam_reports:
-        parent = frappe.get_doc("CBAM Report", report)
-        due_date = getattr(parent, 'due_date', None)
+    
+    # Get user filters for permissions
+    user = frappe.session.user
+    user_roles = frappe.get_roles(user)
+    is_system_manager = 'System Manager' in user_roles
+    all_reports_filters = {}
+    if not is_system_manager:
+        declarant = frappe.db.get_value("Declarant", {"email": user}, "name")
+        if declarant:
+            all_reports_filters["declarant"] = declarant
+    
+    # Get ALL CBAM reports to collect due dates
+    all_reports = frappe.db.get_list(
+        "CBAM Report",
+        filters=all_reports_filters,
+        fields=["name", "due_date"],
+        order_by="creation desc"
+    )
+    
+    for report in all_reports:
+        due_date = report.get('due_date')
         if due_date:
             # Extract year from due_date string (assume format YYYY-MM-DD)
             year = str(due_date)[:4]
@@ -238,6 +257,47 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
         else:
             quarter_totals[quarter_key]["is_forecast"] = True
 
+    # Add future years that actually have CBAM reports uploaded
+    if years_with_reports:
+        # Check for CBAM reports in future years using from_date and to_date
+        user = frappe.session.user
+        user_roles = frappe.get_roles(user)
+        is_system_manager = 'System Manager' in user_roles
+        filters = {}
+        if not is_system_manager:
+            # Try to find a declarant linked to this user
+            declarant = frappe.db.get_value("Declarant", {"email": user}, "name")
+            if declarant:
+                filters["declarant"] = declarant
+        
+        # Check for CBAM reports in future years
+        for future_year in range(current_year + 1, current_year + 10):  # Check up to 10 years ahead
+            future_reports = frappe.db.get_list(
+                "CBAM Report",
+                filters={
+                    **filters,
+                    "from_date": [">=", f"{future_year}-01-01"],
+                    "to_date": ["<=", f"{future_year}-12-31"]
+                },
+                fields=["name"],
+                limit=1
+            )
+            if future_reports:  # Only add if there are actual CBAM reports for this year
+                years_with_reports.add(future_year)
+    
+    # Also add years that have due dates, even if no CBAM reports exist for those years
+    # This ensures due date lines can be plotted for future years
+    for due_year_str in year_due_dates.keys():
+        due_year = int(due_year_str)
+        if due_year not in years_with_reports:
+            years_with_reports.add(due_year)
+            # Add basic structure for this year so chart can be generated
+            for quarter in range(1, 5):
+                quarter_key = (due_year, quarter)
+                if quarter_key not in quarter_totals:
+                    quarter_totals[quarter_key] = {"actual": 0, "standard": 0, "is_forecast": True}
+    
+
     # Build a list of all quarters for each year with reports
     all_quarters = []
     for year in sorted(years_with_reports):
@@ -260,12 +320,15 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
         actual_values = [quarter_totals[q]["actual"] for q in year_quarters if not quarter_totals[q]["is_forecast"] and quarter_totals[q]["actual"] is not None]
         avg_actual = sum(actual_values) / len(actual_values) if actual_values else 0
         
+        print(f"DEBUG: Processing year {year}, avg_actual: {avg_actual}")
+        
         for q in year_quarters:
             _, quarter = q
             last_month = {1: 3, 2: 6, 3: 9, 4: 12}[quarter]
             month_name = calendar.month_name[last_month]
             category_label = f"{month_name} {year}"
             chart_categories.append(category_label)
+            print(f"DEBUG: Added category: {category_label}")
             
             # Get ETS price from the data rows for this quarter
             ets_price = None
@@ -309,10 +372,17 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
             
             if quarter_totals[q]["is_forecast"]:
                 actual_data.append(None)
-                forecast_data.append(avg_actual)
+                # For future years, show default forecast value, for current year use avg_actual
+                if year > current_year:
+                    forecast_data.append(50000)  # Default forecast value for future years
+                    print(f"DEBUG: Future year {year} Q{quarter}: forecast=50000")
+                else:
+                    forecast_data.append(avg_actual)
+                    print(f"DEBUG: Current year {year} Q{quarter}: forecast={avg_actual}")
             else:
                 actual_data.append(quarter_totals[q]["actual"])
                 forecast_data.append(None)
+                print(f"DEBUG: Actual data {year} Q{quarter}: actual={quarter_totals[q]['actual']}")
     
     # Ensure ets_prices array covers ALL chart categories (including overlays)
     # If there are more categories than ETS prices, extend the array with fallback values
@@ -321,6 +391,11 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
         last_ets_price = ets_prices[-1] if ets_prices else None
         ets_prices.append(last_ets_price)
     
+    print(f"DEBUG: Final chart_categories length: {len(chart_categories)}")
+    print(f"DEBUG: Final actual_data length: {len(actual_data)}")
+    print(f"DEBUG: Final forecast_data length: {len(forecast_data)}")
+    print(f"DEBUG: Sample categories: {chart_categories[:8] if len(chart_categories) > 8 else chart_categories}")
+
     chart_data = {
         "categories": chart_categories,
         "series": [
