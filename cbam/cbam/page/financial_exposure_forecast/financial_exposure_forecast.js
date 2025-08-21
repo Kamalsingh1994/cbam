@@ -87,6 +87,17 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 <div id="chart-section-container" class="frappe-card mb-4 p-3">
                     <div id="chart-section"></div>
                 </div>
+                
+                <!-- Disclaimer Box -->
+                <div class="frappe-card mb-4 p-3" style="background-color: #f8f9fa; border-left: 4px solid #007bff;">
+                    <div class="d-flex align-items-center">
+                        <i class="fa fa-info-circle text-primary me-2" style="font-size: 1.2em;"></i>&nbsp;
+                        <div>
+                            <strong class="text-primary">Note: </strong> For the financial exposure calculation only standard emission values are used.
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="frappe-card mb-4" id="table-scroll-container" style="overflow-x: auto;">
                     <div id="table-section"></div>
                 </div>
@@ -303,7 +314,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         all_data = all_data.concat(data || []);
                     }
                     render_table(columns, all_data);
-                    load_highcharts(() => render_chart(chart_data));
+                    load_highcharts(() => render_chart(chart_data, filters.year ? filters.year.get_value() : null));
                     render_pagination_controls();
                 } else {
                     $('#table-section').html('<div class="text-center text-muted p-4">No data found for selected CBAM Report(s).</div>');
@@ -397,7 +408,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         });
     }
 
-    function render_chart(chart_data) {
+    function render_chart(chart_data, selectedYear) {
         // Remove any existing toggle switch to prevent duplicates
         $('.tooltip-toggle-container').remove();
         
@@ -566,16 +577,19 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             });
         });
         
-        // Plot a vertical line for every reporting year at its due date (exclude past due dates)
-        const currentYearForLines = new Date().getFullYear();
+        // Plot a vertical line for every reporting year at its due date
+        // Show due lines based on the selected year filter, not current calendar year
+        const selectedYearForLines = selectedYear ? parseInt(selectedYear) : new Date().getFullYear();
         
         const plotLines = Object.entries(yearDueDatesMap)
             .filter(([reportingYear, dueDateRaw]) => {
-                // Filter out due dates that are in the past relative to today
+                // Show due lines for future years only, hide current and past years
                 const dueDate = new Date(dueDateRaw);
-                const today = new Date();
-                today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
-                return dueDate >= today;
+                const dueYear = dueDate.getFullYear();
+                const reportingYearInt = parseInt(reportingYear);
+                // Only show due lines for future years (after the selected year)
+                // Hide due lines for current and past years
+                return reportingYearInt > selectedYearForLines;
             })
             .map(([reportingYear, dueDateRaw]) => {
             const d = new Date(dueDateRaw);
@@ -591,9 +605,8 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 );
             });
             
-            // Subtract one from the reporting year for the label
-            const labelYear = (parseInt(reportingYear, 10) - 1).toString();
-            const labelText = `CBAM Certificate cost ${labelYear} Due: ${formatDueDate(dueDateRaw)}`;
+            // Use the reporting year directly in the label to avoid confusion
+            const labelText = `CBAM Certificate Due ${reportingYear - 1}: ${formatDueDate(dueDateRaw)}`;
             return {
                 value: idx,
                 color: '#ff0000',
@@ -618,11 +631,13 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         
         Object.entries(yearDueDatesMap)
             .filter(([reportingYear, dueDateRaw]) => {
-                // Filter out due dates that are in the past relative to today
+                // Show due lines for future years only, hide current and past years
                 const dueDate = new Date(dueDateRaw);
-                const today = new Date();
-                today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
-                return dueDate >= today;
+                const dueYear = dueDate.getFullYear();
+                const reportingYearInt = parseInt(reportingYear);
+                // Only show due lines for future years (after the selected year)
+                // Hide due lines for current and past years
+                return reportingYearInt > selectedYearForLines;
             })
             .forEach(([reportingYear, dueDateRaw]) => {
             // Use previous year for December

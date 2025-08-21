@@ -242,20 +242,21 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
     total_count = len(all_rows)
     data = all_rows[start:start+page_length]
 
-    # Chart data: sum actual and standard cost by quarter
-    quarter_totals = defaultdict(lambda: {"actual": 0, "standard": 0, "is_forecast": False})
-    # Aggregate data by quarter using the new fields in all_rows
+    # Chart data: sum actual and standard cost by YEAR (not by quarter)
+    year_totals = defaultdict(lambda: {"actual": 0, "standard": 0, "is_forecast": False})
+    
+    # Aggregate data by YEAR using the new fields in all_rows
     for row in all_rows:
-        qkey = (row.get("quarter_year"), row.get("quarter"))
-        if qkey[0] and qkey[1]:
-            quarter_totals[qkey]["actual"] += row.get("real_emission_cost", 0) or 0
-            quarter_totals[qkey]["standard"] += row.get("standard_emission_cost", 0) or 0
-    # Mark uploaded quarters as actual data, others as forecast
-    for quarter_key in quarter_totals:
-        if quarter_key in uploaded_quarters:
-            quarter_totals[quarter_key]["is_forecast"] = False
-        else:
-            quarter_totals[quarter_key]["is_forecast"] = True
+        year = row.get("year")
+        if year:
+            # Sum all items for each year to get total CBAM cost for that year
+            year_totals[year]["actual"] += row.get("real_emission_cost", 0) or 0
+            year_totals[year]["standard"] += row.get("standard_emission_cost", 0) or 0
+    
+    # Mark years as actual data if they have uploaded quarters, others as forecast
+    for year in year_totals:
+        has_uploaded_quarters = any((year, q) in uploaded_quarters for q in range(1, 5))
+        year_totals[year]["is_forecast"] = not has_uploaded_quarters
 
     # Add future years that actually have CBAM reports uploaded
     if years_with_reports:
@@ -292,97 +293,151 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
         if due_year not in years_with_reports:
             years_with_reports.add(due_year)
             # Add basic structure for this year so chart can be generated
-            for quarter in range(1, 5):
-                quarter_key = (due_year, quarter)
-                if quarter_key not in quarter_totals:
-                    quarter_totals[quarter_key] = {"actual": 0, "standard": 0, "is_forecast": True}
+            if due_year not in year_totals:
+                year_totals[due_year] = {"actual": 0, "standard": 0, "is_forecast": True}
     
 
-    # Build a list of all quarters for each year with reports
-    all_quarters = []
+    # Build a list of all years with reports
+    all_years = []
     for year in sorted(years_with_reports):
-        for quarter in range(1, 5):
-            all_quarters.append((year, quarter))
-    # Ensure quarter_totals has an entry for every quarter
-    for q in all_quarters:
-        if q not in quarter_totals:
-            quarter_totals[q] = {"actual": 0, "standard": 0, "is_forecast": True}
+        all_years.append(year)
+    # Ensure year_totals has an entry for every year
+    for year in all_years:
+        if year not in year_totals:
+            year_totals[year] = {"actual": 0, "standard": 0, "is_forecast": True}
     
-    # Create chart data with quarter labels and separate actual/forecast series
+    # Create chart data with quarterly labels for current year and yearly labels for other years
     chart_categories = []
     actual_data = []
     forecast_data = []
-    import calendar
     ets_prices = []
     
     for year in sorted(years_with_reports):
-        year_quarters = [(year, q) for q in range(1, 5)]
-        actual_values = [quarter_totals[q]["actual"] for q in year_quarters if not quarter_totals[q]["is_forecast"] and quarter_totals[q]["actual"] is not None]
-        avg_actual = sum(actual_values) / len(actual_values) if actual_values else 0
+        # Get the year's total costs (sum of all items for that year)
+        year_actual = year_totals[year]["actual"]
+        year_standard = year_totals[year]["standard"]
+        year_is_forecast = year_totals[year]["is_forecast"]
         
-        print(f"DEBUG: Processing year {year}, avg_actual: {avg_actual}")
+        print(f"DEBUG: Processing year {year}, actual: {year_actual}, standard: {year_standard}, is_forecast: {year_is_forecast}")
         
-        for q in year_quarters:
-            _, quarter = q
-            last_month = {1: 3, 2: 6, 3: 9, 4: 12}[quarter]
-            month_name = calendar.month_name[last_month]
-            category_label = f"{month_name} {year}"
+        if year <= current_year:
+            # For current and past years, show quarterly breakdown
+            import calendar
+            for quarter in range(1, 5):
+                last_month = {1: 3, 2: 6, 3: 9, 4: 12}[quarter]
+                month_name = calendar.month_name[last_month]
+                category_label = f"{month_name} {year}"
+                chart_categories.append(category_label)
+                print(f"DEBUG: Added quarterly category: {category_label}")
+                
+                # Get ETS price for this quarter
+                ets_price = None
+                for row in data:
+                    if row.get("year") == year and row.get("quarter") == quarter:
+                        ets_price = row.get("ets_price")
+                        if ets_price is not None:
+                            break
+                
+                # If no ETS price found for this quarter, fetch it directly from ETS Carbon Price table
+                if ets_price is None:
+                    ets_price_doc = frappe.get_all(
+                        "ETS Carbon Price",
+                        filters={"price_year": year},
+                        fields=["price"],
+                        order_by="price_date desc",  # Use latest price date for the year
+                        limit=1
+                    )
+                    if ets_price_doc:
+                        ets_price = extract_numeric_value(ets_price_doc[0].price)
+                    else:
+                        ets_price = 0.0  # No fallback to previous years
+                
+                ets_prices.append(ets_price)
+                
+                # Check if this quarter has actual data
+                quarter_key = (year, quarter)
+                has_actual_data = quarter_key in uploaded_quarters
+                
+                if has_actual_data:
+                    # Get actual data for this quarter
+                    quarter_actual = 0
+                    for row in all_rows:
+                        if row.get("year") == year and row.get("quarter") == quarter:
+                            quarter_actual += row.get("real_emission_cost", 0) or 0
+                    
+                    actual_data.append(quarter_actual)
+                    forecast_data.append(None)
+                    print(f"DEBUG: Current year {year} Q{quarter}: actual={quarter_actual}")
+                else:
+                    # Forecast for this quarter - use average of actual quarters or standard emission cost
+                    actual_data.append(None)
+                    
+                    # Calculate forecast based on actual quarters in this year
+                    actual_quarters_data = []
+                    for q in range(1, 5):
+                        q_key = (year, q)
+                        if q_key in uploaded_quarters:
+                            # Get actual data for this quarter
+                            q_actual = 0
+                            for row in all_rows:
+                                if row.get("year") == year and row.get("quarter") == q:
+                                    q_actual += row.get("real_emission_cost", 0) or 0
+                            if q_actual > 0:
+                                actual_quarters_data.append(q_actual)
+                    
+                    if actual_quarters_data:
+                        # Use average of actual quarters for forecast
+                        avg_actual = sum(actual_quarters_data) / len(actual_quarters_data)
+                        forecast_data.append(avg_actual)
+                        print(f"DEBUG: Current year {year} Q{quarter}: forecast={avg_actual} (avg of actual quarters)")
+                    else:
+                        # Fallback to standard emission cost if no actual quarters
+                        forecast_data.append(year_standard / 4)
+                        print(f"DEBUG: Current year {year} Q{quarter}: forecast={year_standard / 4} (fallback)")
+        else:
+            # For other years, show yearly totals
+            category_label = f"Year {year}"
             chart_categories.append(category_label)
-            print(f"DEBUG: Added category: {category_label}")
+            print(f"DEBUG: Added yearly category: {category_label}")
             
-            # Get ETS price from the data rows for this quarter
+            # Get ETS price for this year
             ets_price = None
             for row in data:
-                if row.get("year") == year and row.get("quarter") == quarter:
+                if row.get("year") == year:
                     ets_price = row.get("ets_price")
                     if ets_price is not None:
                         break
             
-            # If no ETS price found for this quarter, use fallback logic
+            # If no ETS price found for this year, fetch it directly from ETS Carbon Price table
             if ets_price is None:
-                # First try: look for ETS price in previous quarters of the same year
-                fallback_ets_price = None
-                for prev_q in year_quarters:
-                    if prev_q < q:  # Only look at previous quarters
-                        for row in data:
-                            if row.get("year") == year and row.get("quarter") == prev_q[1]:
-                                fallback_ets_price = row.get("ets_price")
-                                if fallback_ets_price is not None:
-                                    break
-                        if fallback_ets_price is not None:
-                            break
-                
-                # Second try: if still no price, look in previous years
-                if fallback_ets_price is None:
-                    for prev_year in sorted(years_with_reports):
-                        if prev_year < year:
-                            for row in data:
-                                if row.get("year") == prev_year:
-                                    fallback_ets_price = row.get("ets_price")
-                                    if fallback_ets_price is not None:
-                                        break
-                            if fallback_ets_price is not None:
-                                break
-                
-                # Use fallback price if found
-                if fallback_ets_price is not None:
-                    ets_price = fallback_ets_price
+                ets_price_doc = frappe.get_all(
+                    "ETS Carbon Price",
+                    filters={"price_year": year},
+                    fields=["price"],
+                    order_by="price_date desc",  # Use latest price date for the year
+                    limit=1
+                )
+                if ets_price_doc:
+                    ets_price = extract_numeric_value(ets_price_doc[0].price)
+                else:
+                    ets_price = 0.0  # No fallback to previous years
             
             ets_prices.append(ets_price)
             
-            if quarter_totals[q]["is_forecast"]:
+            # Add data for this year
+            if year_is_forecast:
                 actual_data.append(None)
-                # For future years, show default forecast value, for current year use avg_actual
+                # For future years, show default forecast value
                 if year > current_year:
                     forecast_data.append(50000)  # Default forecast value for future years
-                    print(f"DEBUG: Future year {year} Q{quarter}: forecast=50000")
+                    print(f"DEBUG: Future year {year}: forecast=50000")
                 else:
-                    forecast_data.append(avg_actual)
-                    print(f"DEBUG: Current year {year} Q{quarter}: forecast={avg_actual}")
+                    forecast_data.append(year_standard)  # Use standard emission cost for current year
+                    print(f"DEBUG: Current year {year}: forecast={year_standard}")
             else:
-                actual_data.append(quarter_totals[q]["actual"])
+                actual_data.append(year_actual)  # Use actual emission cost
                 forecast_data.append(None)
-                print(f"DEBUG: Actual data {year} Q{quarter}: actual={quarter_totals[q]['actual']}")
+                print(f"DEBUG: Actual data {year}: actual={year_actual}")
     
     # Ensure ets_prices array covers ALL chart categories (including overlays)
     # If there are more categories than ETS prices, extend the array with fallback values
@@ -399,7 +454,7 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, from_year=N
     chart_data = {
         "categories": chart_categories,
         "series": [
-            {"name": "Actual Cost", "data": actual_data},
+            {"name": "Quarterly/Yearly Standard Emission Cost", "data": actual_data},  # Shows quarterly for current/past years, yearly for future
             {"name": "Forecast", "data": forecast_data},
         ],
         "ets_prices": ets_prices,
