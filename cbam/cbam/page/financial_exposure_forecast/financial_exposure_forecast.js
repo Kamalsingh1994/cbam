@@ -22,6 +22,12 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
 
     // Add custom style for active tab background color (black) and bold font
     $(`<style>
+        .fs-cont{
+            height: 60px;
+        }
+        #annual-exposure-cards{
+            height: 60px;
+        }
         #dashboard-tabs .nav-link.active {
           background-color: #000 !important;
           color: #fff !important;
@@ -75,7 +81,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         $(body).html(`
             <div class="container p-0">
                 <div class="frappe-card mb-3" id="filter-card-section">
-                    <div class="row align-items-center">
+                    <div class="row align-items-center fs-cont">
                         <div class="col-md-3">
                             <div class="row gx-2" id="filter-section-group-1"></div>
                         </div>
@@ -84,6 +90,13 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     </div>
                 </div>
 
+                <!-- Annual Exposure Stat Cards -->
+                <div class="frappe-card mb-3 p-2">
+                    <div class="d-flex flex-wrap" id="annual-exposure-cards" style="gap: 16px;">
+                        <!-- Cards will be populated dynamically -->
+                    </div>
+                </div>
+                
                 <div id="chart-section-container" class="frappe-card mb-4 p-3">
                     <div id="chart-section"></div>
                 </div>
@@ -954,6 +967,63 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 }
             }
         });
+        
+        // Populate annual exposure stat cards
+        populateAnnualExposureCards(accumulatedExposureMonth, categories);
+    }
+    
+    // Function to populate annual exposure stat cards
+    function populateAnnualExposureCards(accumulatedExposureMonth, categories) {
+        const cardsContainer = $('#annual-exposure-cards');
+        cardsContainer.empty();
+        
+        // Group accumulated exposure by year
+        const yearlyExposure = {};
+        
+        categories.forEach((category, index) => {
+            const yearMatch = category.match(/\b(\d{4})\b/);
+            if (yearMatch) {
+                const year = yearMatch[1];
+                const exposureValue = accumulatedExposureMonth[index];
+                
+                if (exposureValue !== null && exposureValue !== undefined) {
+                    // Use the highest value for each year (usually December)
+                    if (!yearlyExposure[year] || exposureValue > yearlyExposure[year]) {
+                        yearlyExposure[year] = exposureValue;
+                    }
+                }
+            }
+        });
+        
+        // Create stat cards for each year
+        Object.keys(yearlyExposure)
+            .sort((a, b) => parseInt(a) - parseInt(b))
+            .forEach(year => {
+                const exposureValue = yearlyExposure[year];
+                const formattedValue = new Intl.NumberFormat('de-DE', {
+                    style: 'currency',
+                    currency: 'EUR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }).format(exposureValue);
+                
+                const cardHtml = `
+                    <div class="flex-shrink-0 me-3 mb-3" style="min-width: 160px; max-width: 200px;">
+                        <div class="frappe-card p-2 text-center" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; height: 55px;">
+                            <div class="d-flex flex-column justify-content-center h-100">
+                                <div style="font-weight: 600; font-size: 0.7em; color: #6c757d; line-height: 1; margin-bottom: 2px;">
+                                    Full Financial Exposure ${year}
+                                </div>
+                                <div style="font-weight: 700; font-size: 1em; color: #495057; line-height: 1;">
+                                    ${formattedValue}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                cardsContainer.append(cardHtml);
+            });
     }
 
     // Loader for Highcharts
