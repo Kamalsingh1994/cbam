@@ -22,6 +22,12 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
 
     // Add custom style for active tab background color (black) and bold font
     $(`<style>
+        .fs-cont{
+            height: 60px;
+        }
+        #annual-exposure-cards{
+            height: 60px;
+        }
         #dashboard-tabs .nav-link.active {
           background-color: #000 !important;
           color: #fff !important;
@@ -61,34 +67,21 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
     let total_count = 0;
     let all_data = [];
     let datatable = null;
-    let filters = {};
+    let filters; // Declare filters globally
 
     // Render layout and setup filters
     render_layout(page.body);
     filters = setup_filters();
 
-    // Set all CBAM Reports by default after filters are set up
-    frappe.call({
-        method: 'cbam.cbam.page.financial_exposure_forecast.financial_exposure_forecast.get_all_cbam_reports',
-        callback: function(r) {
-            if (r.message && r.message.length > 0 && filters.cbam_report) {
-                filters.cbam_report.set_value(r.message);
-                start = 0;
-                all_data = [];
-                load_report_table(true);
-            }
-        }
-    });
-
-    // Initial Table and Chart
-    load_report_table(true);
+    // Initial data loading will happen after year filter is populated
+    // This ensures we respect the year filter from the start
 
     // --- Layout ---
     function render_layout(body) {
         $(body).html(`
             <div class="container p-0">
                 <div class="frappe-card mb-3" id="filter-card-section">
-                    <div class="row align-items-center">
+                    <div class="row align-items-center fs-cont">
                         <div class="col-md-3">
                             <div class="row gx-2" id="filter-section-group-1"></div>
                         </div>
@@ -97,9 +90,27 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     </div>
                 </div>
 
+                <!-- Annual Exposure Stat Cards -->
+                <div class="frappe-card mb-3 p-2">
+                    <div class="d-flex flex-wrap" id="annual-exposure-cards" style="gap: 16px;">
+                        <!-- Cards will be populated dynamically -->
+                    </div>
+                </div>
+                
                 <div id="chart-section-container" class="frappe-card mb-4 p-3">
                     <div id="chart-section"></div>
                 </div>
+                
+                <!-- Disclaimer Box -->
+                <div class="frappe-card mb-4 p-3" style="background-color: #f8f9fa; border-left: 4px solid #007bff;">
+                    <div class="d-flex align-items-center">
+                        <i class="fa fa-info-circle text-primary me-2" style="font-size: 1.2em;"></i>&nbsp;
+                        <div>
+                            <strong class="text-primary">Note: </strong> For the financial exposure calculation only standard emission values are used.
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="frappe-card mb-4" id="table-scroll-container" style="overflow-x: auto;">
                     <div id="table-section"></div>
                 </div>
@@ -108,60 +119,91 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
     }
 
     // --- Filter Setup ---
+    
     function setup_filters() {
-        const filters = {
-            cbam_report: cbam.create_filter('CBAM Report', 'MultiSelectList', 'cbam_report', '#filter-section-group-1', []),
-            from_year: cbam.create_filter('From Year', 'Link', 'from_year', '#from-year-link', 'Year'),
-            to_year: cbam.create_filter('To Year', 'Link', 'to_year', '#to-year-link', 'Year'),
-        };
-        // From Year Link: auto fetch from Year DocType
-        filters.from_year.df.get_data = function(txt) {
-            return frappe.db.get_list('Year', {
-                fields: ['year as value', 'year as description'],
-                filters: txt ? [['year', 'like', `%${txt}%`]] : [],
-                limit: 20,
-            });
+        filters = {
+            year: cbam.fe.create_filter('Year', 'Select', 'year', '#filter-section-group-1', []),
+            cbam_report: cbam.fe.create_filter('CBAM Report', 'MultiSelectList', 'cbam_report', '#filter-section-group-1', []),
         };
 
-        // To Year Link: auto fetch from Year DocType
-        filters.to_year.df.get_data = function(txt) {
-            return frappe.db.get_list('Year', {
-                fields: ['name as value', 'name as description'],
-                filters: txt ? [['name', 'like', `%${txt}%`]] : [],
-                limit: 20,
-            });
-        };
-        // Fetch CBAM Report options
+        // Fetch CBAM Report options - respect selected year
         filters.cbam_report.df.get_data = function(txt) {
+            const selectedYear = filters.year ? filters.year.get_value() : null;
+            let filters_list = [];
+            
+            // Add year filter if year is selected
+            if (selectedYear) {
+                filters_list.push(['from_date', '>=', `${selectedYear}-01-01`]);
+                filters_list.push(['to_date', '<=', `${selectedYear}-12-31`]);
+            }
+            
+            // Add text search filter if provided
+            if (txt) {
+                filters_list.push(['report_id', 'like', `%${txt}%`]);
+            }
+            
             return frappe.db.get_list('CBAM Report', {
                 fields: ['name as value', 'report_id as description'],
-                filters: txt ? [['report_id', 'like', `%${txt}%`]] : [],
+                filters: filters_list,
                 limit: 20,
             });
         };
 
-        // Custom width for CBAM Report filter - make it wider since it's the only filter in this group
-            const cbamReportContainer = $('#filter-section-group-1 .frappe-control');
+        // Custom width for Year and CBAM Report filters - make them wider
+        setTimeout(() => {
+            // Adjust Year filter width (first filter)
+            const yearContainer = $('#filter-section-group-1 .frappe-control').first();
+            if (yearContainer.length > 0) {
+                yearContainer.closest('.col-3').removeClass('col-3').addClass('col-4');
+            }
+            
+            // Adjust CBAM Report filter width (second filter) - make it wider
+            const cbamReportContainer = $('#filter-section-group-1 .frappe-control').eq(1);
             if (cbamReportContainer.length > 0) {
                 cbamReportContainer.closest('.col-3').removeClass('col-3').addClass('col-8');
             }
+        }, 100);
+
+        // Populate year filter with available years from CBAM reports
+        populate_year_filter(filters.year);
 
         // Dynamic event: reload table/chart on change
+        filters.year.df.onchange = function() {
+            const selectedYear = filters.year.get_value();
+            if (selectedYear) {
+                // Fetch CBAM reports for the selected year
+                frappe.call({
+                    method: 'cbam.cbam.page.financial_exposure_forecast.financial_exposure_forecast.get_cbam_reports_by_year',
+                    args: { year: selectedYear },
+                    callback: function(r) {
+                        if (r.message && r.message.length > 0) {
+                            // Set all CBAM reports for the selected year
+                            filters.cbam_report.set_value(r.message);
+                            // Reload table and chart
+                            start = 0;
+                            all_data = [];
+                            page_length = 50;
+                            load_report_table(true);
+                        } else {
+                            // No reports for selected year, clear CBAM report filter
+                            filters.cbam_report.set_value([]);
+                            // Clear table and chart
+                            $('#table-section').html('<div class="text-center text-muted p-4">No CBAM reports found for the selected year.</div>');
+                            $('#chart-section').html('<div class="text-center text-muted p-4">No chart data available for the selected year.</div>');
+                            $('#pagination-controls').remove();
+                        }
+                    }
+                });
+            } else {
+                // No year selected, clear CBAM report filter and data
+                filters.cbam_report.set_value([]);
+                $('#table-section').html('<div class="text-center text-muted p-4">Please select a year to view CBAM reports.</div>');
+                $('#chart-section').html('<div class="text-center text-muted p-4">Please select a year to view chart data.</div>');
+                $('#pagination-controls').remove();
+            }
+        };
+
         filters.cbam_report.df.onchange = function() {
-            start = 0;
-            all_data = [];
-            page_length = 50;
-            load_report_table(true);
-        };
-
-        filters.from_year.df.onchange = function() {
-            start = 0;
-            all_data = [];
-            page_length = 50;
-            load_report_table(true);
-        };
-
-        filters.to_year.df.onchange = function() {
             start = 0;
             all_data = [];
             page_length = 50;
@@ -172,11 +214,85 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         return filters;
     }
 
+    /**
+     * Populate the year filter with available years from CBAM reports
+     * @param {Object} yearFilter - The year filter control
+     */
+    function populate_year_filter(yearFilter) {
+        frappe.call({
+            method: 'cbam.cbam.page.financial_exposure_forecast.financial_exposure_forecast.get_available_years',
+            callback: function(r) {
+                if (r.message && r.message.length > 0) {
+                    // Set the options for the Select field
+                    yearFilter.df.options = r.message;
+                    
+                    // Refresh the filter
+                    yearFilter.refresh();
+                    
+                    // Set default value to current year if available, otherwise first available year
+                    const currentYear = new Date().getFullYear();
+                    const availableYears = r.message;
+                    
+                    if (availableYears.includes(currentYear)) {
+                        yearFilter.set_value(currentYear);
+                        // Trigger initial data load after year is set
+                        setTimeout(() => trigger_initial_data_load(), 100);
+                    } else if (availableYears.length > 0) {
+                        yearFilter.set_value(availableYears[0]);
+                        // Trigger initial data load after year is set
+                        setTimeout(() => trigger_initial_data_load(), 100);
+                    }
+                } else {
+                    // Fallback to current year
+                    const currentYear = new Date().getFullYear();
+                    yearFilter.df.options = [currentYear];
+                    yearFilter.refresh();
+                    yearFilter.set_value(currentYear);
+                    // Trigger initial data load after year is set
+                    setTimeout(() => trigger_initial_data_load(), 100);
+                }
+            },
+            error: function(err) {
+                // Fallback to current year
+                const currentYear = new Date().getFullYear();
+                yearFilter.df.options = [currentYear];
+                yearFilter.refresh();
+                yearFilter.set_value(currentYear);
+                // Trigger initial data load after year is set
+                setTimeout(() => trigger_initial_data_load(), 100);
+            }
+        });
+    }
+
+    /**
+     * Trigger initial data load after year filter is set up
+     * This ensures we respect the year filter from the start
+     */
+    function trigger_initial_data_load() {
+        const selectedYear = filters.year.get_value();
+        if (selectedYear) {
+            // Fetch CBAM reports for the selected year and load data
+            frappe.call({
+                method: 'cbam.cbam.page.financial_exposure_forecast.financial_exposure_forecast.get_cbam_reports_by_year',
+                args: { year: selectedYear },
+                callback: function(r) {
+                    if (r.message && r.message.length > 0) {
+                        // Set CBAM reports for the selected year
+                        filters.cbam_report.set_value(r.message);
+                        // Load data for these reports
+                        start = 0;
+                        all_data = [];
+                        page_length = 50;
+                        load_report_table(true);
+                    }
+                }
+            });
+        }
+    }
+
     // --- Data Table and Chart ---
     function load_report_table(reset = false) {
         const selected_reports = filters.cbam_report.get_value();
-        const from_year = filters.from_year ? filters.from_year.get_value() : null;
-        const to_year = filters.to_year ? filters.to_year.get_value() : null;
         if (reset) {
             start = 0;
             all_data = [];
@@ -198,8 +314,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 cbam_reports: selected_reports,
                 start,
                 page_length,
-                from_year,
-                to_year
+                year: filters.year ? filters.year.get_value() : null // Don't default to current year for now
             },
             freeze: true,
             callback: function(r) {
@@ -212,7 +327,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         all_data = all_data.concat(data || []);
                     }
                     render_table(columns, all_data);
-                    load_highcharts(() => render_chart(chart_data));
+                    load_highcharts(() => render_chart(chart_data, filters.year ? filters.year.get_value() : null));
                     render_pagination_controls();
                 } else {
                     $('#table-section').html('<div class="text-center text-muted p-4">No data found for selected CBAM Report(s).</div>');
@@ -240,6 +355,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 data: data,
                 layout: 'fixed',
                 stickyHeader: true,
+                inlineFilters: true,
                 scrollY: '500px',
                 scrollX: true,
                 className: 'frappe-datatable',
@@ -286,6 +402,8 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         return months;
     }
 
+
+
     // Helper: Format due date as '31 Dec 2025'
     function formatDueDate(dateStr) {
         if (!dateStr) return '';
@@ -304,112 +422,12 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         });
     }
 
-    function render_chart(chart_data) {
+    function render_chart(chart_data, selectedYear) {
         // Remove any existing toggle switch to prevent duplicates
         $('.tooltip-toggle-container').remove();
         
-        // Add toggle switch above the chart
-        const toggleHtml = `
-            <div class="tooltip-toggle-container mb-3" style="text-align: center;">
-                <div class="btn-group" role="group" aria-label="Tooltip Display Toggle">
-                    <input type="radio" class="btn-check" name="tooltip-view" id="view-cost" checked>
-                    <label class="btn btn-outline-primary" for="view-cost">
-                        <i class="fas fa-euro-sign"></i> Amount Due in €
-                    </label>
-                    
-                    <input type="radio" class="btn-check" name="tooltip-view" id="view-certificates">
-                    <label class="btn btn-outline-primary" for="view-certificates">
-                        Required Certificates
-                    </label>
-                    
-                    <input type="radio" class="btn-check" name="tooltip-view" id="view-both">
-                    <label class="btn btn-outline-primary" for="view-both">
-                        Both Views
-                    </label>
-                </div>
-            </div>
-            <style>
-                .tooltip-toggle-container {
-                    background: #f8f9fa;
-                    border: 1px solid #e3e6eb;
-                    border-radius: 0.5rem;
-                    padding: 1rem;
-                    margin-bottom: 1rem;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                }
-                .tooltip-toggle-container .btn-group {
-                    display: inline-flex;
-                    flex-wrap: wrap;
-                    gap: 0.25rem;
-                }
-                .tooltip-toggle-container .btn {
-                    border-radius: 0.375rem;
-                    font-size: 0.875rem;
-                    font-weight: 500;
-                    padding: 0.5rem 1rem;
-                    transition: all 0.2s ease;
-                    background-color: #ffffff;
-                    border-color: #000000;
-                    color: #000000;
-                }
-                .tooltip-toggle-container .btn-check {
-                    display: none;
-                }
-                .tooltip-toggle-container .btn-check:checked + .btn {
-                    background-color: #000000 !important;
-                    border-color: #000000 !important;
-                    color: white !important;
-                    box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.25);
-                }
-                .tooltip-toggle-container .btn:hover:not(.btn-check:checked + .btn) {
-                    background-color: #e9ecef;
-                    border-color: #adb5bd;
-                    color: #495057;
-                }
-                .tooltip-toggle-container .btn-check:checked + .btn:hover {
-                    background-color: #333333 !important;
-                    border-color: #000000 !important;
-                }
-                .tooltip-toggle-container .btn:focus {
-                    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-                    outline: none;
-                }
-                @media (max-width: 768px) {
-                    .tooltip-toggle-container .btn-group {
-                        flex-direction: column;
-                        width: 100%;
-                    }
-                    .tooltip-toggle-container .btn {
-                        width: 100%;
-                        margin-bottom: 0.25rem;
-                    }
-                }
-            </style>
-        `;
-        
-        // Insert toggle above the chart
-        $('#chart-section').before(toggleHtml);
-        
-        // Store the current view preference
-        let currentTooltipView = 'cost'; // 'cost', 'certificates', or 'both'
-        
-        // Handle toggle changes
-        $('input[name="tooltip-view"]').on('change', function() {
-            currentTooltipView = this.id.replace('view-', '');
-            console.log('Tooltip view changed to:', currentTooltipView);
-            
-            // Ensure only one option is selected
-            $('input[name="tooltip-view"]').prop('checked', false);
-            $(this).prop('checked', true);
-            
-            // Add visual feedback
-            $('.tooltip-toggle-container .btn').removeClass('active');
-            $(this).next('label').addClass('active');
-        });
-        
-        // Initialize the first option as selected
-        $('#view-cost').prop('checked', true);
-        $('#view-cost').next('label').addClass('active');
+        // Set default view to 'both' - no toggle switch needed
+        let currentTooltipView = 'both'; // Always show both views
         
         // Extract and prepare categories
         let categories = chart_data.categories || [];
@@ -417,15 +435,15 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         const actualData = chart_data.series[0]?.data || [];
         const forecastData = chart_data.series[1]?.data || [];
 
-        // Calculate accumulated exposure (cumulative sum)
-        const accumulatedExposure = [];
+        // First calculate basic accumulated exposure for mapping
+        const accumulatedExposureBasic = [];
         let cumulative = 0;
         for (let i = 0; i < categories.length; i++) {
             const value = actualData[i] ?? forecastData[i];
             if (value !== null && value !== undefined) {
                 cumulative += value;
             }
-            accumulatedExposure.push(cumulative);
+            accumulatedExposureBasic.push(cumulative);
         }
 
         // Calculate per-year accumulated exposure and diamond positions
@@ -457,20 +475,34 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             }
         }
 
-        // Carefully extend categories to include all months from the earliest year in your data up to the latest due date
+        // Generate monthly categories for ALL years including future years
         const allYears = categories.map(cat => parseInt(cat.match(/\b(\d{4})\b/)[1])).filter(Boolean);
         const minYear = Math.min(...allYears);
-        const allDueDates = Object.values(yearDueDatesMap).map(d => new Date(d));
-        const latestDueDate = new Date(Math.max(...allDueDates.map(d => d.getTime())));
-        const maxYear = latestDueDate.getFullYear();
-        const maxMonth = latestDueDate.getMonth(); // 0-based
+        
+        // Find the latest due date to ensure categories include it
+        const allDueDates = Object.values(yearDueDatesMap).map(dateStr => new Date(dateStr));
+        const latestDueDate = allDueDates.length > 0 ? new Date(Math.max(...allDueDates.map(d => d.getTime()))) : null;
+        
+        // Use the maximum of data years or due date year to ensure due date lines are visible
+        const maxYear = latestDueDate ? Math.max(Math.max(...allYears), latestDueDate.getFullYear()) : Math.max(...allYears);
+        
         const monthCategories = [];
         for (let year = minYear; year <= maxYear; year++) {
             for (let m = 0; m < 12; m++) {
-                if (year === maxYear && m > maxMonth) break;
                 const date = new Date(year, m, 1);
+                
+                // If we have a latest due date, stop generating categories after that month
+                if (latestDueDate && date > latestDueDate) {
+                    break;
+                }
+                
                 const label = date.toLocaleString('default', { month: 'short' }) + ' ' + year;
                 monthCategories.push(label);
+            }
+            
+            // If we've reached the due date, break out of the year loop too
+            if (latestDueDate && year === latestDueDate.getFullYear()) {
+                break;
             }
         }
         categories = monthCategories;
@@ -480,7 +512,54 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         const forecastDataMonth = mapDataToMonths(forecastData, categories, chart_data.categories || []);
         const minRequiredActualMonth = mapDataToMonths(minRequiredActual, categories, chart_data.categories || []);
         const minRequiredForecastMonth = mapDataToMonths(minRequiredForecast, categories, chart_data.categories || []);
-        const accumulatedExposureMonth = mapDataToMonths(accumulatedExposure, categories, chart_data.categories || []);
+        const accumulatedExposureBasicMonth = mapDataToMonths(accumulatedExposureBasic, categories, chart_data.categories || []);
+        
+
+        
+        // Now filter accumulated exposure to only show in December months (end of year)
+        // This creates a clean chart that shows yearly progression at key milestones
+        const accumulatedExposureMonth = [];
+        const currentYear = new Date().getFullYear();
+        
+        for (let i = 0; i < categories.length; i++) {
+            const category = categories[i];
+            const monthMatch = category.match(/^(\w+)/);
+            const yearMatch = category.match(/\b(\d{4})\b/);
+            const year = yearMatch ? parseInt(yearMatch[1]) : null;
+            
+            if (monthMatch) {
+                const month = monthMatch[1].toLowerCase();
+                const isDecember = month === 'dec';
+                
+                if (isDecember) {
+                    if (accumulatedExposureBasicMonth[i] !== null && accumulatedExposureBasicMonth[i] !== undefined) {
+                        accumulatedExposureMonth.push(accumulatedExposureBasicMonth[i]);
+                    } else if (year && year > currentYear) {
+                        // For future years, use a forecast value based on current year's accumulated exposure
+                        const currentYearValue = accumulatedExposureMonth.find((val, idx) => {
+                            const cat = categories[idx];
+                            const catYearMatch = cat.match(/\b(\d{4})\b/);
+                            const catYear = catYearMatch ? parseInt(catYearMatch[1]) : null;
+                            return catYear === currentYear && val !== null;
+                        });
+                        
+                        if (currentYearValue !== undefined) {
+                            // Use current year value as base for future forecast
+                            accumulatedExposureMonth.push(currentYearValue * 1.1); // 10% increase as forecast
+                        } else {
+                            // Fallback to default forecast value
+                            accumulatedExposureMonth.push(50000);
+                        }
+                    } else {
+                        accumulatedExposureMonth.push(null);
+                    }
+                } else {
+                    accumulatedExposureMonth.push(null); // No data for non-December months
+                }
+            } else {
+                accumulatedExposureMonth.push(null);
+            }
+        }
 
         // Build yearDueDates array for plotLines
         let yearDueDates = [];
@@ -512,8 +591,21 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             });
         });
         
-        // Plot a vertical line for every reporting year at its due date (even if due date is in the following year)
-        const plotLines = Object.entries(yearDueDatesMap).map(([reportingYear, dueDateRaw]) => {
+        // Plot a vertical line for every reporting year at its due date
+        // Show due lines based on the selected year filter, not current calendar year
+        const selectedYearForLines = selectedYear ? parseInt(selectedYear) : new Date().getFullYear();
+        
+        const plotLines = Object.entries(yearDueDatesMap)
+            .filter(([reportingYear, dueDateRaw]) => {
+                // Show due lines for future years only, hide current and past years
+                const dueDate = new Date(dueDateRaw);
+                const dueYear = dueDate.getFullYear();
+                const reportingYearInt = parseInt(reportingYear);
+                // Only show due lines for future years (after the selected year)
+                // Hide due lines for current and past years
+                return reportingYearInt > selectedYearForLines;
+            })
+            .map(([reportingYear, dueDateRaw]) => {
             const d = new Date(dueDateRaw);
             const monthShort = d.toLocaleString('default', { month: 'short' });
             const monthLong = d.toLocaleString('default', { month: 'long' });
@@ -526,9 +618,9 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     cstr === `${monthLong} ${yearStr}`.toLowerCase()
                 );
             });
-            // Subtract one from the reporting year for the label
-            const labelYear = (parseInt(reportingYear, 10) - 1).toString();
-            const labelText = `${labelYear} Due: ${formatDueDate(dueDateRaw)}`;
+            
+            // Use the reporting year directly in the label to avoid confusion
+            const labelText = `CBAM Certificate cost  ${reportingYear - 1} due: ${formatDueDate(dueDateRaw)}`;
             return {
                 value: idx,
                 color: '#ff0000',
@@ -538,7 +630,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     text: labelText,
                     rotation: 270, // vertical label
                     x: 20,         // horizontal gap from the line
-                    y: 120,        // negative value to center vertically on the line
+                    y: 200,        // negative value to center vertically on the line
                     style: { color: '#ff0000', fontWeight: 'bold' },
                     align: 'center'
                 },
@@ -549,7 +641,19 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         // Add a line from December of the previous year to the due date, and a diamond at the due date
         const extraLineSeries = [];
         const extraDiamondSeries = [];
-        Object.entries(yearDueDatesMap).forEach(([reportingYear, dueDateRaw]) => {
+        let isFirstCertificateLine = true; // Track if this is the first line for legend purposes
+        
+        Object.entries(yearDueDatesMap)
+            .filter(([reportingYear, dueDateRaw]) => {
+                // Show due lines for future years only, hide current and past years
+                const dueDate = new Date(dueDateRaw);
+                const dueYear = dueDate.getFullYear();
+                const reportingYearInt = parseInt(reportingYear);
+                // Only show due lines for future years (after the selected year)
+                // Hide due lines for current and past years
+                return reportingYearInt > selectedYearForLines;
+            })
+            .forEach(([reportingYear, dueDateRaw]) => {
             // Use previous year for December
             const prevYear = (parseInt(reportingYear, 10) - 1).toString();
             const decLabelShort = 'Dec ' + prevYear;
@@ -574,6 +678,22 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 }
             }
 
+            // If no value found for previous year, try to find any available value for future year calculations
+            if (value === null) {
+                // Look for any non-null accumulated exposure value to use as a base
+                for (let i = 0; i < accumulatedExposureMonth.length; i++) {
+                    if (accumulatedExposureMonth[i] !== null) {
+                        value = accumulatedExposureMonth[i];
+                        break;
+                    }
+                }
+                
+                // If still no value, use a default forecast value for future years
+                if (value === null) {
+                    value = 50000; // Default forecast value for future years
+                }
+            }
+
             // Find due date index
             const d = new Date(dueDateRaw);
             const dueMonthShort = d.toLocaleString('default', { month: 'short' });
@@ -590,23 +710,25 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             if (decIdx !== -1 && dueIdx !== -1 && value !== null) {
                 // Add the connecting line
                 extraLineSeries.push({
-                    name: `Accumulated Exposure to Due (${reportingYear})`,
+                    name: 'Certificate Submission Period',
                     type: 'line',
-                    color: 'rgb(135, 206, 235)', // changed to blue
-                    lineWidth: 2,
-                    dashStyle: 'Dash', // make the line dashed
+                    color: 'green', // green color
+                    lineWidth: 3,
+                    dashStyle: 'Solid', // solid line
                     marker: { enabled: false },
                     data: [
                         [decIdx, value],
                         [dueIdx, value]
                     ],
                     enableMouseTracking: false,
-                    showInLegend: false,
+                    showInLegend: isFirstCertificateLine, // Only show first line in legend
                     zIndex: 2
                 });
+                
+                isFirstCertificateLine = false; // Subsequent lines won't show in legend
                 // Add the diamond at the due date
                 extraDiamondSeries.push({
-                    name: `Due Diamond (${reportingYear})`,
+                    name: `Forecast total cost Due`,
                     type: 'scatter',
                     color: 'rgb(135, 206, 235)', // changed to blue
                     marker: {
@@ -617,7 +739,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         radius: 8
                     },
                     data: [[dueIdx, value]],
-                    enableMouseTracking: false,
+                    enableMouseTracking: true, // Enable tooltips for diamond markers
                     showInLegend: false,
                     zIndex: 3
                 });
@@ -642,29 +764,75 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 categories: categories,
                 labels: { rotation: 45, style: { fontSize: '12px' } },
                 title: { text: 'Month' },
-                plotLines: plotLines
+                plotLines: plotLines,
+                // Custom point placement for compact future year spacing
+                pointPlacement: 'on',
+                tickPositioner: function() {
+                    const currentYear = new Date().getFullYear();
+                    const positions = [];
+                    
+                    categories.forEach((category, index) => {
+                        const yearMatch = category.match(/\b(\d{4})\b/);
+                        const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
+                        
+                        if (dataYear && dataYear > currentYear) {
+                            // For future years, use compact spacing (every 2nd position)
+                            if (index % 2 === 0) {
+                                positions.push(index);
+                            }
+                        } else {
+                            // For current/past years, use normal spacing
+                            positions.push(index);
+                        }
+                    });
+                    
+                    return positions;
+                }
             },
             yAxis: {
                 min: 0,
                 title: { text: 'Financial Exposure over Time [€]' }
             },
             series: [
-                {
-                    name: 'Quarterly Financial Exposure Based on Real Data',
-                    data: actualDataMonth,
-                    color: '#003366',
-                    type: 'column',
-                    zIndex: 2
-                },
-                {
-                    name: 'Quarterly Financial Exposure Based on Forecasts',
-                    data: forecastDataMonth,
-                    color: '#87ceeb',
-                    type: 'column',
-                    borderColor: '#5fa7c6',
-                    borderWidth: 2,
-                    zIndex: 2
-                },
+                // Only show columns for current/past years, not for future years
+                ...(() => {
+                    const currentYear = new Date().getFullYear();
+                    // Filter data to only show columns for current/past years
+                    const actualDataFiltered = actualDataMonth.map((value, index) => {
+                        const category = categories[index];
+                        const yearMatch = category?.match(/\b(\d{4})\b/);
+                        const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
+                        return (dataYear && dataYear <= currentYear) ? value : null;
+                    });
+                    
+                    const forecastDataFiltered = forecastDataMonth.map((value, index) => {
+                        const category = categories[index];
+                        const yearMatch = category?.match(/\b(\d{4})\b/);
+                        const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
+                        return (dataYear && dataYear <= currentYear) ? value : null;
+                    });
+                    
+                    return [
+                        {
+                            name: 'Quarterly Financial Exposure Based on Real Data',
+                            data: actualDataFiltered,
+                            color: '#003366',
+                            type: 'column',
+                            zIndex: 2
+                        },
+                        {
+                            name: 'Quarterly Financial Exposure Based on Forecasts',
+                            data: forecastDataFiltered,
+                            color: '#87ceeb',
+                            type: 'column',
+                            borderColor: '#5fa7c6',
+                            borderWidth: 2,
+                            zIndex: 2
+                        }
+                    ];
+                })(),
+                // Accumulated exposure series - only shows in December (end of year)
+                // Data labels display the forecast total cost values for end-of-year costs
                 {
                     name: 'Accumulated Financial Exposure Based on Forecasts',
                     data: accumulatedExposureMonth,
@@ -678,38 +846,69 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         lineWidth: 2,
                         lineColor: '#87ceeb'
                     },
-                    zIndex: 1
-                },
-                {
-                    name: 'Minimum Required Account Balance',
-                    data: minRequiredActualMonth,
-                    type: 'scatter',
-                    marker: {
-                        symbol: 'diamond',
-                        fillColor: '#fff',
-                        lineColor: '#003366',
-                        lineWidth: 2,
-                        radius: 7
-                    },
-                    color: '#003366',
                     showInLegend: true,
-                    zIndex: 3
+                    zIndex: 1,
+                    dataLabels: {
+                        enabled: true,
+                        format: '€{y:,.0f}',
+                        style: {
+                            fontSize: '12px',
+                            color: 'red'
+                        },
+                        y: -10
+                    }
                 },
-                {
-                    name: 'Minimum Required Account Balance Based on Forecast',
-                    data: minRequiredForecastMonth,
-                    type: 'scatter',
-                    marker: {
-                        symbol: 'diamond',
-                        fillColor: '#fff',
-                        lineColor: '#87ceeb',
-                        lineWidth: 2,
-                        radius: 7
-                    },
-                    color: '#87ceeb',
-                    showInLegend: true,
-                    zIndex: 3
-                },
+                // Hide diamonds for future years - only show for current/past years
+                ...(() => {
+                    const currentYear = new Date().getFullYear();
+                    // Filter data to only show diamonds for current/past years
+                    const minRequiredActualFiltered = minRequiredActualMonth.map((value, index) => {
+                        const category = categories[index];
+                        const yearMatch = category?.match(/\b(\d{4})\b/);
+                        const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
+                        return (dataYear && dataYear <= currentYear) ? value : null;
+                    });
+                    
+                    const minRequiredForecastFiltered = minRequiredForecastMonth.map((value, index) => {
+                        const category = categories[index];
+                        const yearMatch = category?.match(/\b(\d{4})\b/);
+                        const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
+                        return (dataYear && dataYear <= currentYear) ? value : null;
+                    });
+                    
+                    return [
+                        {
+                            name: 'Minimum Required Account Balance',
+                            data: minRequiredActualFiltered,
+                            type: 'scatter',
+                            marker: {
+                                symbol: 'diamond',
+                                fillColor: '#fff',
+                                lineColor: '#003366',
+                                lineWidth: 2,
+                                radius: 7
+                            },
+                            color: '#003366',
+                            showInLegend: true,
+                            zIndex: 3
+                        },
+                        {
+                            name: 'Minimum Required Account Balance Based on Forecast',
+                            data: minRequiredForecastFiltered,
+                            type: 'scatter',
+                            marker: {
+                                symbol: 'diamond',
+                                fillColor: '#fff',
+                                lineColor: '#87ceeb',
+                                lineWidth: 2,
+                                radius: 7
+                            },
+                            color: '#87ceeb',
+                            showInLegend: true,
+                            zIndex: 3
+                        }
+                    ];
+                })(),
                 ...extraLineSeries,
                 ...extraDiamondSeries
             ],
@@ -721,6 +920,22 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     pointPadding: 0.1,
                     groupPadding: 0.1,
                     maxPointWidth: 40
+                },
+                // Custom point placement for future years
+                series: {
+                    pointPlacement: function(point) {
+                        const currentYear = new Date().getFullYear();
+                        const category = this.categories[point.index];
+                        const yearMatch = category?.match(/\b(\d{4})\b/);
+                        const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
+                        
+                        if (dataYear && dataYear > currentYear) {
+                            // For future years, use compact spacing
+                            return point.index * 0.5; // Reduce spacing by half
+                        }
+                        // For current/past years, use normal spacing
+                        return point.index;
+                    }
                 }
             },
             tooltip: {
@@ -772,61 +987,83 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         seriesLabel = this.series.name;
                     }
                     
-                    // Build tooltip content based on toggle selection
+                    // Build tooltip content - always show both views since toggle is removed
                     let tooltipContent = '';
                     
-                    // Get current toggle selection
-                    const selectedView = $('input[name="tooltip-view"]:checked').attr('id').replace('view-', '');
-                    
-                    switch(selectedView) {
-                        case 'cost':
-                            // Show only Amount Due
-                            tooltipContent = `<b>${this.x}</b><br/>
-                                <span style=\"color:${this.color}\">●</span> ${seriesLabel}: <b>${costDisplay}</b>`;
-                            break;
-                            
-                        case 'certificates':
-                            // Show only Required Certificates (if available)
-                            if (certText) {
-                                tooltipContent = `<b>${this.x}</b><br/>
-                                    <span style=\"color:${this.color}\">●</span> Required Certificates: <b>${certText.replace('<br/><span style=\"color:#888\">Required Certificates:</span> ', '')}</b>`;
-                            } else {
-                                // Fallback to cost if no certificates available
-                                tooltipContent = `<b>${this.x}</b><br/>
-                                    <span style=\"color:${this.color}\">●</span> ${seriesLabel}: <b>${costDisplay}</b>`;
-                            }
-                            break;
-                            
-                        case 'both':
-                        default:
-                            // Show both Amount Due and Required Certificates
-                            tooltipContent = `<b>${this.x}</b><br/>
-                                <span style=\"color:${this.color}\">●</span> ${seriesLabel}: <b>${costDisplay}</b>${certText}`;
-                            break;
-                    }
+                    // Always show both Amount Due and Required Certificates (currentTooltipView is set to 'both')
+                    tooltipContent = `
+                        <span style=\"color:${this.color}\">●</span> ${seriesLabel}: <b>${costDisplay}</b>${certText}`;
                     
                     return tooltipContent;
                 }
             },
             legend: {
                 enabled: true,
-                useHTML: true,
-                labelFormatter: function() {
-                    if (this.name === 'Quarterly Financial Exposure Based on Real Data') {
-                        return '<span style="color:#003366">●</span> ' + this.name;
-                    } else if (this.name === 'Quarterly Financial Exposure Based on Forecasts') {
-                        return '<span style="color:#87ceeb">●</span> ' + this.name;
-                    } else if (this.name === 'Accumulated Financial Exposure Based on Forecasts') {
-                        return '<span style="color:#87ceeb">---○</span> ' + this.name;
-                    } else if (this.name === 'Minimum Required Account Balance') {
-                        return '<span style="color:#003366">◆</span> ' + this.name;
-                    } else if (this.name === 'Minimum Required Account Balance Based on Forecast') {
-                        return '<span style="color:#87ceeb">◆</span> ' + this.name;
-                    }
-                    return this.name;
+                useHTML: false,
+                symbolWidth: 20,
+                symbolHeight: 12,
+                itemStyle: {
+                    fontSize: '12px'
                 }
             }
         });
+        
+        // Populate annual exposure stat cards
+        populateAnnualExposureCards(accumulatedExposureMonth, categories);
+    }
+    
+    // Function to populate annual exposure stat cards
+    function populateAnnualExposureCards(accumulatedExposureMonth, categories) {
+        const cardsContainer = $('#annual-exposure-cards');
+        cardsContainer.empty();
+        
+        // Group accumulated exposure by year
+        const yearlyExposure = {};
+        
+        categories.forEach((category, index) => {
+            const yearMatch = category.match(/\b(\d{4})\b/);
+            if (yearMatch) {
+                const year = yearMatch[1];
+                const exposureValue = accumulatedExposureMonth[index];
+                
+                if (exposureValue !== null && exposureValue !== undefined) {
+                    // Use the highest value for each year (usually December)
+                    if (!yearlyExposure[year] || exposureValue > yearlyExposure[year]) {
+                        yearlyExposure[year] = exposureValue;
+                    }
+                }
+            }
+        });
+        
+        // Create stat cards for each year
+        Object.keys(yearlyExposure)
+            .sort((a, b) => parseInt(a) - parseInt(b))
+            .forEach(year => {
+                const exposureValue = yearlyExposure[year];
+                const formattedValue = new Intl.NumberFormat('de-DE', {
+                    style: 'currency',
+                    currency: 'EUR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }).format(exposureValue);
+                
+                const cardHtml = `
+                    <div class="flex-shrink-0 me-3 mb-3" style="min-width: 160px; max-width: 200px;">
+                        <div class="frappe-card p-2 text-center" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; height: 55px;">
+                            <div class="d-flex flex-column justify-content-center h-100">
+                                <div style="font-weight: 500; font-size: 0.8em; color: #6c757d; line-height: 1; margin-bottom: 2px;">
+                                    Financial Exposure ${year} (€)
+                                </div>
+                                <div style="font-weight: 700; font-size: 1em; color: #495057; line-height: 1;">
+                                    ${formattedValue}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                cardsContainer.append(cardHtml);
+            });
     }
 
     // Loader for Highcharts

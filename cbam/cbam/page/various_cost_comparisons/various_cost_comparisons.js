@@ -261,6 +261,8 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                             <button class="btn btn-primary btn-xs clear-selections text-nowrap filter-clear-btn" id="clear-group-1">Clear All</button>
                         </div>
                     </div>
+                    
+                    
                     <div class="frappe-card mb-4" id="table-toggle-section">
                         <div class="p-2 d-flex align-items-center gap-5">
                             <span class="ms-2 small">Show Cost per tonne of Product</span>&nbsp;
@@ -277,6 +279,14 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                         </div>
                     </div>
                     
+                    <!-- Disclaimer Section -->
+                    <div class="mb-3 p-3" style="padding: 10px 0px 0px 0px !important;">
+                        <div class="alert alert-info mb-0" role="alert">
+                            <i class="fa fa-info-circle me-2"></i>
+                            <strong>Disclaimer:</strong> You can sort the list by any column and choose which entries to show for comparison.
+                        </div>
+                    </div>
+
                     <div class="frappe-card mb-4" id="table-scroll-container" style="overflow-x: auto;">
                         <div id="table-section"></div>
                     </div>
