@@ -355,6 +355,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 data: data,
                 layout: 'fixed',
                 stickyHeader: true,
+                inlineFilters: true,
                 scrollY: '500px',
                 scrollX: true,
                 className: 'frappe-datatable',
@@ -763,7 +764,30 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 categories: categories,
                 labels: { rotation: 45, style: { fontSize: '12px' } },
                 title: { text: 'Month' },
-                plotLines: plotLines
+                plotLines: plotLines,
+                // Custom point placement for compact future year spacing
+                pointPlacement: 'on',
+                tickPositioner: function() {
+                    const currentYear = new Date().getFullYear();
+                    const positions = [];
+                    
+                    categories.forEach((category, index) => {
+                        const yearMatch = category.match(/\b(\d{4})\b/);
+                        const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
+                        
+                        if (dataYear && dataYear > currentYear) {
+                            // For future years, use compact spacing (every 2nd position)
+                            if (index % 2 === 0) {
+                                positions.push(index);
+                            }
+                        } else {
+                            // For current/past years, use normal spacing
+                            positions.push(index);
+                        }
+                    });
+                    
+                    return positions;
+                }
             },
             yAxis: {
                 min: 0,
@@ -896,6 +920,22 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     pointPadding: 0.1,
                     groupPadding: 0.1,
                     maxPointWidth: 40
+                },
+                // Custom point placement for future years
+                series: {
+                    pointPlacement: function(point) {
+                        const currentYear = new Date().getFullYear();
+                        const category = this.categories[point.index];
+                        const yearMatch = category?.match(/\b(\d{4})\b/);
+                        const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
+                        
+                        if (dataYear && dataYear > currentYear) {
+                            // For future years, use compact spacing
+                            return point.index * 0.5; // Reduce spacing by half
+                        }
+                        // For current/past years, use normal spacing
+                        return point.index;
+                    }
                 }
             },
             tooltip: {
