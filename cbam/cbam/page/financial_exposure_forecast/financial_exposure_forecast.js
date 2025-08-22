@@ -619,7 +619,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             });
             
             // Use the reporting year directly in the label to avoid confusion
-            const labelText = `CBAM Certificate Due ${reportingYear - 1}: ${formatDueDate(dueDateRaw)}`;
+            const labelText = `CBAM Certificate cost  ${reportingYear - 1} due: ${formatDueDate(dueDateRaw)}`;
             return {
                 value: idx,
                 color: '#ff0000',
@@ -1011,8 +1011,8 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     <div class="flex-shrink-0 me-3 mb-3" style="min-width: 160px; max-width: 200px;">
                         <div class="frappe-card p-2 text-center" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; height: 55px;">
                             <div class="d-flex flex-column justify-content-center h-100">
-                                <div style="font-weight: 600; font-size: 0.7em; color: #6c757d; line-height: 1; margin-bottom: 2px;">
-                                    Full Financial Exposure ${year}
+                                <div style="font-weight: 500; font-size: 0.8em; color: #6c757d; line-height: 1; margin-bottom: 2px;">
+                                    Financial Exposure ${year} (€)
                                 </div>
                                 <div style="font-weight: 700; font-size: 1em; color: #495057; line-height: 1;">
                                     ${formattedValue}
