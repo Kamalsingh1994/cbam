@@ -941,15 +941,31 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             tooltip: {
                 shared: false,
                 useHTML: true,
-                formatter: function() {
+                                formatter: function() {
                     // Show content based on toggle selection
                     let cost = this.y;  // Use this.y directly
                     let certText = '';
                     let costDisplay = '';
                     
                     // Calculate certificates for ALL series if ETS price is available
-                    if (cost !== null && !isNaN(cost) && typeof this.point.index === 'number' && Array.isArray(chart_data.ets_prices)) {
-                        let ets_price = chart_data.ets_prices[this.point.index];
+                    if (cost !== null && !isNaN(cost) && Array.isArray(chart_data.ets_prices)) {
+                        let ets_price;
+                        
+                        // Special handling for Forecast total cost Due series
+                        if (this.series.name.includes('Forecast total cost Due')) {
+                            // For due line diamonds, use the first available ETS price
+                            if (chart_data.ets_prices.length > 0) {
+                                for (let i = 0; i < chart_data.ets_prices.length; i++) {
+                                    if (chart_data.ets_prices[i] && !isNaN(chart_data.ets_prices[i]) && chart_data.ets_prices[i] > 0) {
+                                        ets_price = chart_data.ets_prices[i];
+                                        break;
+                                    }
+                                }
+                            }
+                        } else if (typeof this.point.index === 'number') {
+                            // For other series, use normal index-based lookup
+                            ets_price = chart_data.ets_prices[this.point.index];
+                        }
                         
                         // Frontend fallback: if index is beyond array length, use last available price
                         if (ets_price === undefined && chart_data.ets_prices.length > 0) {
@@ -962,8 +978,10 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                             
                             // Validate certificate calculation result
                             if (!isNaN(certificates) && isFinite(certificates) && certificates >= 0) {
-                                // Only show certificates for diamond/overlay series
-                                if (this.series.name.includes('ETS Certificates') || this.series.name.includes('Minimum Required Account Balance')) {
+                                // Show certificates for diamond/overlay series and forecast total cost due
+                                if (this.series.name.includes('ETS Certificates') || 
+                                    this.series.name.includes('Minimum Required Account Balance') ||
+                                    this.series.name.includes('Forecast total cost Due')) {
                                     certText = `<br/><span style=\"color:#888\">Required Certificates:</span> <b>${certificates.toLocaleString(undefined, {maximumFractionDigits: 2})}</b>`;
                                 }
                             }
@@ -979,8 +997,10 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     
                     // Show different labels based on series type
                     let seriesLabel = '';
-                    if (this.series.name.includes('ETS Certificates') || this.series.name.includes('Minimum Required Account Balance')) {
-                        // For diamond/overlay series, show "Amount Due"
+                    if (this.series.name.includes('ETS Certificates') || 
+                        this.series.name.includes('Minimum Required Account Balance') ||
+                        this.series.name.includes('Forecast total cost Due')) {
+                        // For diamond/overlay series and forecast total cost due, show "Amount Due"
                         seriesLabel = 'Amount Due';
                     } else {
                         // For main bars, show the original series name
