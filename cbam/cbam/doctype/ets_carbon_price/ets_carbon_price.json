@@ -11,6 +11,7 @@
   "ets_price_type",
   "carbon_price_source",
   "price",
+  "import_source",
   "column_break_moht",
   "price_date",
   "creation_date",
@@ -28,10 +29,11 @@
    "label": "ETS Carbon Price [\u20ac/tCO2]"
   },
   {
+   "default": "Spot Price",
    "fieldname": "ets_price_type",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "ETS price Type",
+   "label": "ETS Price Type",
    "options": "\nSpot Price\nFuture (Dec)",
    "set_only_once": 1
   },
@@ -51,6 +53,7 @@
    "set_only_once": 1
   },
   {
+   "default": "EU Commission",
    "fieldname": "carbon_price_source",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -68,7 +71,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.ets_price_type == \"Future\"",
    "fieldname": "price_year",
    "fieldtype": "Link",
    "label": "Price Year",
@@ -88,12 +90,18 @@
    "fieldname": "low",
    "fieldtype": "Currency",
    "label": "Low"
+  },
+  {
+   "fieldname": "import_source",
+   "fieldtype": "Data",
+   "label": "Import Source",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-19 13:32:44.461538",
+ "modified": "2025-08-27 18:30:23.352794",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "ETS Carbon Price",

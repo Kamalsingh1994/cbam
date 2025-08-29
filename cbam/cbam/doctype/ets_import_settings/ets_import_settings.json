@@ -1,0 +1,155 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-01-27 10:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "test_section",
+  "source_type",
+  "google_private_key",
+  "file_pattern",
+  "column_break_eppu",
+  "status",
+  "import_frequency",
+  "next_import",
+  "last_import",
+  "google_drive_folder_id",
+  "google_service_account_email",
+  "auto_import",
+  "date_filter_strategy",
+  "column_mapping_section",
+  "excel_column_mapping"
+ ],
+ "fields": [
+  {
+   "default": "Google Drive",
+   "fieldname": "source_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Source Type",
+   "options": "Google Drive\nFTP\nAPI",
+   "reqd": 1
+  },
+  {
+   "description": "ID of the shared Google Drive folder containing ETS price files",
+   "fieldname": "google_drive_folder_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Google Drive Folder ID",
+   "reqd": 1
+  },
+  {
+   "default": "ETS Prices.xlsx",
+   "description": "Pattern to match Excel files (e.g., ETS Price.xlsx)",
+   "fieldname": "file_pattern",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "File Pattern",
+   "reqd": 1
+  },
+  {
+   "description": "Google service account email address",
+   "fieldname": "google_service_account_email",
+   "fieldtype": "Data",
+   "label": "Service Account Email",
+   "reqd": 1
+  },
+  {
+   "description": "Private key from Google service account JSON file (will be encrypted)",
+   "fieldname": "google_private_key",
+   "fieldtype": "Long Text",
+   "label": "Private Key",
+   "reqd": 1
+  },
+  {
+   "default": "Daily",
+   "fieldname": "import_frequency",
+   "fieldtype": "Select",
+   "label": "Import Frequency",
+   "options": "Daily",
+   "reqd": 1
+  },
+  {
+   "fieldname": "last_import",
+   "fieldtype": "Datetime",
+   "label": "Last Import",
+   "read_only": 1
+  },
+  {
+   "fieldname": "next_import",
+   "fieldtype": "Datetime",
+   "label": "Next Import",
+   "read_only": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "auto_import",
+   "fieldtype": "Check",
+   "label": "Enable Auto Import"
+  },
+  {
+   "default": "Today Only",
+   "description": "Strategy for filtering records by date during import",
+   "fieldname": "date_filter_strategy",
+   "fieldtype": "Select",
+   "label": "Date Filter Strategy",
+   "options": "Today Only",
+   "reqd": 1
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Active\nInactive"
+  },
+  {
+   "fieldname": "column_mapping_section",
+   "fieldtype": "Section Break",
+   "label": "Excel Column Mapping"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "description": "Map Excel columns to data types for import",
+   "fieldname": "excel_column_mapping",
+   "fieldtype": "Table",
+   "label": "Column Mappings",
+   "options": "Excel Column Mapping"
+  },
+  {
+   "fieldname": "column_break_eppu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "test_section",
+   "fieldtype": "Section Break",
+   "label": "Testing & Actions"
+  }
+ ],
+ "links": [],
+ "modified": "2025-08-27 16:38:36.556578",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "ETS Import Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

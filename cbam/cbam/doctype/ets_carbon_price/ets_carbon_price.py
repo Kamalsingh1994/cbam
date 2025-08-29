@@ -12,11 +12,11 @@ class ETSCarbonPrice(Document):
 	
 	def autoname(self):
 		if not self.ets_price_type:
-			frappe.throw("ETS Price Type (Actual or Prediction or Future) is required.")
+			frappe.throw("ETS Price Type (Spot Price or Future (Dec)) is required.")
 
-		if self.ets_price_type == "Future (Dec)":
-			if not self.price_year:
-				frappe.throw("ETS Carbon Price Year is required for Future (Dec) type.")
+		# if self.ets_price_type == "Future (Dec)":
+		# 	if not self.price_year:
+		# 		frappe.throw("ETS Carbon Price Year is required for Future (Dec) type.")
 
 			# Use Frappe's counter mechanism with date series
 			price_date_str = formatdate(self.price_date, "yyyy-MM-dd")
