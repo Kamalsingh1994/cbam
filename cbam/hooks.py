@@ -182,11 +182,11 @@ scheduler_events = {
     "cron": {
         "0 21 * * *": [
             "cbam.utils.notification.generate_alerts"
-        ],
-        "0 * * * *": [
-            "cbam.utils.ets_import.scheduled_import.scheduled_ets_import"
         ]
-    }
+    },
+    "daily":[
+        "cbam.utils.ets_import.scheduled_import.scheduled_ets_import"
+    ]
 }
 
 # Testing

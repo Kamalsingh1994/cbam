@@ -60,7 +60,7 @@ def scheduled_ets_import():
                     pass
                 continue
         
-        frappe.logger().info(f"Scheduled ETS import completed for {processed_count} settings")
+        frappe.log_error(f"Scheduled ETS import completed for {processed_count} settings")
         
     except Exception as e:
         frappe.log_error(f"Scheduled ETS import failed: {str(e)}")

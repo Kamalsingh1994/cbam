@@ -109,7 +109,7 @@ class ETSImportProcessor:
             raise Exception(f"Failed to read Excel file {filename}: {str(e)}")
     
     def _validate_excel_structure(self, df):
-        """Validate Excel file structure for ETS prices with flexible column matching"""
+        """Validate Excel file structure for ETS prices with optimized column matching"""
         try:
             # Get column mappings from settings
             mapped_columns = self._get_column_mappings()
@@ -118,35 +118,37 @@ class ETSImportProcessor:
             if not mapped_columns:
                 raise Exception("No column mappings found. Please configure column mappings in the child table.")
             
-            # Clean column names (remove trailing spaces and normalize)
+            # Clean column names (remove trailing spaces and normalize) - vectorized operation
             df.columns = df.columns.str.strip()
             
-            # Check if mapped columns exist in Excel (with flexible matching)
+            # Build optimized lookup dictionaries for O(1) column matching
+            excel_cols_lower = {col.lower(): col for col in df.columns}
+            excel_cols_stripped = {col.strip(): col for col in df.columns}
+            
+            # Check if mapped columns exist in Excel (with optimized matching)
             missing_columns = []
             column_mapping = {}  # Map configured names to actual Excel names
             
             for mapped_col in mapped_columns:
                 mapped_col_clean = mapped_col.strip()
                 
-                # Try exact match first
+                # Try exact match first (O(1))
                 if mapped_col_clean in df.columns:
                     column_mapping[mapped_col] = mapped_col_clean
                     continue
                 
-                # Try case-insensitive match
-                excel_cols_lower = [col.lower() for col in df.columns]
+                # Try case-insensitive match (O(1))
                 if mapped_col_clean.lower() in excel_cols_lower:
-                    actual_col = df.columns[excel_cols_lower.index(mapped_col_clean.lower())]
-                    column_mapping[mapped_col] = actual_col
+                    column_mapping[mapped_col] = excel_cols_lower[mapped_col_clean.lower()]
                     continue
                 
-                # Try partial match (handle trailing spaces, etc.)
-                for excel_col in df.columns:
-                    if excel_col.strip() == mapped_col_clean:
-                        column_mapping[mapped_col] = excel_col
-                        break
-                else:
-                    missing_columns.append(mapped_col)
+                # Try stripped match (O(1))
+                if mapped_col_clean in excel_cols_stripped:
+                    column_mapping[mapped_col] = excel_cols_stripped[mapped_col_clean]
+                    continue
+                
+                # If no match found, add to missing columns
+                missing_columns.append(mapped_col)
             
             if missing_columns:
                 # Show available columns for debugging
@@ -188,7 +190,7 @@ class ETSImportProcessor:
             if not price_column:
                 raise Exception("No price column found in mappings. Please map a column containing price data.")
             
-            # Validate price column data type
+            # Validate price column data type - vectorized operation
             try:
                 df[price_column] = pd.to_numeric(df[price_column], errors='coerce')
                 # Remove rows with invalid prices
@@ -224,152 +226,75 @@ class ETSImportProcessor:
             
         except Exception as e:
             return []
-    
-
-    
     def _process_ets_data(self, df, filename):
-        """Process and import ETS price data"""
+        """Process and import ETS price data with optimized column mapping"""
         try:
             imported_count = 0
-            mapped_columns = self._get_column_mappings()
             
-            # Check if we have any mapped columns
-            if not mapped_columns:
-                raise Exception("No column mappings found. Please configure column mappings in the child table.")
+            # Use the pre-built column mapping from validation
+            if not hasattr(self, 'column_mapping') or not self.column_mapping:
+                raise Exception("Column mapping not found. Please validate Excel structure first.")
             
-            # Find the price column (required for ETS import) using actual Excel column name
+            # Get the price column from the pre-built mapping
             price_column = None
-            for col_name in mapped_columns:
-                if col_name.lower() in ['price', 'cost', 'rate', 'value', 'amount', 'closing']:
-                    # Find the actual Excel column name
-                    for excel_col in df.columns:
-                        if excel_col.strip() == col_name.strip():
-                            price_column = excel_col
-                            break
-                    if price_column:
-                        break
+            for mapped_col, actual_col in self.column_mapping.items():
+                if mapped_col.lower() in ['price', 'cost', 'rate', 'value', 'amount', 'closing']:
+                    price_column = actual_col
+                    break
             
             if not price_column:
                 raise Exception("No price column found in mappings. Please map a column containing price data.")
             
-            frappe.log_error("price_column", price_column)
-            frappe.log_error("total_rows", len(df))
-            frappe.log_error("mapped_columns", str(mapped_columns))
-            frappe.log_error("excel_columns", str(list(df.columns)))
+            # Log once at start instead of per row
+            frappe.log_error("process_start", f"Processing {len(df)} rows with price column: {price_column}")
+            
+            # Pre-build field mappings for O(1) lookup
+            field_mappings = self._build_field_mappings()
             
             # Initialize list to store successful rows
             successful_rows = []
             
-            # Process each row
+            # Process each row with optimized column lookup
             for index, row in df.iterrows():
                 try:
-                    frappe.log_error(f"row_{index}_start", "Processing row")
-                    
-                    # Get price value (required) using actual Excel column name
+                    # Get price value (required)
                     price_value = row[price_column]
-                    frappe.log_error(f"row_{index}_price", str(price_value))
                     
                     # Skip if price is invalid
                     if pd.isna(price_value) or price_value <= 0:
-                        frappe.log_error(f"row_{index}_skipped", "Invalid price")
                         continue
                     
-                    # Extract date value if available using actual Excel column names
-                    date_value = None
-                    for col_name in mapped_columns:
-                        if col_name.lower() in ['date', 'time', 'period', 'year', 'month', 'day'] or 'date' in col_name.lower():
-                            # Find the actual Excel column name
-                            actual_col = None
-                            for excel_col in df.columns:
-                                if excel_col.strip() == col_name.strip():
-                                    actual_col = excel_col
-                                    break
-                            
-                            if actual_col and pd.notna(row[actual_col]):
-                                date_value = row[actual_col]
-                                break
+                    # Extract values using pre-built mappings (O(1) lookup)
+                    extracted_values = self._extract_row_values(row, field_mappings)
                     
                     # Use today's date if no date found
-                    if not date_value or pd.isna(date_value):
-                        date_value = frappe.utils.today()
+                    if not extracted_values['date_value'] or pd.isna(extracted_values['date_value']):
+                        extracted_values['date_value'] = frappe.utils.today()
                     
-                    # Convert date format if it's a string in DD.MM.YYYY format
-                    if isinstance(date_value, str) and '.' in str(date_value):
-                        try:
-                            # Parse German date format DD.MM.YYYY
-                            from datetime import datetime
-                            parsed_date = datetime.strptime(str(date_value), '%d.%m.%Y')
-                            date_value = parsed_date
-                            frappe.log_error("date_converted", f"Converted {str(date_value)} to {parsed_date}")
-                        except Exception as e:
-                            frappe.log_error("date_conversion_error", f"Failed to convert date {str(date_value)}: {str(e)}")
-                            # Keep original value if conversion fails
-                            pass
+                    # Convert date format if needed
+                    extracted_values['date_value'] = self._convert_date_format(extracted_values['date_value'])
                     
-                    # Extract all mapped column values for ETS record
-                    volume_value = None
-                    high_value = None
-                    low_value = None
-                    ets_price_type_value = None
-                    price_year_value = None
-                    
-                    for col_name in mapped_columns:
-                        if col_name != price_column:
-                            # Find the actual Excel column name
-                            actual_col = None
-                            for excel_col in df.columns:
-                                if excel_col.strip() == col_name.strip():
-                                    actual_col = excel_col
-                                    break
-                            
-                            if actual_col and pd.notna(row[actual_col]):
-                                col_value = row[actual_col]
-                                
-                                # Map to specific fields based on column names
-                                if 'volume' in col_name.lower():
-                                    volume_value = col_value
-                                elif 'high' in col_name.lower():
-                                    high_value = col_value
-                                elif 'low' in col_name.lower():
-                                    low_value = col_value
-                                elif 'type' in col_name.lower():
-                                    ets_price_type_value = col_value
-                                elif 'year' in col_name.lower():
-                                    price_year_value = col_value
-                    
-                    # Create source description from all mapped columns
-                    source_parts = []
-                    for col_name in mapped_columns:
-                        if col_name != price_column:
-                            # Find the actual Excel column name
-                            actual_col = None
-                            for excel_col in df.columns:
-                                if excel_col.strip() == col_name.strip():
-                                    actual_col = excel_col
-                                    break
-                            
-                            if actual_col and pd.notna(row[actual_col]):
-                                source_parts.append(f"{col_name}: {row[actual_col]}")
-                    
-                    source_value = " | ".join(source_parts) if source_parts else f"Imported from {filename}"
+                    # Create source description efficiently
+                    source_value = self._create_source_description(row, field_mappings, filename)
                     
                     # Check if record already exists before creating
                     existing_record = self._check_existing_record(
-                        date_value, price_value, source_value,
-                        volume_value, high_value, low_value, 
-                        ets_price_type_value, price_year_value
+                        extracted_values['date_value'], price_value, source_value,
+                        extracted_values['volume_value'], extracted_values['high_value'], 
+                        extracted_values['low_value'], extracted_values['ets_price_type_value'], 
+                        extracted_values['price_year_value']
                     )
                     
                     if existing_record:
-                        frappe.log_error(f"row_{index}_duplicate", f"Record already exists: {existing_record}")
                         continue
                     
                     # Create ETS record with all extracted values
-                    frappe.log_error(f"row_{index}_creating", "Creating ETS record")
-                    frappe.log_error(f"row_{index}_values", f"Date: {date_value}, Price: {price_value}, Volume: {volume_value}, High: {high_value}, Low: {low_value}, Type: {ets_price_type_value}, Year: {price_year_value}")
-                    
-                    self._create_ets_record(date_value, price_value, None, source_value, filename, 
-                                         volume_value, high_value, low_value, ets_price_type_value, price_year_value)
+                    self._create_ets_record(
+                        extracted_values['date_value'], price_value, None, source_value, filename,
+                        extracted_values['volume_value'], extracted_values['high_value'], 
+                        extracted_values['low_value'], extracted_values['ets_price_type_value'], 
+                        extracted_values['price_year_value']
+                    )
                     imported_count += 1
                     
                     # Add this row to successful rows for logging
@@ -377,23 +302,23 @@ class ETSImportProcessor:
                         'index': index,
                         'row_data': row.to_dict(),
                         'processed_values': {
-                            'date': date_value,
+                            'date': extracted_values['date_value'],
                             'price': price_value,
-                            'volume': volume_value,
-                            'high': high_value,
-                            'low': low_value,
-                            'type': ets_price_type_value,
-                            'year': price_year_value
+                            'volume': extracted_values['volume_value'],
+                            'high': extracted_values['high_value'],
+                            'low': extracted_values['low_value'],
+                            'type': extracted_values['ets_price_type_value'],
+                            'year': extracted_values['price_year_value']
                         }
                     })
                     
-                    frappe.log_error(f"row_{index}_success", "Record created successfully")
-                    
                 except Exception as e:
+                    # Only log errors, not every step
                     frappe.log_error(f"row_{index}_error", str(e))
-                    frappe.log_error(f"row_{index}_error_traceback", str(e))
                     continue
             
+            # Log once at end
+            frappe.log_error("process_complete", f"Successfully imported {imported_count} records")
             return imported_count, successful_rows
             
         except Exception as e:
@@ -402,12 +327,9 @@ class ETSImportProcessor:
 
     
     def _check_existing_record(self, date_value, price_value, source_value, volume_value=None, high_value=None, low_value=None, ets_price_type_value=None, price_year_value=None):
-        """Check if ETS price record already exists with more comprehensive duplicate detection"""
+        """Check if ETS price record already exists with optimized duplicate detection"""
         try:
-            frappe.log_error("duplicate_check_start", f"Price: {price_value}, Date: {date_value}, Volume: {volume_value}, Type: {ets_price_type_value}")
-            
             # Build filter conditions for duplicate detection
-            # Use more fields to make duplicate detection more accurate
             filters = {}
             
             # Always check by price (this is the main identifier)
@@ -421,32 +343,24 @@ class ETSImportProcessor:
                     else:
                         date_str = str(date_value)
                     filters["price_date"] = date_str
-                    frappe.log_error("duplicate_check_date", date_str)
                 except Exception as e:
-                    frappe.log_error("duplicate_check_date_error", str(e))
                     # If date conversion fails, skip date filter
                     pass
             
-            # Add volume filter if available (helps distinguish between different market conditions)
+            # Add volume filter if available
             if volume_value and pd.notna(volume_value):
                 filters["volume"] = float(volume_value)
-                frappe.log_error("duplicate_check_volume", str(volume_value))
             
-            # Add ETS price type filter if available (different types can have same price)
+            # Add ETS price type filter if available
             if ets_price_type_value and pd.notna(ets_price_type_value):
                 filters["ets_price_type"] = str(ets_price_type_value)
-                frappe.log_error("duplicate_check_type", str(ets_price_type_value))
             
-            # Add price year filter if available (different years can have same price)
+            # Add price year filter if available
             if price_year_value and pd.notna(price_year_value):
                 filters["price_year"] = int(price_year_value)
-                frappe.log_error("duplicate_check_year", str(price_year_value))
-            
-            frappe.log_error("duplicate_check_filters", str(filters))
             
             # Check if record exists with these filters
             existing = frappe.db.exists("ETS Carbon Price", filters)
-            frappe.log_error("duplicate_check_result", existing or "No duplicate found")
             
             return existing
             
@@ -456,18 +370,14 @@ class ETSImportProcessor:
     
     def _create_ets_record(self, date_value, price_value, currency_value, source_value, filename, 
                           volume_value=None, high_value=None, low_value=None, ets_price_type_value=None, price_year_value=None):
-        """Create new ETS Carbon Price record"""
+        """Create new ETS Carbon Price record with minimal logging"""
         try:
-            frappe.log_error("create_record_start", f"Creating ETS record with price: {price_value}")
-            
             # Create new record
             ets_doc_data = {
                 "doctype": "ETS Carbon Price",
                 "price": float(price_value),
                 "import_source": f"Google Drive: {filename}"
             }
-            
-            frappe.log_error("create_record_basic", str(ets_doc_data))
             
             # Add date if available
             if date_value and pd.notna(date_value):
@@ -477,9 +387,8 @@ class ETSImportProcessor:
                     else:
                         date_str = str(date_value)
                     ets_doc_data["price_date"] = date_str
-                    frappe.log_error("create_record_date", date_str)
                 except Exception as e:
-                    frappe.log_error("create_record_date_error", str(e))
+                    # If date conversion fails, skip date field
                     pass
             
             # Skip carbon_price_source - it will be set to default value
@@ -487,39 +396,29 @@ class ETSImportProcessor:
             # Add volume if available
             if volume_value and pd.notna(volume_value):
                 ets_doc_data["volume"] = float(volume_value)
-                frappe.log_error("create_record_volume", str(volume_value))
             
             # Add high if available
             if high_value and pd.notna(high_value):
                 ets_doc_data["high"] = float(high_value)
-                frappe.log_error("create_record_high", str(high_value))
             
             # Add low if available
             if low_value and pd.notna(low_value):
                 ets_doc_data["low"] = float(low_value)
-                frappe.log_error("create_record_low", str(low_value))
             
             # Add ETS price type if available
             if ets_price_type_value and pd.notna(ets_price_type_value):
                 ets_doc_data["ets_price_type"] = str(ets_price_type_value)
-                frappe.log_error("create_record_type", str(ets_price_type_value))
             
             # Add price year if available (required for Future types)
             if price_year_value and pd.notna(price_year_value):
                 ets_doc_data["price_year"] = int(price_year_value)
-                frappe.log_error("create_record_year", str(price_year_value))
             
-            frappe.log_error("create_record_final_data", str(ets_doc_data))
-            
+            # Create and insert document
             ets_doc = frappe.get_doc(ets_doc_data)
-            frappe.log_error("create_record_doc_created", "Document object created")
-            
             ets_doc.insert(ignore_permissions=True)
-            frappe.log_error("create_record_inserted", "Record inserted successfully")
             
         except Exception as e:
             frappe.log_error("create_record_error", str(e))
-            frappe.log_error("create_record_error_traceback", str(e))
             raise e
     
     def _update_ets_record(self, existing_id, price_value, currency_value, source_value, filename):
@@ -739,6 +638,118 @@ class ETSImportProcessor:
             frappe.log_error("store_method_error_traceback", str(e))
             raise e
     
+    def _build_field_mappings(self):
+        """Build optimized field mappings for O(1) lookup"""
+        field_mappings = {
+            'date': [],
+            'volume': [],
+            'high': [],
+            'low': [],
+            'type': [],
+            'year': []
+        }
+        
+        # Map each column to its appropriate field type
+        for mapped_col, actual_col in self.column_mapping.items():
+            col_lower = mapped_col.lower()
+            
+            if any(keyword in col_lower for keyword in ['date', 'time', 'period', 'year', 'month', 'day']) or 'date' in col_lower:
+                field_mappings['date'].append(actual_col)
+            elif 'volume' in col_lower:
+                field_mappings['volume'].append(actual_col)
+            elif 'high' in col_lower:
+                field_mappings['high'].append(actual_col)
+            elif 'low' in col_lower:
+                field_mappings['low'].append(actual_col)
+            elif 'type' in col_lower:
+                field_mappings['type'].append(actual_col)
+            elif 'year' in col_lower:
+                field_mappings['year'].append(actual_col)
+        
+        return field_mappings
+    
+    def _extract_row_values(self, row, field_mappings):
+        """Extract all field values from a row using pre-built mappings"""
+        extracted = {
+            'date_value': None,
+            'volume_value': None,
+            'high_value': None,
+            'low_value': None,
+            'ets_price_type_value': None,
+            'price_year_value': None
+        }
+        
+        # Extract date value
+        for col in field_mappings['date']:
+            if pd.notna(row[col]):
+                extracted['date_value'] = row[col]
+                break
+        
+        # Extract volume value
+        for col in field_mappings['volume']:
+            if pd.notna(row[col]):
+                extracted['volume_value'] = row[col]
+                break
+        
+        # Extract high value
+        for col in field_mappings['high']:
+            if pd.notna(row[col]):
+                extracted['high_value'] = row[col]
+                break
+        
+        # Extract low value
+        for col in field_mappings['low']:
+            if pd.notna(row[col]):
+                extracted['low_value'] = row[col]
+                break
+        
+        # Extract type value
+        for col in field_mappings['type']:
+            if pd.notna(row[col]):
+                extracted['ets_price_type_value'] = row[col]
+                break
+        
+        # Extract year value
+        for col in field_mappings['year']:
+            if pd.notna(row[col]):
+                extracted['price_year_value'] = row[col]
+                break
+        
+        return extracted
+    
+    def _convert_date_format(self, date_value):
+        """Convert date format if it's a string in DD.MM.YYYY format"""
+        if isinstance(date_value, str) and '.' in str(date_value):
+            try:
+                from datetime import datetime
+                parsed_date = datetime.strptime(str(date_value), '%d.%m.%Y')
+                return parsed_date
+            except Exception as e:
+                frappe.log_error("date_conversion_error", f"Failed to convert date {str(date_value)}: {str(e)}")
+                # Keep original value if conversion fails
+                return date_value
+        return date_value
+    
+    def _create_source_description(self, row, field_mappings, filename):
+        """Create source description efficiently using pre-built mappings"""
+        source_parts = []
+        
+        # Add all non-price fields to source description
+        for field_type, columns in field_mappings.items():
+            for col in columns:
+                if pd.notna(row[col]):
+                    # Get the original mapped column name for display
+                    mapped_name = None
+                    for mapped_col, actual_col in self.column_mapping.items():
+                        if actual_col == col:
+                            mapped_name = mapped_col
+                            break
+                    
+                    if mapped_name:
+                        source_parts.append(f"{mapped_name}: {row[col]}")
+        
+        return " | ".join(source_parts) if source_parts else f"Imported from {filename}"
+    
     def _debug_column_mapping(self, df, mapped_columns):
         """Debug column mapping issues"""
         try:
@@ -746,7 +757,7 @@ class ETSImportProcessor:
                 "mapped_columns": mapped_columns,
                 "excel_columns": list(df.columns),
                 "excel_columns_stripped": [col.strip() for col in df.columns],
-                "mapped_columns_stripped": [col.strip() for col in mapped_columns]
+                "excel_columns_stripped": [col.strip() for col in mapped_columns]
             }
             
             frappe.log_error(f"Column mapping debug info: {debug_info}")

@@ -25,6 +25,30 @@ class ETSImportSettings(Document):
         if not self.google_private_key:
             frappe.throw(_("Private Key is required for Google Drive source type"))
     
+    def log_import_result(self, result, import_type="Scheduled"):
+        """Log import result for audit purposes"""
+        try:
+            # Create import log entry
+            import_log = frappe.get_doc({
+                "doctype": "ETS Import Log",
+                "import_date": frappe.utils.now(),
+                "source_file": result.get("file", "Scheduled Import"),
+                "status": result.get("status", "Unknown"),
+                "imported_by": "System",
+                "import_type": import_type,
+                "google_drive_file_id": result.get("file_id", ""),
+                "records_imported": result.get("records", 0),
+                "error_message": result.get("error", "")
+            })
+            import_log.insert(ignore_permissions=True)
+            
+            # Update last import time
+            self.last_import = frappe.utils.now()
+            self.save(ignore_permissions=True)
+            
+        except Exception as e:
+            frappe.log_error(f"Failed to log import result: {str(e)}")
+    
 
 
 @frappe.whitelist()
