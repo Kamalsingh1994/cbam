@@ -1,0 +1,44 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-01-01 00:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "column_name",
+  "data_type"
+ ],
+ "fields": [
+  {
+   "description": "Name of the column as it appears in Excel file",
+   "fieldname": "column_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Excel Column Name",
+   "reqd": 1
+  },
+  {
+   "description": "Data type of this column for proper validation",
+   "fieldname": "data_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Data Type",
+   "options": "Text\nNumber\nDate\nCurrency",
+   "default": "Text"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2025-08-27 08:28:56.461261",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "Excel Column Mapping",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

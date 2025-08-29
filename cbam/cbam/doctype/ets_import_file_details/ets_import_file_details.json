@@ -1,0 +1,90 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-01-01 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "row_index",
+  "price_date",
+  "price_year",
+  "ets_price_type",
+  "price",
+  "volume",
+  "high",
+  "low",
+  "processing_status"
+ ],
+ "fields": [
+  {
+   "description": "Row number from Excel file",
+   "fieldname": "row_index",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Row Index"
+  },
+  {
+   "description": "ETS price value from Excel row",
+   "fieldname": "price",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Price"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "processing_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Processing Status",
+   "options": "Pending\nProcessing\nCompleted\nFailed\nSkipped"
+  },
+  {
+   "fieldname": "price_year",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Price Year"
+  },
+  {
+   "fieldname": "ets_price_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "ETS Price Type"
+  },
+  {
+   "fieldname": "volume",
+   "fieldtype": "Float",
+   "label": "Volume"
+  },
+  {
+   "fieldname": "high",
+   "fieldtype": "Float",
+   "label": "High"
+  },
+  {
+   "fieldname": "low",
+   "fieldtype": "Float",
+   "label": "Low"
+  },
+  {
+   "description": "Date from Excel row",
+   "fieldname": "price_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Price Date"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2025-08-27 13:23:43.080429",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "ETS Import File Details",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_views": 1
+}
