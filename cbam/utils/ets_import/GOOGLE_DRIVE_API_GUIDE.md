@@ -5,7 +5,7 @@
 - Python 3.7+ installed
 - Basic understanding of APIs
 
----
+--- 
 
 ## 🔑 **Step 1: Create Google Cloud Project**
 

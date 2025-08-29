@@ -17,7 +17,6 @@
   "google_drive_folder_id",
   "google_service_account_email",
   "auto_import",
-  "date_filter_strategy",
   "column_mapping_section",
   "excel_column_mapping"
  ],
@@ -89,15 +88,6 @@
    "label": "Enable Auto Import"
   },
   {
-   "default": "Today Only",
-   "description": "Strategy for filtering records by date during import",
-   "fieldname": "date_filter_strategy",
-   "fieldtype": "Select",
-   "label": "Date Filter Strategy",
-   "options": "Today Only",
-   "reqd": 1
-  },
-  {
    "default": "Active",
    "fieldname": "status",
    "fieldtype": "Select",
@@ -128,7 +118,7 @@
   }
  ],
  "links": [],
- "modified": "2025-08-27 16:38:36.556578",
+ "modified": "2025-08-29 10:50:54.520067",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "ETS Import Settings",
