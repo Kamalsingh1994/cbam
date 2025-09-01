@@ -132,8 +132,10 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             let filters_list = [];
             
             // Add year filter if year is selected
+            // Adjust year filter logic to include past years if needed
             if (selectedYear) {
-                filters_list.push(['from_date', '>=', `${selectedYear}-01-01`]);
+                const pastYear = parseInt(selectedYear) - 1;
+                filters_list.push(['from_date', '>=', `${pastYear}-01-01`]);
                 filters_list.push(['to_date', '<=', `${selectedYear}-12-31`]);
             }
             
@@ -177,6 +179,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     args: { year: selectedYear },
                     callback: function(r) {
                         if (r.message && r.message.length > 0) {
+                            console.log('DEBUG: r.message:', r.message);
                             // Set all CBAM reports for the selected year
                             filters.cbam_report.set_value(r.message);
                             // Reload table and chart
