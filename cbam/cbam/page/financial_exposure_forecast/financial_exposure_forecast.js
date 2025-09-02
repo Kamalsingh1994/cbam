@@ -179,7 +179,6 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     args: { year: selectedYear },
                     callback: function(r) {
                         if (r.message && r.message.length > 0) {
-                            console.log('DEBUG: r.message:', r.message);
                             // Set all CBAM reports for the selected year
                             filters.cbam_report.set_value(r.message);
                             // Reload table and chart
@@ -212,8 +211,6 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             page_length = 50;
             load_report_table(true);
         };
-
-
         return filters;
     }
 
@@ -516,9 +513,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         const minRequiredActualMonth = mapDataToMonths(minRequiredActual, categories, chart_data.categories || []);
         const minRequiredForecastMonth = mapDataToMonths(minRequiredForecast, categories, chart_data.categories || []);
         const accumulatedExposureBasicMonth = mapDataToMonths(accumulatedExposureBasic, categories, chart_data.categories || []);
-        
 
-        
         // Now filter accumulated exposure to only show in December months (end of year)
         // This creates a clean chart that shows yearly progression at key milestones
         const accumulatedExposureMonth = [];

@@ -51,9 +51,6 @@ def extract_numeric_value(value):
     return 0.0
 
 def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
-    print(f"DEBUG: fetch_cbam_report_rows called with {len(cbam_reports)} reports")
-    print(f"DEBUG: from_year: {from_year}, to_year: {to_year}")
-    
     base_rows = []
     uploaded_quarters = set()
     years_with_reports = set()
@@ -62,7 +59,6 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
     bench_mark_cache = {}
     standard_emission_value_cache = {}
     for report in cbam_reports:
-        print(f"DEBUG: Processing report: {report}")
         parent = frappe.get_doc("CBAM Report", report)
         report_year = get_year_from_creation(parent.creation)
         quarter = get_quarter_from_dates(parent.from_date, parent.to_date)
@@ -80,14 +76,9 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
         else:
             quarter_year = report_year
             
-        print(f"DEBUG: Report {report}: quarter_year={quarter_year}, quarter={quarter}, from_date={parent.from_date}, to_date={parent.to_date}")
-        
         if quarter and quarter_year:
             uploaded_quarters.add((quarter_year, quarter))
             years_with_reports.add(quarter_year)
-            print(f"DEBUG: Added quarter {quarter} for year {quarter_year}")
-        else:
-            print(f"DEBUG: Skipping report {report} - no valid quarter or year")
         for row in parent.get('cbam_report_data') or []:
             if row.external_good:
                 eg = frappe.get_doc("External Good", row.external_good)
@@ -109,14 +100,10 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
                     year = int(latest_ets.price_year)
                     # Use quarter_year for filtering instead of ETS price year to get actual report data
                     report_year = quarter_year
-                    print(f"DEBUG: Checking filter: report_year={report_year}, from_year={from_year}, to_year={to_year}")
                     if (from_year and report_year < from_year) or (to_year and report_year > to_year):
-                        print(f"DEBUG: Filtered out report_year {report_year} - outside range")
                         continue
-                    print(f"DEBUG: Report year {report_year} passed filter")
                     ets_price = extract_numeric_value(latest_ets.price)
                 else:
-                    print(f"DEBUG: No ETS price found for quarter_year {quarter_year}")
                     continue
                 # Use quarter_year (report year) for all lookups to ensure consistency
                 report_year = quarter_year
@@ -370,7 +357,6 @@ def build_chart_data(data, year_totals, current_year, uploaded_quarters, year_du
 
     # Ensure year_due_dates is always populated
     year_due_dates = extend_year_due_dates_with_future_years(year_due_dates, current_year)
-    print("DEBUG: year_due_dates before return:", year_due_dates)
 
     chart_data = {
         "categories": chart_categories,
@@ -404,14 +390,7 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, year=None, 
         
     to_year = int(to_year) if to_year else None
     columns = get_columns()
-    print(f"DEBUG: Fetching data for from_year: {from_year}, to_year: {to_year}")
-    print(f"DEBUG: CBAM reports to process: {cbam_reports}")
-    
     base_rows, uploaded_quarters, years_with_reports, year_due_dates = fetch_cbam_report_rows(cbam_reports, from_year, to_year)
-    
-    print(f"DEBUG: Base rows fetched: {len(base_rows)}")
-    print(f"DEBUG: Years with reports: {years_with_reports}")
-    print(f"DEBUG: Uploaded quarters: {uploaded_quarters}")
     
     # Determine future years (e.g., from ETS Carbon Price)
     # This part of the logic needs to be re-evaluated to correctly identify future years
@@ -428,14 +407,9 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, year=None, 
     else:
         max_future_year = current_year  # fallback: no future projection if no ETS price
 
-    print(f"DEBUG: ETS years available: {ets_years}")
-    print(f"DEBUG: Max future year: {max_future_year}")
-
     future_years = [year for year in range(current_year + 1, max_future_year + 1) if year not in years_with_reports]
-    print(f"DEBUG: Future years to generate: {future_years}")
     
     future_rows = duplicate_future_year_rows(base_rows, future_years)
-    print(f"DEBUG: Future rows generated: {len(future_rows)}")
     
     all_data = base_rows + future_rows  # Keep full data for chart
     
@@ -458,15 +432,10 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, year=None, 
         # If no year selected, use the earliest year that has data
         available_years = sorted(set(row.get('year') for row in all_data if row.get('year')))
         base_year = available_years[0] if available_years else current_year
-    
-    print(f"DEBUG: Selected year (base_year): {base_year}")
-    print(f"DEBUG: Available years in all_data: {sorted(set(row.get('year') for row in all_data if row.get('year')))}")
-    print(f"DEBUG: Total rows in all_data: {len(all_data)}")
 
     # Only show selected year rows in the data table
     table_data = [row for row in all_data if int(row.get('year')) == base_year]
     total_count = len(table_data)
-    print(f"DEBUG: Rows for selected year {base_year}: {total_count}")
     table_data = table_data[start:start+page_length]
 
     # Calculate year totals from full data
@@ -474,10 +443,6 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, year=None, 
     
     # For chart_data, treat selected year as current year and all greater years as future
     chart_data = build_chart_data(all_data, year_totals, base_year, uploaded_quarters, year_due_dates, cbam_factor_cache, max_future_year, base_rows=[row for row in all_data if row.get('year') == base_year], future_rows=[row for row in all_data if row.get('year') > base_year])
-
-    print(f"DEBUG: Chart data: {chart_data}")
-    print(f"DEBUG: Chart categories: {chart_data.get('categories', [])}")
-    print(f"DEBUG: Chart series data lengths: {[len(series.get('data', [])) for series in chart_data.get('series', [])]}")
 
     return {"columns": columns, "data": table_data, "chart_data": chart_data, "total_count": total_count}
     

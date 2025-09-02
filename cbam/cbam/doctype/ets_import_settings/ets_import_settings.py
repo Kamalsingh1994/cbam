@@ -47,7 +47,7 @@ class ETSImportSettings(Document):
             self.save(ignore_permissions=True)
             
         except Exception as e:
-            frappe.log_error(f"Failed to log import result: {str(e)}")
+            frappe.log_error("Failed to log import result", str(e))
     
 
 
@@ -103,7 +103,7 @@ def test_google_drive_connection(settings_name):
             }
             
     except Exception as e:
-        frappe.log_error(f"Google Drive connection test failed: {str(e)}")
+        frappe.log_error("Google Drive connection test failed", str(e))
         frappe.throw(
             _("❌ Connection failed: {0}").format(str(e)),
             title=_("Connection Test Failed")
@@ -203,9 +203,9 @@ def trigger_manual_import(settings_name):
                 frappe.db.set_value("ETS Import Log", import_log.name, "error_message", str(e))
                 frappe.db.set_value("ETS Import Log", import_log.name, "execution_time", time.time() - start_time)
             except Exception as log_error:
-                frappe.log_error(f"Failed to update import log status: {str(log_error)}")
+                frappe.log_error("Failed to update import log status", str(log_error))
         
-        frappe.log_error(f"Manual ETS import failed: {str(e)}")
+        frappe.log_error("Manual ETS import failed", str(e))
         frappe.throw(
             _("❌ Import failed: {0}").format(str(e)),
             title=_("Import Error")
