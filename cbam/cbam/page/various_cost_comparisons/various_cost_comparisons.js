@@ -407,7 +407,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
         function update_stat_card_values(key, filters) {
             if (key === 'ets_price') {
                 const etsPriceValue = filters.ets_price || 0.0;
-                const displayValue = etsPriceValue !== 0.0 ? `€${etsPriceValue}` : '0.0';
+                const displayValue = etsPriceValue !== 0.0 ? `€${parseFloat(etsPriceValue).toFixed(2)}` : '€0.00';
                 $('.stat-value[data-stat="ets-price"]').text(displayValue);
                 // After updating ETS Price, reload table and chart with new value
                 load_report_table(true, filters);
@@ -429,19 +429,19 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                     Object.entries(updated_values).forEach(([key, val]) => {
                         let displayValue = val;
                         
-                        // Special formatting for CBAM Factor - convert to percentage
+                        // Special formatting for CBAM Factor - convert to percentage with 1 decimal place
                         if (key === 'cbam-factor' && val !== 0.0 && val !== null && val !== undefined) {
                             const numValue = parseFloat(val);
                             if (!isNaN(numValue)) {
-                                displayValue = (numValue * 100).toFixed(0) + '%';
+                                displayValue = (numValue * 100).toFixed(1) + '%';
                                 // Store original value in data attribute for calculations
                                 $(`.stat-value[data-stat="${key}"]`).attr('data-original-value', val);
                             }
                         }
                         
-                        // Special formatting for ETS Price - add Euro symbol
+                        // Special formatting for ETS Price - add Euro symbol with 2 decimal places
                         if (key === 'ets-price' && val !== 0.0 && val !== null && val !== undefined) {
-                            displayValue = `€${val}`;
+                            displayValue = `€${parseFloat(val).toFixed(2)}`;
                         }
                         
                         $(`.stat-value[data-stat="${key}"]`).text(displayValue);
