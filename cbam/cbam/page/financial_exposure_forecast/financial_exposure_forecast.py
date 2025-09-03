@@ -51,9 +51,6 @@ def extract_numeric_value(value):
     return 0.0
 
 def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
-    print(f"DEBUG: fetch_cbam_report_rows called with {len(cbam_reports)} reports")
-    print(f"DEBUG: from_year: {from_year}, to_year: {to_year}")
-    
     base_rows = []
     uploaded_quarters = set()
     years_with_reports = set()
@@ -62,7 +59,6 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
     bench_mark_cache = {}
     standard_emission_value_cache = {}
     for report in cbam_reports:
-        print(f"DEBUG: Processing report: {report}")
         parent = frappe.get_doc("CBAM Report", report)
         report_year = get_year_from_creation(parent.creation)
         quarter = get_quarter_from_dates(parent.from_date, parent.to_date)
@@ -79,15 +75,11 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
                 quarter_year = parent.to_date.year
         else:
             quarter_year = report_year
-            
-        print(f"DEBUG: Report {report}: quarter_year={quarter_year}, quarter={quarter}, from_date={parent.from_date}, to_date={parent.to_date}")
         
         if quarter and quarter_year:
             uploaded_quarters.add((quarter_year, quarter))
             years_with_reports.add(quarter_year)
-            print(f"DEBUG: Added quarter {quarter} for year {quarter_year}")
-        else:
-            print(f"DEBUG: Skipping report {report} - no valid quarter or year")
+
         for row in parent.get('cbam_report_data') or []:
             if row.external_good:
                 eg = frappe.get_doc("External Good", row.external_good)
@@ -109,15 +101,14 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
                     year = int(latest_ets.price_year)
                     # Use quarter_year for filtering instead of ETS price year to get actual report data
                     report_year = quarter_year
-                    print(f"DEBUG: Checking filter: report_year={report_year}, from_year={from_year}, to_year={to_year}")
+                  
                     if (from_year and report_year < from_year) or (to_year and report_year > to_year):
-                        print(f"DEBUG: Filtered out report_year {report_year} - outside range")
                         continue
-                    print(f"DEBUG: Report year {report_year} passed filter")
+    
                     ets_price = extract_numeric_value(latest_ets.price)
                 else:
-                    print(f"DEBUG: No ETS price found for quarter_year {quarter_year}")
                     continue
+
                 # Use quarter_year (report year) for all lookups to ensure consistency
                 report_year = quarter_year
                 if report_year not in cbam_factor_cache:
@@ -129,21 +120,27 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
                     )
                     cbam_factor_cache[report_year] = cbam_factor_doc[0].cbam_factor if cbam_factor_doc else None
                 cbam_factor = cbam_factor_cache[report_year]
+
                 if cbam_factor is None:
                     continue
+
                 cbam_factor = extract_numeric_value(cbam_factor)
                 bench_mark_key = (report_year, cn_code)
+
                 if bench_mark_key not in bench_mark_cache:
                     bench_mark_cache[bench_mark_key] = frappe.db.get_value("CBAM Benchmark", {"year": report_year, "cn_code": cn_code}, "bench_mark") or 0.0
                 bench_mark = extract_numeric_value(bench_mark_cache[bench_mark_key])
                 sev_key = (report_year, installation_country, cn_code)
+
                 if sev_key not in standard_emission_value_cache:
                     standard_emission_value_cache[sev_key] = frappe.db.get_value(
                         "Standard Emission Value",
                         {"year": report_year, "country": installation_country, "cn_code": cn_code},
                         "emission_value"
                     ) or 0.0
+
                 standard_emission_value = extract_numeric_value(standard_emission_value_cache[sev_key])
+
                 try:
                     real_emission_cost = (
                         (specific_direct_embedded_emissions - (cbam_factor * bench_mark)
@@ -152,6 +149,7 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
                     )
                 except Exception:
                     real_emission_cost = 0.0
+                    
                 try:
                     standard_emission_cost = (
                         (standard_emission_value - (bench_mark * cbam_factor)
@@ -160,6 +158,7 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
                     )
                 except Exception:
                     standard_emission_cost = 0.0
+
                 row_data = {
                     "year": quarter_year,  # Use quarter_year (report year) instead of ETS price year
                     "quarter": quarter,
@@ -185,25 +184,12 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
 
 def duplicate_future_year_rows(base_rows, future_years):
     future_rows = []
-    # Precompute average real_emission_cost for each quarter in base_rows
-    quarter_avgs = {}
-    for quarter in range(1, 5):
-        quarter_vals = [r.get('real_emission_cost', 0) or 0 for r in base_rows if r.get('quarter') == quarter and r.get('real_emission_cost') is not None]
-        quarter_avgs[quarter] = sum(quarter_vals) / len(quarter_vals) if quarter_vals else 0.0
     for future_year in future_years:
-        for quarter in range(1, 5):
-            # Find the base row for this quarter in the current year
-            base_row = next((r for r in base_rows if r.get('quarter') == quarter), None)
-            if base_row:
-                future_row = base_row.copy()
-            else:
-                # Create a synthetic base row using the average for this quarter
-                future_row = base_rows[0].copy() if base_rows else {}
-                future_row['real_emission_cost'] = quarter_avgs[quarter]
-                future_row['standard_emission_cost'] = quarter_avgs[quarter]
+        # Duplicate each individual base row for the future year
+        for base_row in base_rows:
+            future_row = base_row.copy()
             future_row["year"] = future_year
-            future_row["quarter"] = quarter
-            future_row["quarter_year"] = f"Q{quarter} {future_year}"
+            future_row["quarter_year"] = f"Q{base_row.get('quarter', 1)} {future_year}"
             # Fetch year-specific values and recalculate as in build_row
             cn_code = future_row.get("cn_code")
             installation_country = future_row.get("installation_country")
@@ -239,6 +225,7 @@ def duplicate_future_year_rows(base_rows, future_years):
                 "emission_value"
             ) or 0.0
             future_row["standard_emission_value"] = extract_numeric_value(sev)
+            
             # Recalculate costs
             try:
                 standard_emission_cost = (
@@ -320,9 +307,9 @@ def build_chart_data(data, year_totals, current_year, uploaded_quarters, year_du
             category_label = f"{month_name} {year}"
             chart_categories.append(category_label)
             if year == base_year:
-                # Sum all real_emission_cost for this quarter
+                # Sum all standard_emission_cost for this quarter
                 quarter_rows = [r for r in base_rows if r.get('year') == year and r.get('quarter') == quarter]
-                quarter_sum = sum(r.get('real_emission_cost', 0) or 0 for r in quarter_rows)
+                quarter_sum = sum(r.get('standard_emission_cost', 0) or 0 for r in quarter_rows)
                 if quarter_rows and quarter_sum != 0:
                     actual_data.append(quarter_sum)
                     forecast_data.append(None)
@@ -339,11 +326,11 @@ def build_chart_data(data, year_totals, current_year, uploaded_quarters, year_du
                         ets_price = extract_numeric_value(ets_price_doc[0].price) if ets_price_doc else None
                     ets_prices.append(ets_price)
                 else:
-                    # No real data for this quarter, forecast = sum of real values for previous quarters
+                    # No data for this quarter, forecast = sum of standard values for previous quarters
                     actual_data.append(None)
-                    prev_quarters = [r.get('real_emission_cost') for r in base_rows
+                    prev_quarters = [r.get('standard_emission_cost') for r in base_rows
                                      if r.get('year') == year and r.get('quarter') is not None
-                                     and r.get('quarter') < quarter and r.get('real_emission_cost') is not None]
+                                     and r.get('quarter') < quarter and r.get('standard_emission_cost') is not None]
                     forecast_value = sum(prev_quarters) if prev_quarters else 0.0
                     forecast_data.append(forecast_value)
                     # ETS price fallback
@@ -357,11 +344,36 @@ def build_chart_data(data, year_totals, current_year, uploaded_quarters, year_du
                     ets_price = extract_numeric_value(ets_price_doc[0].price) if ets_price_doc else None
                     ets_prices.append(ets_price)
             else:
-                # For future years, use duplicated/recalculated rows
-                row = next((r for r in future_rows if r.get('year') == year and r.get('quarter') == quarter), None)
+                # For future years, sum all rows for this quarter (like current year)
+                quarter_rows = [r for r in future_rows if r.get('year') == year and r.get('quarter') == quarter]
+                quarter_sum = sum(r.get('standard_emission_cost', 0) or 0 for r in quarter_rows)
                 actual_data.append(None)
-                forecast_data.append(row.get('standard_emission_cost') if row else None)
-                ets_prices.append(row.get('ets_price') if row else None)
+                
+                print(f"DEBUG: Future year {year} Q{quarter}: {len(quarter_rows)} rows, sum={quarter_sum}")
+                
+                if quarter_rows and quarter_sum != 0:
+                    # Q1 and Q2: use sum of all duplicated row values
+                    forecast_data.append(quarter_sum)
+                    ets_price = next((r.get('ets_price') for r in quarter_rows if r.get('ets_price') is not None), None)
+                    ets_prices.append(ets_price)
+                else:
+                    # Q3 and Q4: calculate as sum of previous quarters (like current year)
+                    prev_quarters = [r.get('standard_emission_cost') for r in future_rows
+                                   if r.get('year') == year and r.get('quarter') is not None
+                                   and r.get('quarter') < quarter and r.get('standard_emission_cost') is not None]
+                    forecast_value = sum(prev_quarters) if prev_quarters else 0.0
+                    print(f"DEBUG: Future year {year} Q{quarter} forecast: {forecast_value} (from {len(prev_quarters)} prev quarters)")
+                    forecast_data.append(forecast_value)
+                    # ETS price fallback
+                    ets_price_doc = frappe.get_all(
+                        "ETS Carbon Price",
+                        filters={"price_year": year},
+                        fields=["price"],
+                        order_by="price_date desc",
+                        limit=1
+                    )
+                    ets_price = extract_numeric_value(ets_price_doc[0].price) if ets_price_doc else None
+                    ets_prices.append(ets_price)
 
     # Fill any None in ets_prices with last available value or 0.0
     for i in range(len(ets_prices)):
@@ -370,7 +382,6 @@ def build_chart_data(data, year_totals, current_year, uploaded_quarters, year_du
 
     # Ensure year_due_dates is always populated
     year_due_dates = extend_year_due_dates_with_future_years(year_due_dates, current_year)
-    print("DEBUG: year_due_dates before return:", year_due_dates)
 
     chart_data = {
         "categories": chart_categories,
@@ -404,14 +415,8 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, year=None, 
         
     to_year = int(to_year) if to_year else None
     columns = get_columns()
-    print(f"DEBUG: Fetching data for from_year: {from_year}, to_year: {to_year}")
-    print(f"DEBUG: CBAM reports to process: {cbam_reports}")
     
     base_rows, uploaded_quarters, years_with_reports, year_due_dates = fetch_cbam_report_rows(cbam_reports, from_year, to_year)
-    
-    print(f"DEBUG: Base rows fetched: {len(base_rows)}")
-    print(f"DEBUG: Years with reports: {years_with_reports}")
-    print(f"DEBUG: Uploaded quarters: {uploaded_quarters}")
     
     # Determine future years (e.g., from ETS Carbon Price)
     # This part of the logic needs to be re-evaluated to correctly identify future years
@@ -423,19 +428,14 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, year=None, 
         "ETS Carbon Price",
         fields=["price_year"],
     ) if d.price_year is not None)
+
     if ets_years:
         max_future_year = max(ets_years)
     else:
         max_future_year = current_year  # fallback: no future projection if no ETS price
 
-    print(f"DEBUG: ETS years available: {ets_years}")
-    print(f"DEBUG: Max future year: {max_future_year}")
-
     future_years = [year for year in range(current_year + 1, max_future_year + 1) if year not in years_with_reports]
-    print(f"DEBUG: Future years to generate: {future_years}")
-    
     future_rows = duplicate_future_year_rows(base_rows, future_years)
-    print(f"DEBUG: Future rows generated: {len(future_rows)}")
     
     all_data = base_rows + future_rows  # Keep full data for chart
     
@@ -458,15 +458,10 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, year=None, 
         # If no year selected, use the earliest year that has data
         available_years = sorted(set(row.get('year') for row in all_data if row.get('year')))
         base_year = available_years[0] if available_years else current_year
-    
-    print(f"DEBUG: Selected year (base_year): {base_year}")
-    print(f"DEBUG: Available years in all_data: {sorted(set(row.get('year') for row in all_data if row.get('year')))}")
-    print(f"DEBUG: Total rows in all_data: {len(all_data)}")
 
-    # Only show selected year rows in the data table
-    table_data = [row for row in all_data if int(row.get('year')) == base_year]
+    # Show selected year and all future duplicated rows in the data table
+    table_data = [row for row in all_data if int(row.get('year')) >= base_year]
     total_count = len(table_data)
-    print(f"DEBUG: Rows for selected year {base_year}: {total_count}")
     table_data = table_data[start:start+page_length]
 
     # Calculate year totals from full data
@@ -474,10 +469,6 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, year=None, 
     
     # For chart_data, treat selected year as current year and all greater years as future
     chart_data = build_chart_data(all_data, year_totals, base_year, uploaded_quarters, year_due_dates, cbam_factor_cache, max_future_year, base_rows=[row for row in all_data if row.get('year') == base_year], future_rows=[row for row in all_data if row.get('year') > base_year])
-
-    print(f"DEBUG: Chart data: {chart_data}")
-    print(f"DEBUG: Chart categories: {chart_data.get('categories', [])}")
-    print(f"DEBUG: Chart series data lengths: {[len(series.get('data', [])) for series in chart_data.get('series', [])]}")
 
     return {"columns": columns, "data": table_data, "chart_data": chart_data, "total_count": total_count}
     
@@ -573,43 +564,27 @@ def get_columns():
         {"id": "raw_mass_tonne", "name": _( "Raw Mass [t]"), "width": 120},
         {"id": "carbon_price_due", "name": _( "Carbon Price Due"), "width": 150},
         {"id": "installation_country", "name": _( "Installation Country"), "width": 170},
-        {"id": "specific_direct_embedded_emissions", "name": _( "Direct Embedded Emissions"), "width": 170},
         {"id": "standard_emission_value", "name": _( "Standard Emission Value"), "width": 200},
         {"id": "bench_mark_emission_value", "name": _( "Benchmark Emission Value"), "width": 210},
         {"id": "cbam_factor", "name": _( "CBAM Factor"), "width": 120},
         {"id": "ets_price", "name": _( "ETS Price"), "width": 120},
-        {"id": "real_emission_cost", "name": _( "Actual Cost"), "width": 200},
         {"id": "standard_emission_cost", "name": _( "Standard Cost"), "width": 150},
     ]
 
     return columns
 
 def extend_year_due_dates_with_future_years(year_due_dates, base_year):
-    # Collect all years from ETS Carbon Price, CBAM Factor, Standard Emission Value, and CBAM Benchmark
+    # Collect all years from ETS Carbon Price
     ets_years = set(int(d.price_year) for d in frappe.get_all(
         "ETS Carbon Price",
         fields=["price_year"]
     ) if d.price_year)
 
-    cbam_factor_years = set(int(d.year) for d in frappe.get_all(
-        "CBAM Factor",
-        fields=["year"],
-        filters={"disable": 0}
-    ) if d.year)
-    sev_years = set(int(d.year) for d in frappe.get_all(
-        "Standard Emission Value",
-        fields=["year"]
-    ) if d.year)
-    benchmark_years = set(int(d.year) for d in frappe.get_all(
-        "CBAM Benchmark",
-        fields=["year"]
-    ) if d.year)
-    all_years = ets_years | cbam_factor_years | sev_years | benchmark_years
-    # Add one more year (max + 1) if all_years is not empty
-    if all_years:
-        all_years.add(max(all_years) + 1)
+    if ets_years:
+        ets_years.add(max(ets_years) + 1)
+        
     # Only add years greater than base_year
-    for year in all_years:
+    for year in ets_years:
         if year > base_year:
             year_str = str(year)
             if year_str not in year_due_dates:

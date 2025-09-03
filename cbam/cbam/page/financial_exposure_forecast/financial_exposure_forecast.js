@@ -103,10 +103,13 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 
                 <!-- Disclaimer Box -->
                 <div class="frappe-card mb-4 p-3" style="background-color: #f8f9fa; border-left: 4px solid #007bff;">
-                    <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center" style="align-items: flex-start !important;">
                         <i class="fa fa-info-circle text-primary me-2" style="font-size: 1.2em;"></i>&nbsp;
                         <div>
-                            <strong class="text-primary">Note: </strong> For the financial exposure calculation only standard emission values are used.
+                            <strong class="text-primary">Note: </strong>
+                            Financial exposure chart: For the calculation of financial exposure the following assumptions are used: 
+                            The standard emission values as given by the EU commission for the transition period; 
+                            the benchmarks are roughly estimated using the EU-ETS benchmarks; the CBAM factor is used as given by the EU commission.
                         </div>
                     </div>
                 </div>
@@ -438,16 +441,31 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         const actualData = chart_data.series[0]?.data || [];
         const forecastData = chart_data.series[1]?.data || [];
 
-        // First calculate basic accumulated exposure for mapping
+        // First calculate basic accumulated exposure for mapping (reset per year)
         const accumulatedExposureBasic = [];
         let cumulative = 0;
+        let currentYearForAccumulation = null;
+        
         for (let i = 0; i < categories.length; i++) {
+            // Extract year from category
+            const match = categories[i].match(/\b(\d{4})\b/);
+            const thisYear = match ? match[1] : null;
+            
+            // Reset cumulative for new year
+            if (thisYear !== currentYearForAccumulation) {
+                currentYearForAccumulation = thisYear;
+                cumulative = 0;
+            }
+            
             const value = actualData[i] ?? forecastData[i];
             if (value !== null && value !== undefined) {
                 cumulative += value;
             }
             accumulatedExposureBasic.push(cumulative);
         }
+        console.log("DEBUG: accumulatedExposureBasic:", accumulatedExposureBasic);
+        console.log("DEBUG: actualData:", actualData);
+        console.log("DEBUG: forecastData:", forecastData);
 
         // Calculate per-year accumulated exposure and diamond positions
         const minRequiredActual = [];
@@ -463,7 +481,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 yearAccum = 0;
             }
             const value = actualData[i] ?? forecastData[i];
-            if (value && value > 0) {
+            if (value !== null && value !== undefined) {
                 yearAccum += value;
             }
             if (actualData[i] && actualData[i] > 0) {
@@ -538,20 +556,22 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     if (accumulatedExposureBasicMonth[i] !== null && accumulatedExposureBasicMonth[i] !== undefined) {
                         accumulatedExposureMonth.push(accumulatedExposureBasicMonth[i]);
                     } else if (year && year > currentYear) {
-                        // For future years, use a forecast value based on current year's accumulated exposure
-                        const currentYearValue = accumulatedExposureMonth.find((val, idx) => {
-                            const cat = categories[idx];
+                        // For future years, use the actual calculated value from backend
+                        // Find the corresponding value in the original categories
+                        const originalIndex = chart_data.categories.findIndex(cat => {
                             const catYearMatch = cat.match(/\b(\d{4})\b/);
                             const catYear = catYearMatch ? parseInt(catYearMatch[1]) : null;
-                            return catYear === currentYear && val !== null;
+                            return catYear === year;
                         });
                         
-                        if (currentYearValue !== undefined) {
-                            // Use current year value as base for future forecast
-                            accumulatedExposureMonth.push(currentYearValue * 1.1); // 10% increase as forecast
+                        if (originalIndex !== -1 && accumulatedExposureBasicMonth[originalIndex] !== null) {
+                            // Use the actual calculated value from backend
+                            console.log(`DEBUG: Future year ${year} using backend value: ${accumulatedExposureBasicMonth[originalIndex]}`);
+                            accumulatedExposureMonth.push(accumulatedExposureBasicMonth[originalIndex]);
                         } else {
-                            // Fallback to default forecast value
-                            accumulatedExposureMonth.push(50000);
+                            // Fallback to null if no data available
+                            console.log(`DEBUG: Future year ${year} no backend data found, using null`);
+                            accumulatedExposureMonth.push(null);
                         }
                     } else {
                         accumulatedExposureMonth.push(null);
