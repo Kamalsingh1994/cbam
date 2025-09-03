@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"huNlzC7Tud\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">CBAM Analysis Dashboard</span>\",\"col\":12}},{\"id\":\"l0wR6yPlaV\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Financial Evaluation Report\",\"col\":3}},{\"id\":\"ygCsqidG50\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"ETS Price Dashboard\",\"col\":3}},{\"id\":\"0vrxcaJCdn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"CBAM Report Cost Forecast\",\"col\":3}}]",
+ "content": "[{\"id\":\"huNlzC7Tud\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">CBAM Analysis Dashboard</span>\",\"col\":12}},{\"id\":\"0vrxcaJCdn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Financial Exposure Forecast\",\"col\":3}},{\"id\":\"rvU7ialmRl\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Various Cost Comparisons\",\"col\":3}},{\"id\":\"nGtY2wycTg\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"bYmKE6_gM3\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>CBAM Report Upload</b></span>\",\"col\":12}},{\"id\":\"QXfjFAA3EF\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"CBAM Report\",\"col\":3}},{\"id\":\"2YXMPZSdMh\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"External Good\",\"col\":3}}]",
  "creation": "2025-07-07 12:11:13.553729",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,7 +13,7 @@
  "is_hidden": 0,
  "label": "Financial Dashboard",
  "links": [],
- "modified": "2025-07-22 07:21:43.065461",
+ "modified": "2025-08-26 08:49:34.558805",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Financial Dashboard",
@@ -28,6 +28,9 @@
   },
   {
    "role": "Declarant"
+  },
+  {
+   "role": "Financial Dashboard User"
   }
  ],
  "sequence_id": 28.0,
@@ -35,23 +38,32 @@
   {
    "color": "Grey",
    "doc_view": "List",
-   "label": "Financial Evaluation Report",
-   "link_to": "financial-evaluation-report",
+   "label": "Financial Exposure Forecast",
+   "link_to": "financial-exposure-forecast",
+   "type": "Page"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "New",
+   "label": "CBAM Report",
+   "link_to": "CBAM Report",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Various Cost Comparisons",
+   "link_to": "various-cost-comparisons",
    "type": "Page"
   },
   {
    "color": "Grey",
    "doc_view": "List",
-   "label": "CBAM Report Cost Forecast",
-   "link_to": "cbam-report-cost-forecast",
-   "type": "Page"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "ETS Price Dashboard",
-   "link_to": "ets-price-dashboard",
-   "type": "Page"
+   "label": "External Good",
+   "link_to": "External Good",
+   "stats_filter": "[]",
+   "type": "DocType"
   }
  ],
  "title": "Financial Dashboard"

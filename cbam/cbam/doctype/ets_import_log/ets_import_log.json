@@ -1,0 +1,114 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-01-27 10:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "import_date",
+  "source_file",
+  "google_drive_file_id",
+  "records_imported",
+  "status",
+  "error_message",
+  "imported_by",
+  "execution_time",
+  "import_type",
+  "ets_import_file_details"
+ ],
+ "fields": [
+  {
+   "default": "now",
+   "fieldname": "import_date",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Import Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "source_file",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Source File",
+   "reqd": 1
+  },
+  {
+   "description": "Unique identifier of the file in Google Drive",
+   "fieldname": "google_drive_file_id",
+   "fieldtype": "Data",
+   "label": "Google Drive File ID",
+   "length": 200
+  },
+  {
+   "description": "Number of ETS price records successfully imported",
+   "fieldname": "records_imported",
+   "fieldtype": "Int",
+   "label": "Records Imported"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Success\nFailed\nSkipped",
+   "reqd": 1
+  },
+  {
+   "description": "Detailed error message if import failed",
+   "fieldname": "error_message",
+   "fieldtype": "Text",
+   "label": "Error Message"
+  },
+  {
+   "fieldname": "imported_by",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Imported By",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "description": "Time taken to complete the import process",
+   "fieldname": "execution_time",
+   "fieldtype": "Float",
+   "label": "Execution Time (seconds)"
+  },
+  {
+   "default": "Manual",
+   "fieldname": "import_type",
+   "fieldtype": "Select",
+   "label": "Import Type",
+   "options": "Manual\nScheduled",
+   "reqd": 1
+  },
+  {
+   "description": "Detailed information about files processed during this import",
+   "fieldname": "ets_import_file_details",
+   "fieldtype": "Table",
+   "label": "File Details",
+   "options": "ETS Import File Details"
+  }
+ ],
+ "links": [],
+ "modified": "2025-08-27 09:34:31.732757",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "ETS Import Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "import_date",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

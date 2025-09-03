@@ -17,6 +17,7 @@ class CustomsImport(Document):
 			})
 
 	def validate(self):
+		# self.update_year()
 		if self.current:
 			existing = frappe.db.get_value("Customs Import", {"current": 1, "name": ["!=", self.name]}, "name")
 
@@ -29,3 +30,24 @@ class CustomsImport(Document):
 
 				frappe.msgprint(f"Customs Import <b>{self.name}</b> is now current, current status removed from <b>{existing}</b>.")
 
+	def update_year(self):
+		"""Extract year from from_date and update the year field"""
+		if self.from_date:
+			# Extract year from from_date
+			if isinstance(self.from_date, str):
+				# If from_date is a string, parse it
+				from datetime import datetime
+				try:
+					date_obj = datetime.strptime(self.from_date, '%Y-%m-%d')
+					self.year = date_obj.year
+				except ValueError:
+					# Try different date format if needed
+					try:
+						date_obj = datetime.strptime(self.from_date, '%Y-%m-%d %H:%M:%S')
+						self.year = date_obj.year
+					except ValueError:
+						frappe.msgprint(f"Invalid date format for from_date: {self.from_date}")
+			else:
+				# If from_date is already a date object
+				self.year = self.from_date.year
+		

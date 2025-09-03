@@ -144,8 +144,8 @@ frappe.query_reports["Financial Evaluation"] = {
 			fieldname: "ets_price_type",
 			label: __("ETS Price Type"),
 			fieldtype: "Select",
-			options: ["", "Actual", "Prediction"],
-			default: "Actual"
+			options: ["", "Spot Price", "Future (Dec)"],
+			default: "Spot Price"
 		},
 		{
 			fieldname: "year",

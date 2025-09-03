@@ -183,22 +183,10 @@ scheduler_events = {
         "0 21 * * *": [
             "cbam.utils.notification.generate_alerts"
         ]
-    }
-# 	"all": [
-# 		"cbam.tasks.all"
-# 	],
-# 	"daily": [
-# 		"cbam.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"cbam.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"cbam.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"cbam.tasks.monthly"
-# 	],
+    },
+    "daily":[
+        "cbam.utils.ets_import.scheduled_import.scheduled_ets_import"
+    ]
 }
 
 # Testing

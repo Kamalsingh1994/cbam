@@ -12,7 +12,19 @@ def extract_numeric_value(text):
 def extract_field(label, lines):
     for i, l in enumerate(lines):
         if label.lower() in l.lower():
-            # Look for the next non-empty line after the label
+            # First, check if the value is on the same line after the label
+            line_text = l.strip()
+            label_index = line_text.lower().find(label.lower())
+            if label_index != -1:
+                # Extract text after the label
+                after_label = line_text[label_index + len(label):].strip()
+                # Remove colon if present and get the value
+                if after_label.startswith(':'):
+                    after_label = after_label[1:].strip()
+                if after_label:
+                    return after_label
+            
+            # If no value on same line, look for the next non-empty line
             for j in range(i + 1, len(lines)):
                 value = lines[j].strip()
                 if value:

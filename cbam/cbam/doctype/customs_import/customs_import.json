@@ -9,8 +9,12 @@
  "field_order": [
   "import_name",
   "is_goods_import_complete",
+  "from_date",
+  "to_date",
+  "due_date",
   "column_break_n8bu",
   "current",
+  "year",
   "goods"
  ],
  "fields": [
@@ -42,6 +46,34 @@
    "fieldname": "current",
    "fieldtype": "Check",
    "label": "Current"
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "From Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "To Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "due_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Due Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Link",
+   "label": "Year",
+   "options": "Year",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -52,7 +84,7 @@
    "link_fieldname": "internal_customs_import_number"
   }
  ],
- "modified": "2025-07-15 10:15:28.076631",
+ "modified": "2025-09-03 07:44:40.275770",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Customs Import",
@@ -96,6 +128,15 @@
    "report": 1,
    "role": "Commercial Contact",
    "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Financial Dashboard User",
    "share": 1
   }
  ],
