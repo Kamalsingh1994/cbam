@@ -574,6 +574,7 @@ def get_columns():
     return columns
 
 def extend_year_due_dates_with_future_years(year_due_dates, base_year):
+    print("DEBUG: year_due_dates:", year_due_dates)
     # Collect all years from ETS Carbon Price
     ets_years = set(int(d.price_year) for d in frappe.get_all(
         "ETS Carbon Price",
@@ -588,5 +589,19 @@ def extend_year_due_dates_with_future_years(year_due_dates, base_year):
         if year > base_year:
             year_str = str(year)
             if year_str not in year_due_dates:
-                year_due_dates[year_str] = f"{year}-01-31"
+                # Fetch due date from custom import doctype using year field
+                custom_imports = frappe.get_all(
+                    "Customs Import",  # Replace with actual doctype name
+                    filters={"year": year-1},
+                    fields=["due_date"],
+                    limit=1
+                )
+                
+                if custom_imports and custom_imports[0].due_date:
+                    year_due_dates[year_str] = custom_imports[0].due_date
+                else:
+                    # Fallback to default due date
+                    year_due_dates[year_str] = f"{year}-01-31"
+    
+    print("year_due_dates:", year_due_dates)
     return year_due_dates
