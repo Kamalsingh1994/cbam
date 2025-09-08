@@ -182,7 +182,6 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     args: { year: selectedYear },
                     callback: function(r) {
                         if (r.message && r.message.length > 0) {
-                            console.log('DEBUG: r.message:', r.message);
                             // Set all CBAM reports for the selected year
                             filters.cbam_report.set_value(r.message);
                             // Reload table and chart
@@ -463,9 +462,6 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             }
             accumulatedExposureBasic.push(cumulative);
         }
-        console.log("DEBUG: accumulatedExposureBasic:", accumulatedExposureBasic);
-        console.log("DEBUG: actualData:", actualData);
-        console.log("DEBUG: forecastData:", forecastData);
 
         // Calculate per-year accumulated exposure and diamond positions
         const minRequiredActual = [];
@@ -566,11 +562,9 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         
                         if (originalIndex !== -1 && accumulatedExposureBasicMonth[originalIndex] !== null) {
                             // Use the actual calculated value from backend
-                            console.log(`DEBUG: Future year ${year} using backend value: ${accumulatedExposureBasicMonth[originalIndex]}`);
                             accumulatedExposureMonth.push(accumulatedExposureBasicMonth[originalIndex]);
                         } else {
                             // Fallback to null if no data available
-                            console.log(`DEBUG: Future year ${year} no backend data found, using null`);
                             accumulatedExposureMonth.push(null);
                         }
                     } else {
