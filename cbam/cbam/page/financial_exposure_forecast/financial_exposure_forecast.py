@@ -349,7 +349,7 @@ def build_chart_data(data, year_totals, current_year, uploaded_quarters, year_du
                 quarter_sum = sum(r.get('standard_emission_cost', 0) or 0 for r in quarter_rows)
                 actual_data.append(None)
                 
-                print(f"DEBUG: Future year {year} Q{quarter}: {len(quarter_rows)} rows, sum={quarter_sum}")
+                # Debug logging removed to prevent BrokenPipeError
                 
                 if quarter_rows and quarter_sum != 0:
                     # Q1 and Q2: use sum of all duplicated row values
@@ -362,7 +362,7 @@ def build_chart_data(data, year_totals, current_year, uploaded_quarters, year_du
                                    if r.get('year') == year and r.get('quarter') is not None
                                    and r.get('quarter') < quarter and r.get('standard_emission_cost') is not None]
                     forecast_value = sum(prev_quarters) if prev_quarters else 0.0
-                    print(f"DEBUG: Future year {year} Q{quarter} forecast: {forecast_value} (from {len(prev_quarters)} prev quarters)")
+                    # Debug logging removed to prevent BrokenPipeError
                     forecast_data.append(forecast_value)
                     # ETS price fallback
                     ets_price_doc = frappe.get_all(
@@ -397,80 +397,92 @@ def build_chart_data(data, year_totals, current_year, uploaded_quarters, year_du
 @frappe.whitelist()
 def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, year=None, from_year=None, to_year=None):
     import json
-    if isinstance(cbam_reports, str):
-        cbam_reports = json.loads(cbam_reports)
-    cbam_reports = cbam_reports or []
-    start = int(start or 0)
-    page_length = int(page_length or 50)
-    if not cbam_reports:
-        return {"columns": [], "data": [], "chart_data": {}, "total_count": 0}
+    try:
+        if isinstance(cbam_reports, str):
+            cbam_reports = json.loads(cbam_reports)
+        cbam_reports = cbam_reports or []
+        start = int(start or 0)
+        page_length = int(page_length or 50)
+        if not cbam_reports:
+            return {"columns": [], "data": [], "chart_data": {}, "total_count": 0}
+    except Exception as e:
+        frappe.log_error("Error parsing parameters in get_cbam_report_data", str(e))
+        return {"columns": [], "data": [], "chart_data": {}, "total_count": 0, "error": str(e)}
     
-    # Support both 'year' and 'from_year' parameters for backward compatibility
-    if year is not None:
-        from_year = int(year)
-    elif from_year is not None:
-        from_year = int(from_year)
-    else:
-        from_year = None
+    try:
+        # Support both 'year' and 'from_year' parameters for backward compatibility
+        if year is not None:
+            from_year = int(year)
+        elif from_year is not None:
+            from_year = int(from_year)
+        else:
+            from_year = None
+            
+        to_year = int(to_year) if to_year else None
+        columns = get_columns()
         
-    to_year = int(to_year) if to_year else None
-    columns = get_columns()
+        base_rows, uploaded_quarters, years_with_reports, year_due_dates = fetch_cbam_report_rows(cbam_reports, from_year, to_year)
+    except Exception as e:
+        frappe.log_error("Error in get_cbam_report_data processing", str(e))
+        return {"columns": [], "data": [], "chart_data": {}, "total_count": 0, "error": str(e)}
     
-    base_rows, uploaded_quarters, years_with_reports, year_due_dates = fetch_cbam_report_rows(cbam_reports, from_year, to_year)
-    
-    # Determine future years (e.g., from ETS Carbon Price)
-    # This part of the logic needs to be re-evaluated to correctly identify future years
-    # For now, we'll assume future years are those for which we have ETS Carbon Price data
-    # and we need to ensure we include all years up to the max_future_year.
-    current_year = datetime.now().year
-    # Determine max future year based on ETS Carbon Price years
-    ets_years = set(int(d.price_year) for d in frappe.get_all(
-        "ETS Carbon Price",
-        fields=["price_year"],
-    ) if d.price_year is not None)
+    try:
+        # Determine future years (e.g., from ETS Carbon Price)
+        # This part of the logic needs to be re-evaluated to correctly identify future years
+        # For now, we'll assume future years are those for which we have ETS Carbon Price data
+        # and we need to ensure we include all years up to the max_future_year.
+        current_year = datetime.now().year
+        # Determine max future year based on ETS Carbon Price years
+        ets_years = set(int(d.price_year) for d in frappe.get_all(
+            "ETS Carbon Price",
+            fields=["price_year"],
+        ) if d.price_year is not None)
 
-    if ets_years:
-        max_future_year = max(ets_years)
-    else:
-        max_future_year = current_year  # fallback: no future projection if no ETS price
+        if ets_years:
+            max_future_year = max(ets_years)
+        else:
+            max_future_year = current_year  # fallback: no future projection if no ETS price
 
-    future_years = [year for year in range(current_year + 1, max_future_year + 1) if year not in years_with_reports]
-    future_rows = duplicate_future_year_rows(base_rows, future_years)
-    
-    all_data = base_rows + future_rows  # Keep full data for chart
-    
-    # Initialize cbam_factor_cache
-    cbam_factor_cache = {}
-    for year in years_with_reports:
-        if year not in cbam_factor_cache:
-            cbam_factor_doc = frappe.get_all(
-                "CBAM Factor",
-                filters={"year": year, "disable": 0},
-                fields=["cbam_factor"],
-                limit=1
-            )
-            cbam_factor_cache[year] = cbam_factor_doc[0].cbam_factor if cbam_factor_doc else None
-    
-    # Determine base_year - if no year selected, use the earliest year with data
-    if from_year:
-        base_year = int(from_year)
-    else:
-        # If no year selected, use the earliest year that has data
-        available_years = sorted(set(row.get('year') for row in all_data if row.get('year')))
-        base_year = available_years[0] if available_years else current_year
+        future_years = [year for year in range(current_year + 1, max_future_year + 1) if year not in years_with_reports]
+        future_rows = duplicate_future_year_rows(base_rows, future_years)
+        
+        all_data = base_rows + future_rows  # Keep full data for chart
+        
+        # Initialize cbam_factor_cache
+        cbam_factor_cache = {}
+        for year in years_with_reports:
+            if year not in cbam_factor_cache:
+                cbam_factor_doc = frappe.get_all(
+                    "CBAM Factor",
+                    filters={"year": year, "disable": 0},
+                    fields=["cbam_factor"],
+                    limit=1
+                )
+                cbam_factor_cache[year] = cbam_factor_doc[0].cbam_factor if cbam_factor_doc else None
+        
+        # Determine base_year - if no year selected, use the earliest year with data
+        if from_year:
+            base_year = int(from_year)
+        else:
+            # If no year selected, use the earliest year that has data
+            available_years = sorted(set(row.get('year') for row in all_data if row.get('year')))
+            base_year = available_years[0] if available_years else current_year
 
-    # Show selected year and all future duplicated rows in the data table
-    table_data = [row for row in all_data if int(row.get('year')) >= base_year]
-    total_count = len(table_data)
-    table_data = table_data[start:start+page_length]
+        # Show selected year and all future duplicated rows in the data table
+        table_data = [row for row in all_data if int(row.get('year')) >= base_year]
+        total_count = len(table_data)
+        table_data = table_data[start:start+page_length]
 
-    # Calculate year totals from full data
-    year_totals = aggregate_year_totals(all_data, uploaded_quarters)
-    
-    # For chart_data, treat selected year as current year and all greater years as future
-    chart_data = build_chart_data(all_data, year_totals, base_year, uploaded_quarters, year_due_dates, cbam_factor_cache, max_future_year, base_rows=[row for row in all_data if row.get('year') == base_year], future_rows=[row for row in all_data if row.get('year') > base_year])
+        # Calculate year totals from full data
+        year_totals = aggregate_year_totals(all_data, uploaded_quarters)
+        
+        # For chart_data, treat selected year as current year and all greater years as future
+        chart_data = build_chart_data(all_data, year_totals, base_year, uploaded_quarters, year_due_dates, cbam_factor_cache, max_future_year, base_rows=[row for row in all_data if row.get('year') == base_year], future_rows=[row for row in all_data if row.get('year') > base_year])
 
-    return {"columns": columns, "data": table_data, "chart_data": chart_data, "total_count": total_count}
+        return {"columns": columns, "data": table_data, "chart_data": chart_data, "total_count": total_count}
+    except Exception as e:
+        frappe.log_error("get_cbam_report_data main processing", str(e))
+        return {"columns": [], "data": [], "chart_data": {}, "total_count": 0, "error": str(e)}
     
 @frappe.whitelist()
 def get_available_years():
@@ -574,34 +586,36 @@ def get_columns():
     return columns
 
 def extend_year_due_dates_with_future_years(year_due_dates, base_year):
-    print("DEBUG: year_due_dates:", year_due_dates)
-    # Collect all years from ETS Carbon Price
-    ets_years = set(int(d.price_year) for d in frappe.get_all(
-        "ETS Carbon Price",
-        fields=["price_year"]
-    ) if d.price_year)
+    try:
+        # Collect all years from ETS Carbon Price
+        ets_years = set(int(d.price_year) for d in frappe.get_all(
+            "ETS Carbon Price",
+            fields=["price_year"]
+        ) if d.price_year)
 
-    if ets_years:
-        ets_years.add(max(ets_years) + 1)
+        if ets_years:
+            ets_years.add(max(ets_years) + 1)
+            
+        # Only add years greater than base_year
+        for year in ets_years:
+            if year > base_year:
+                year_str = str(year)
+                if year_str not in year_due_dates:
+                    # Fetch due date from custom import doctype using year field
+                    custom_imports = frappe.get_all(
+                        "Customs Import",  # Replace with actual doctype name
+                        filters={"year": year-1},
+                        fields=["due_date"],
+                        limit=1
+                    )
+                    
+                    if custom_imports and custom_imports[0].due_date:
+                        year_due_dates[year_str] = custom_imports[0].due_date
+                    else:
+                        # Fallback to default due date
+                        year_due_dates[year_str] = f"{year}-01-31"
         
-    # Only add years greater than base_year
-    for year in ets_years:
-        if year > base_year:
-            year_str = str(year)
-            if year_str not in year_due_dates:
-                # Fetch due date from custom import doctype using year field
-                custom_imports = frappe.get_all(
-                    "Customs Import",  # Replace with actual doctype name
-                    filters={"year": year-1},
-                    fields=["due_date"],
-                    limit=1
-                )
-                
-                if custom_imports and custom_imports[0].due_date:
-                    year_due_dates[year_str] = custom_imports[0].due_date
-                else:
-                    # Fallback to default due date
-                    year_due_dates[year_str] = f"{year}-01-31"
-    
-    print("year_due_dates:", year_due_dates)
-    return year_due_dates
+        return year_due_dates
+    except Exception as e:
+        frappe.log_error("extend_year_due_dates_with_future_years", str(e))
+        return year_due_dates
