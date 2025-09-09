@@ -179,8 +179,7 @@
    "fieldname": "cbam_representive_employee_first_name",
    "fieldtype": "Data",
    "label": "CBAM Representative First Name",
-   "read_only": 1,
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fieldname": "column_break_xrkz",
@@ -278,7 +277,8 @@
    "fieldname": "declarant",
    "fieldtype": "Link",
    "label": "Declarant",
-   "options": "Declarant"
+   "options": "Declarant",
+   "reqd": 1
   },
   {
    "default": "0",
@@ -293,7 +293,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-18 08:39:33.988050",
+ "modified": "2025-09-09 12:14:52.377584",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Operating Company",

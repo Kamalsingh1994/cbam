@@ -201,8 +201,8 @@ class OperatingCompany(Document):
 			self.main_contact_employee_position = values.position
 			self.main_contact_employee_email = values.email
 			old_user = self.commercial_contact_user
+
 		elif values.type == "CBAM Representative":
-			
 			if not self.check_user_exists(values.email):
 				frappe.throw("This user is already associated with another Operating Company.")
 			self.cbam_representive_last_name = values.last_name
@@ -211,7 +211,8 @@ class OperatingCompany(Document):
 			self.cbam_representive_employee_position = values.position
 			self.cbam_representive_employee_email = values.email
 			old_user = self.cbam_representative_user
-		self.save()
+
+		# self.save()
 
 		user = frappe.get_all("User", filters={"email": values.email}, fields=["name"])
 		if user:

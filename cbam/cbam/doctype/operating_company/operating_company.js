@@ -102,10 +102,7 @@ frappe.ui.form.on("Operating Company", {
                         })
                     }
                 })
-                d.show()
-    
-                
-                
+                d.show()  
             })
         }
         
