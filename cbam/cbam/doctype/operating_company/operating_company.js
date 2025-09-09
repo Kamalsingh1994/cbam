@@ -24,7 +24,6 @@ frappe.ui.form.on("Operating Company", {
                             label: 'Contact Type',
                             fieldname: 'type',
                             fieldtype: 'Select',
-                            default: "Commercial Contact",
                             options: "\nCommercial Contact\nCBAM Representative",
                             reqd: 1,
                             onchange: function() {
@@ -103,10 +102,7 @@ frappe.ui.form.on("Operating Company", {
                         })
                     }
                 })
-                d.show()
-    
-                
-                
+                d.show()  
             })
         }
         
