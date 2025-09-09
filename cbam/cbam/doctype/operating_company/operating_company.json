@@ -277,7 +277,8 @@
    "fieldname": "declarant",
    "fieldtype": "Link",
    "label": "Declarant",
-   "options": "Declarant"
+   "options": "Declarant",
+   "reqd": 1
   },
   {
    "default": "0",
@@ -292,7 +293,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-09 08:32:29.845498",
+ "modified": "2025-09-09 12:14:52.377584",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Operating Company",
