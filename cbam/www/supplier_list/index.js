@@ -174,6 +174,7 @@ function executeJS() {
                     label: __("First Name"),
                     fieldname: "main_contact_employee_first_name",
                     fieldtype: "Data",
+                    reqd: update ? 0 : 1,
                     default: docData ? docData.main_contact_employee_first_name : ""
                 },
                 
