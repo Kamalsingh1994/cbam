@@ -179,8 +179,7 @@
    "fieldname": "cbam_representive_employee_first_name",
    "fieldtype": "Data",
    "label": "CBAM Representative First Name",
-   "read_only": 1,
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fieldname": "column_break_xrkz",
@@ -293,7 +292,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-18 08:39:33.988050",
+ "modified": "2025-09-09 08:32:29.845498",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Operating Company",
