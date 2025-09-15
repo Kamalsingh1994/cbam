@@ -17,7 +17,7 @@ class CustomsImport(Document):
 			})
 
 	def validate(self):
-		# self.update_year()
+		self.update_year()
 		if self.current:
 			existing = frappe.db.get_value("Customs Import", {"current": 1, "name": ["!=", self.name]}, "name")
 
