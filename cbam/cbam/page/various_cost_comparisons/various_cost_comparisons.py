@@ -70,17 +70,19 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
 
     #set where conditions
     where_sql, where_sql_eg = set_conditions(declarants, filters, where_clauses, where_clauses_eg)
-    # Initialize ETS price
-    ets_carbon_price = 0.0
     
     # Initialize values with default values
-    bench_mark = 0.0
-    emission_value = 0.0
     cbam_factor = 0.0
+    ets_carbon_price = 0.0
     
-    # Fetch bench_mark, emission_value, and cbam_factor from backend based on year
+    # Fetch cbam_factor and ets_price from backend based on year
     year = selected_filters.get('year', None)
     ets_price_type = selected_filters.get('ets_price_type', None)
+    
+    # Validate year and ets_price_type
+    if not year or year == '' or not ets_price_type or ets_price_type == '':
+        year = None
+        ets_price_type = None
     
     if year and ets_price_type:
         # Get the values from the same tables used in get_cards_value
@@ -89,17 +91,12 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
             'ets_price_type': ets_price_type
         }
         
+        # Get CBAM factor and ETS price (these are year-specific, not cn_code/country specific)
         sql = """
             SELECT 
                 cf.cbam_factor,
-                cnb.bench_mark,
-                sev.emission_value,
                 ecp.price AS ets_price
             FROM `tabCBAM Factor` cf
-            LEFT JOIN `tabCBAM Benchmark` cnb 
-                ON cnb.year = %(year)s
-            LEFT JOIN `tabStandard Emission Value` sev 
-                ON sev.year = %(year)s
             LEFT JOIN (
                 -- Get the latest price_date within the selected year for the specific ETS price type
                 SELECT 
@@ -124,8 +121,6 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
         result = frappe.db.sql(sql, sql_params, as_dict=True)
         if result:
             cbam_factor = float(result[0].get('cbam_factor', 0.0) or 0.0)
-            bench_mark = float(result[0].get('bench_mark', 0.0) or 0.0)
-            emission_value = float(result[0].get('emission_value', 0.0) or 0.0)
             ets_carbon_price = float(result[0].get('ets_price', 0.0) or 0.0)
     
     # Count total rows for pagination
@@ -133,48 +128,98 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
 
     # Helper function to build cost calculation expressions
     def build_cost_calculations(table_alias):
+        # Use appropriate table aliases based on the table
+        cnb_alias = f"cnb_{table_alias}"
+        sev_alias = f"sev_{table_alias}"
+        
         return f"""
-            {bench_mark} AS cbam_benchmark,
-            {emission_value} AS standard_emission_factor,
+            IFNULL({cnb_alias}.bench_mark, 0.0) AS cbam_benchmark,
+            IFNULL({sev_alias}.emission_value, 0.0) AS standard_emission_factor,
             ((
-                {emission_value}
-                - ({bench_mark} * {cbam_factor})
-                - (({emission_value} * IFNULL({table_alias}.carbon_price_due, 0.0)) / {ets_carbon_price})
+                IFNULL({sev_alias}.emission_value, 0.0)
+                - (IFNULL({cnb_alias}.bench_mark, 0.0) * {cbam_factor})
+                - ((IFNULL({sev_alias}.emission_value, 0.0) * IFNULL({table_alias}.carbon_price_due, 0.0)) / {ets_carbon_price})
             ) * IFNULL({table_alias}.raw_mass_tonne, 0.0) * {ets_carbon_price}) AS standard_emission_cost,
             IFNULL({table_alias}.specific_direct_embedded_emissions,0.0) AS real_emission_value,
             ((
-                IFNULL({table_alias}.specific_direct_embedded_emissions,0.0) - ({cbam_factor} * {bench_mark})
+                IFNULL({table_alias}.specific_direct_embedded_emissions,0.0) - ({cbam_factor} * IFNULL({cnb_alias}.bench_mark, 0.0))
                 - ((IFNULL({table_alias}.specific_direct_embedded_emissions,0.0) * IFNULL({table_alias}.carbon_price_due, 0.0)) / {ets_carbon_price})
             ) * IFNULL({table_alias}.raw_mass_tonne, 0.0) * {ets_carbon_price}) AS real_emission_cost
         """
 
     # Main data query with LIMIT/OFFSET for pagination
-    data_query = f"""
-        SELECT * FROM (
-            SELECT 
-                eg.cn_code,
-                eg.article_no AS article_number,
-                eg.supplier,
-                IFNULL(eg.raw_mass_tonne,0.0) AS raw_mass_tonne,
-                eg.installation_country,
-                {build_cost_calculations('eg')},
-                eg.name
-            FROM `tabExternal Good` eg
-            {where_sql_eg}
-            UNION
-            SELECT 
-                g.cn_code,
-                g.article_number,
-                g.supplier_name AS supplier,
-                IFNULL(g.raw_mass_tonne,0.0) AS raw_mass_tonne,
-                g.installation_country,    
-                {build_cost_calculations('g')},
-                g.name
-            FROM `tabGood` g
-            {where_sql}
-        ) AS main_table
-        LIMIT {page_length} OFFSET {start}
-    """
+    if year:
+        # Query with year-based JOINs to fetch correct emission values
+        data_query = f"""
+            SELECT * FROM (
+                SELECT 
+                    eg.cn_code,
+                    eg.article_no AS article_number,
+                    eg.supplier,
+                    IFNULL(eg.raw_mass_tonne,0.0) AS raw_mass_tonne,
+                    eg.installation_country,
+                    {build_cost_calculations('eg')},
+                    eg.name
+                FROM `tabExternal Good` eg
+                LEFT JOIN `tabCBAM Benchmark` cnb_eg 
+                    ON cnb_eg.year = {year} AND cnb_eg.cn_code = eg.cn_code
+                LEFT JOIN `tabStandard Emission Value` sev_eg 
+                    ON sev_eg.year = {year} AND sev_eg.cn_code = eg.cn_code AND sev_eg.country = eg.installation_country
+                {where_sql_eg}
+                UNION
+                SELECT 
+                    g.cn_code,
+                    g.article_number,
+                    g.supplier_name AS supplier,
+                    IFNULL(g.raw_mass_tonne,0.0) AS raw_mass_tonne,
+                    g.installation_country,    
+                    {build_cost_calculations('g')},
+                    g.name
+                FROM `tabGood` g
+                LEFT JOIN `tabCBAM Benchmark` cnb_g 
+                    ON cnb_g.year = {year} AND cnb_g.cn_code = g.cn_code
+                LEFT JOIN `tabStandard Emission Value` sev_g 
+                    ON sev_g.year = {year} AND sev_g.cn_code = g.cn_code AND sev_g.country = g.installation_country
+                {where_sql}
+            ) AS main_table
+            LIMIT {page_length} OFFSET {start}
+        """
+    else:
+        # Query without year-based JOINs (fallback to basic data)
+        data_query = f"""
+            SELECT * FROM (
+                SELECT 
+                    eg.cn_code,
+                    eg.article_no AS article_number,
+                    eg.supplier,
+                    IFNULL(eg.raw_mass_tonne,0.0) AS raw_mass_tonne,
+                    eg.installation_country,
+                    0.0 AS cbam_benchmark,
+                    0.0 AS standard_emission_factor,
+                    0.0 AS standard_emission_cost,
+                    IFNULL(eg.specific_direct_embedded_emissions,0.0) AS real_emission_value,
+                    0.0 AS real_emission_cost,
+                    eg.name
+                FROM `tabExternal Good` eg
+                {where_sql_eg}
+                UNION
+                SELECT 
+                    g.cn_code,
+                    g.article_number,
+                    g.supplier_name AS supplier,
+                    IFNULL(g.raw_mass_tonne,0.0) AS raw_mass_tonne,
+                    g.installation_country,
+                    0.0 AS cbam_benchmark,
+                    0.0 AS standard_emission_factor,
+                    0.0 AS standard_emission_cost,
+                    IFNULL(g.specific_direct_embedded_emissions,0.0) AS real_emission_value,
+                    0.0 AS real_emission_cost,
+                    g.name
+                FROM `tabGood` g
+                {where_sql}
+            ) AS main_table
+            LIMIT {page_length} OFFSET {start}
+        """
     data = frappe.db.sql(data_query, as_dict=1)
     return data, total_count
 
