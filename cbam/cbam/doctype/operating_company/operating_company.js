@@ -94,7 +94,6 @@ frappe.ui.form.on("Operating Company", {
                             freeze: true, 
                             freeze_message: "Updating Contact Details",
                             callback(r){
-                                
                                 msgprint("Contact Updated Successfully")
                                 d.hide()
                                 frm.reload_doc()

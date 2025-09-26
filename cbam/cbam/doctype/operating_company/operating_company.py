@@ -187,7 +187,7 @@ class OperatingCompany(Document):
 			aus_pem.for_value = self.declarant
 			aus_pem.is_default = 1
 			aus_pem.save(ignore_permissions=True)
-	
+
 	@frappe.whitelist()
 	def update_contact(self, values):
 		values = frappe._dict(values)
@@ -211,8 +211,9 @@ class OperatingCompany(Document):
 			self.cbam_representive_employee_position = values.position
 			self.cbam_representive_employee_email = values.email
 			old_user = self.cbam_representative_user
-
-		# self.save()
+		
+		if not self.is_new():
+			self.save()
 
 		user = frappe.get_all("User", filters={"email": values.email}, fields=["name"])
 		if user:
