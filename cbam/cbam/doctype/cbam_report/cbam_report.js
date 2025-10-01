@@ -138,6 +138,10 @@ function add_import_button_to_child_table(frm) {
       args: {
         rows: selected_rows,
         declarant: frm.doc.declarant,
+        cbam_report: frm.doc.name,
+        reporting_period: frm.doc.reporting_period,
+        declarant_acts_as_importer: frm.doc.declarant_acts_as_importer,
+        importer: frm.doc.importer
       },
       callback: function (r) {
         if (r.message?.created?.length) {
