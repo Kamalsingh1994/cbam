@@ -108,17 +108,19 @@
   },
   {
    "fieldname": "report_id",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "Report ID",
-   "options": "CBAM Report"
+   "options": "CBAM Report",
+   "read_only": 1
   },
   {
    "fetch_from": "report_id.reporting_period",
    "fetch_if_empty": 1,
    "fieldname": "reporting_period",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "Reporting Period",
-   "options": "Customs Import"
+   "options": "Customs Import",
+   "read_only": 1
   },
   {
    "fetch_from": "report_id.importer",
@@ -191,7 +193,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-26 08:49:02.658188",
+ "modified": "2025-10-01 08:47:14.573776",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",
