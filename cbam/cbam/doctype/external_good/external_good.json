@@ -119,7 +119,6 @@
    "fieldname": "reporting_period",
    "fieldtype": "Data",
    "label": "Reporting Period",
-   "options": "Customs Import",
    "read_only": 1
   },
   {
@@ -193,7 +192,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-01 08:47:14.573776",
+ "modified": "2025-10-09 12:52:49.210993",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",
