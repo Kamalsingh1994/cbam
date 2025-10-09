@@ -18,8 +18,8 @@ frappe.ui.form.on("External Good", {
     }
   },
   refresh(frm) {
-    add_custom_links("report_id", "CBAM Report", cur_frm.doc.report_id);
-    add_custom_links("reporting_period", "Customs Import", cur_frm.doc.reporting_period);
+    add_custom_links("report_id", "CBAM Report", cur_frm.doc.report_id, "CBAM Report");
+    add_custom_links("reporting_period", "Customs Import", cur_frm.doc.reporting_period, "Reporting Period");
   },
   raw_mass_tonne(frm) {
       if (frm.doc.raw_mass_tonne != null) {
@@ -59,12 +59,12 @@ function calculate_mass_per_article(frm) {
   }
 }
 
-add_custom_links = (fieldname, doctype, docname) => {
+add_custom_links = (fieldname, doctype, docname, doctype_label) => {
   doctype_url = doctype.replace(/ /g, "-").toLowerCase();
   cur_frm.fields_dict[fieldname].$wrapper.html(
     `<div class="form-group">
         <div class="clearfix">
-          <label class="control-label" style="padding-right: 0px;">${doctype}</label>
+          <label class="control-label" style="padding-right: 0px;">${doctype_label}</label>
         </div>
         <div class="control-input-wrapper">
           <a class="control-value like-disabled-input" href="/app/${doctype_url}/${docname}">${docname}</a>
