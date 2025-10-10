@@ -11,7 +11,7 @@ class ExternalGood(Document):
 
 
 @frappe.whitelist()
-def bulk_create_external_goods(rows, declarant=None):
+def bulk_create_external_goods(rows, declarant=None, cbam_report=None, reporting_period=None, declarant_acts_as_importer=None, importer=None):
     if isinstance(rows, str):
         rows = json.loads(rows)
 
@@ -41,8 +41,11 @@ def bulk_create_external_goods(rows, declarant=None):
                 "specific_indirect_embedded_emissions": row.get("indirect_embedded_emissions"),
                 "customs_procedure": customs_procedure,
                 "calculate": "Quantity of Articles",
-                "declarant": declarant
-                
+                "declarant": declarant,
+                "report_id": cbam_report,
+                "reporting_period": reporting_period,
+                "declarant_acts_as_importer": declarant_acts_as_importer,
+                "importer": importer
             })
             doc.insert(ignore_permissions=True)
 
