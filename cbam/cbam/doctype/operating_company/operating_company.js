@@ -15,18 +15,103 @@ frappe.ui.form.on("Operating Company", {
             })
         }
         if(frappe.user.has_role("System Manager")){
-            // Only show if at least one contact is not updated (checks for '', null, or undefined)
+            // System Manager: always show Update Contact
+            frm.add_custom_button(__("Update Contact"), function(){
+                let type_options = ['Commercial Contact', 'CBAM Representative'];
+                let d = new frappe.ui.Dialog({
+                    title: "Update Contact Details",
+                    fields :[
+                        {
+                            label: 'Contact Type',
+                            fieldname: 'type',
+                            fieldtype: 'Select',
+                            options: type_options.join('\n'),
+                            reqd: 1,
+                            onchange: function() {
+                                if(d.get_value("type")== "Commercial Contact"){
+                                    d.set_value("first_name", frm.doc.main_contact_employee_first_name)
+                                    d.set_value("email", frm.doc.main_contact_employee_email)
+                                    d.set_value("position", frm.doc.main_contact_employee_position)
+                                    d.set_value("last_name", frm.doc.main_contact_employee_last_name)
+                                    d.set_value("phone_no", frm.doc.main_contact_employee_phone_number)
+                                }
+                                else if(d.get_value("type")== "CBAM Representative"){
+                                    d.set_value("first_name", frm.doc.cbam_representive_employee_first_name)
+                                    d.set_value("email", frm.doc.cbam_representive_employee_email)
+                                    d.set_value("position", frm.doc.cbam_representive_employee_position)
+                                    d.set_value("last_name", frm.doc.cbam_representive_last_name)
+                                    d.set_value("phone_no", frm.doc.cbam_representive_employee_phone_number)
+                                }
+                            }
+                        },
+                        {
+                            fieldtype: "Section Break",
+                            depends_on: "eval:doc.type"
+                        },
+                        {
+                            label: 'First Name',
+                            fieldname: 'first_name',
+                            fieldtype: 'Data',
+                            reqd: 1
+                        },
+                        {
+                            label: 'Email',
+                            fieldname: 'email',
+                            fieldtype: 'Data',
+                            options: "Email",
+                            reqd: 1
+                        },
+                        {
+                            label: 'Position',
+                            fieldname: 'position',
+                            fieldtype: 'Data'
+                        },
+                       
+                        {
+                            fieldtype: "Column Break"
+                        },
+                        {
+                            label: 'Last Name',
+                            fieldname: 'last_name',
+                            fieldtype: 'Data',
+                            reqd: 1
+                        },
+                        {
+                            label: 'Phone No',
+                            fieldname: 'phone_no',
+                            fieldtype: 'Data'
+                        },
+                    ],
+                    size: 'large',
+                    primary_action_label: "Update Contact",
+                    primary_action(values){
+                        values.name = frm.doc.name;
+                        frappe.call({
+                            method: "update_contact",
+                            doc: frm.doc,
+                            args:{
+                                values: values
+                            },
+                            freeze: true, 
+                            freeze_message: "Updating Contact Details",
+                            callback(r){
+                                msgprint("Contact Updated Successfully")
+                                d.hide()
+                                frm.reload_doc()
+                            }
+                        })
+                    }
+                })
+                d.show()  
+            })
+        } else if(frappe.user.has_role("Declarant")) {
+            // Declarant can only create Commercial Contact and only if missing
             const isCommercialMissing = !(frm.doc.main_contact_employee_email && frm.doc.main_contact_employee_email.trim());
-            const isCbamMissing = !(frm.doc.cbam_representive_employee_email && frm.doc.cbam_representive_employee_email.trim());
-            if(isCommercialMissing || isCbamMissing){
+            if(isCommercialMissing) {
                 frm.add_custom_button(__("Update Contact"), function(){
-                    // Dynamically build contact type options
-                    let type_options = [];
-                    if(isCommercialMissing) type_options.push('Commercial Contact');
-                    if(isCbamMissing) type_options.push('CBAM Representative');
-
+                    let type_options = ['Commercial Contact'];
                     let d = new frappe.ui.Dialog({
-                        "title": "Update Contact Details",
+                        title: "Update Contact Details",
                         fields :[
                             {
                                 label: 'Contact Type',
@@ -35,20 +120,11 @@ frappe.ui.form.on("Operating Company", {
                                 options: type_options.join('\n'),
                                 reqd: 1,
                                 onchange: function() {
-                                    if(d.get_value("type")== "Commercial Contact"){
-                                        d.set_value("first_name", frm.doc.main_contact_employee_first_name)
-                                        d.set_value("email", frm.doc.main_contact_employee_email)
-                                        d.set_value("position", frm.doc.main_contact_employee_position)
-                                        d.set_value("last_name", frm.doc.main_contact_employee_last_name)
-                                        d.set_value("phone_no", frm.doc.main_contact_employee_phone_number)
-                                    }
-                                    else if(d.get_value("type")== "CBAM Representative"){
-                                        d.set_value("first_name", frm.doc.cbam_representive_employee_first_name)
-                                        d.set_value("email", frm.doc.cbam_representive_employee_email)
-                                        d.set_value("position", frm.doc.cbam_representive_employee_position)
-                                        d.set_value("last_name", frm.doc.cbam_representive_last_name)
-                                        d.set_value("phone_no", frm.doc.cbam_representive_employee_phone_number)
-                                    }
+                                    d.set_value("first_name", frm.doc.main_contact_employee_first_name)
+                                    d.set_value("email", frm.doc.main_contact_employee_email)
+                                    d.set_value("position", frm.doc.main_contact_employee_position)
+                                    d.set_value("last_name", frm.doc.main_contact_employee_last_name)
+                                    d.set_value("phone_no", frm.doc.main_contact_employee_phone_number)
                                 }
                             },
                             {
