@@ -261,6 +261,7 @@
    "default": "0",
    "fieldname": "create_commercial_contact_user",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Create Commercial Contact User",
    "read_only_depends_on": "eval:doc.commercial_contact_user"
   },
@@ -293,7 +294,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-09 12:14:52.377584",
+ "modified": "2025-10-16 06:40:44.109726",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Operating Company",
