@@ -8,6 +8,8 @@
 
 frappe.provide('cbam.pages');
 
+let missingDataPopupShown = false; // <--- GLOBAL. Do not redeclare in any function!
+
 frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
     if (!sessionStorage.getItem('various_cost_comparisons_reloaded')) {
         sessionStorage.setItem('various_cost_comparisons_reloaded', '1');
@@ -489,6 +491,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                     datatable.destroy();
                     datatable = null;
                 }
+                missingDataPopupShown = false; // Only reset on full table reset
             }
             const selected_filters = cbam.get_all_selected_filters(filters);
             frappe.call({
@@ -512,6 +515,13 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                         }));
                         const per_tonne = $('#table-toggle').is(':checked');
                         const table_data = get_table_data(all_data, per_tonne);
+                        // Highlight rows with missing_data_reason
+                        const missingRows = [];
+                        table_data.forEach((row, i) => {
+                          if (row.missing_data_reason) {
+                            missingRows.push({idx: i, ...row});
+                          }
+                        });
                         if (!datatable) {
                             $('#table-section').empty();
                             datatable = new DataTable('#table-section', {
@@ -523,11 +533,25 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                                 scrollY: '500px',
                                 scrollX: true,
                                 className: 'frappe-datatable',
-                                checkboxColumn: true, 
+                                checkboxColumn: true,
+                                rowClass: function(row) {
+                                  return row.missing_data_reason ? 'missing-data-row' : '';
+                                }
                             });
                             bind_datatable_selection_events();
                         } else {
                             datatable.refresh(table_data);
+                        }
+                        // Show popup if any missing
+                        if (missingRows.length > 0 && !missingDataPopupShown) {
+                            console.log('Showing missing calculation data popup (first and only time per table load)');
+                            let popupMsg = '<b>The following rows are missing calculation data:</b><ul>';
+                            missingRows.forEach((r) => {
+                              popupMsg += `<li>Supplier: <b>${r.supplier||''}</b>, Article: <b>${r.article_number||''}</b>, CN: <b>${r.cn_code||''}</b>, Country: <b>${r.installation_country||''}</b>, Year: <b>${filters.year?.get_value()||''}</b>: <span style=\"color:#b8860b\">${r.missing_data_reason}</span></li>`;
+                            });
+                            popupMsg += '</ul>';
+                            frappe.msgprint({title: 'Missing Calculation Data', indicator: 'orange', message: popupMsg, wide: true});
+                            missingDataPopupShown = true; // Set to true so popup does not repeat
                         }
                         // Update chart (respect 'Show Selected rows' toggle)
                         const showSelected = $('#selected-rows-toggle').is(':checked');
