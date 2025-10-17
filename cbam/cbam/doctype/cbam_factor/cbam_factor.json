@@ -51,6 +51,7 @@
   {
    "fieldname": "reporting_period",
    "fieldtype": "Table MultiSelect",
+   "hidden": 1,
    "label": "Reporting Period",
    "options": "Reporting Period"
   }
@@ -58,7 +59,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-27 12:38:15.360931",
+ "modified": "2025-10-17 11:41:57.123810",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Factor",
