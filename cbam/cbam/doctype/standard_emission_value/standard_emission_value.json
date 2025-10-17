@@ -46,6 +46,7 @@
    "allow_in_quick_entry": 1,
    "fieldname": "reporting_period",
    "fieldtype": "Table MultiSelect",
+   "hidden": 1,
    "label": "Reporting Period",
    "options": "Reporting Period"
   },
@@ -68,7 +69,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-09 08:51:35.685339",
+ "modified": "2025-10-17 11:42:20.338506",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Standard Emission Value",
