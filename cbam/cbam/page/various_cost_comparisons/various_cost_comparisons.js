@@ -542,17 +542,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                         } else {
                             datatable.refresh(table_data);
                         }
-                        // Show popup if any missing
-                        if (missingRows.length > 0 && !missingDataPopupShown) {
-                            console.log('Showing missing calculation data popup (first and only time per table load)');
-                            let popupMsg = '<b>The following rows are missing calculation data:</b><ul>';
-                            missingRows.forEach((r) => {
-                              popupMsg += `<li>Supplier: <b>${r.supplier||''}</b>, Article: <b>${r.article_number||''}</b>, CN: <b>${r.cn_code||''}</b>, Country: <b>${r.installation_country||''}</b>, Year: <b>${filters.year?.get_value()||''}</b>: <span style=\"color:#b8860b\">${r.missing_data_reason}</span></li>`;
-                            });
-                            popupMsg += '</ul>';
-                            frappe.msgprint({title: 'Missing Calculation Data', indicator: 'orange', message: popupMsg, wide: true});
-                            missingDataPopupShown = true; // Set to true so popup does not repeat
-                        }
+                        
                         // Update chart (respect 'Show Selected rows' toggle)
                         const showSelected = $('#selected-rows-toggle').is(':checked');
                         let chart_data_final;

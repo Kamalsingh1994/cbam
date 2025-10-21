@@ -23,9 +23,9 @@ def get_report_data(filters=None, selected_filters=None, start=0, page_length=50
 
     columns = get_columns()
 
-    data, total_count, missing_summary = get_data(filters, selected_filters, start, page_length)
+    data, total_count = get_data(filters, selected_filters, start, page_length)
     chart_data = get_chart_data(data)
-    return {"columns": columns, "data": data, "chart_data": chart_data, "total_count": total_count, "missing_summary": missing_summary}
+    return {"columns": columns, "data": data, "chart_data": chart_data, "total_count": total_count}
 
 
 def get_columns():
@@ -41,7 +41,8 @@ def get_columns():
         {"fieldname": "standard_emission_factor", "fieldtype": "Data", "label": "Standard Emission Factor [tCO2/t product]", "width": 220},
         {"fieldname": "standard_emission_cost", "fieldtype": "Data", "label": "Standard Cost [€]", "width": 180},
         {"fieldname": "real_emission_value", "fieldtype": "Data", "label": "Specific (Direct) Emission Value [tCO2/t product]", "width": 280},
-        {"fieldname": "real_emission_cost", "fieldtype": "Data", "label": "Cost Based on Specific Emissions [€]", "width": 280}
+        {"fieldname": "real_emission_cost", "fieldtype": "Data", "label": "Cost Based on Specific Emissions [€]", "width": 280},
+        {"fieldname": "calculation_data_status", "fieldtype": "Data", "label": "Calculation Data", "width": 140},
     ]
 
 def get_data(filters=None, selected_filters=None, start=0, page_length=50):
@@ -235,35 +236,19 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
 
     required_fields = [
         ("cbam_benchmark", "CBAM Benchmark"),
-        ("standard_emission_factor", "Standard Emission Value")
+        ("standard_emission_factor", "Standard Emission Value"),
+        ("real_emission_value", "Specific Direct Emission Value"),
     ]
-    missing_summary = []
     for row in data:
         missing = []
         for key, label in required_fields:
-            if not row.get(key):
+            val = row.get(key)
+            if is_missing(val):
                 missing.append(label)
-        if missing:
-            row['missing_data_reason'] = f"Missing: {', '.join(missing)}"
-            row['missing_fields'] = missing
-            missing_summary.append({
-                "cn_code": row.get("cn_code"),
-                "country": row.get("installation_country"),
-                "year": selected_filters.get("year"),
-                "article_number": row.get("article_number"),
-                "supplier": row.get("supplier"),
-                "missing": missing
-            })
-
-    if missing_summary:
-        user_emails = get_system_managers()  # returns a list of email ids
-        msg = "Some lines in Financial Dashboard are missing calculation data:\n\n" + '\n'.join([
-            f"Supplier: {entry.get('supplier', '')}, Article: {entry.get('article_number', '')}, CN {entry['cn_code']}, Country {entry.get('country')}, Year {entry.get('year')} → Missing: {', '.join(entry['missing'])}" for entry in missing_summary
-        ])
-        frappe.sendmail(recipients=user_emails, subject="Financial Dashboard: Missing Calculation Data", message=msg)
-
-    return data, total_count, missing_summary
-
+        row['calculation_data_status'] = "<span style='color:#d97a12;font-weight:600'>Missing</span>" if missing else "<span style='color:#1f77b4;font-weight:600'>Available</span>"
+        row['missing_data_reason'] = ", ".join(missing) if missing else ""
+    
+    return data, total_count
 
 def set_conditions(declarants, filters, where_clauses, where_clauses_eg):
     if declarants:
@@ -535,3 +520,9 @@ def get_latest_ets_price(year=None, ets_price_type=None):
     result = frappe.db.sql(sql, sql_params, as_dict=True)
     
     return result[0] if result else None
+
+def is_missing(val):
+    try:
+        return val is None or str(val).strip() in ("", "0", "0.0")
+    except Exception:
+        return True
