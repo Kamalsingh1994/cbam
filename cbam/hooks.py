@@ -186,6 +186,9 @@ scheduler_events = {
     },
     "daily":[
         "cbam.utils.ets_import.scheduled_import.scheduled_ets_import"
+    ],
+    "daily": [
+        "cbam.cbam.page.various_cost_comparisons.missing_data_email.send_missing_data_summary"
     ]
 }
 
