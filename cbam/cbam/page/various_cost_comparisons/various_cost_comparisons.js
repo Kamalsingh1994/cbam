@@ -8,6 +8,8 @@
 
 frappe.provide('cbam.pages');
 
+let missingDataPopupShown = false; // <--- GLOBAL. Do not redeclare in any function!
+
 frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
     if (!sessionStorage.getItem('various_cost_comparisons_reloaded')) {
         sessionStorage.setItem('various_cost_comparisons_reloaded', '1');
@@ -489,6 +491,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                     datatable.destroy();
                     datatable = null;
                 }
+                missingDataPopupShown = false; // Only reset on full table reset
             }
             const selected_filters = cbam.get_all_selected_filters(filters);
             frappe.call({
@@ -512,6 +515,13 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                         }));
                         const per_tonne = $('#table-toggle').is(':checked');
                         const table_data = get_table_data(all_data, per_tonne);
+                        // Highlight rows with missing_data_reason
+                        const missingRows = [];
+                        table_data.forEach((row, i) => {
+                          if (row.missing_data_reason) {
+                            missingRows.push({idx: i, ...row});
+                          }
+                        });
                         if (!datatable) {
                             $('#table-section').empty();
                             datatable = new DataTable('#table-section', {
@@ -523,12 +533,16 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                                 scrollY: '500px',
                                 scrollX: true,
                                 className: 'frappe-datatable',
-                                checkboxColumn: true, 
+                                checkboxColumn: true,
+                                rowClass: function(row) {
+                                  return row.missing_data_reason ? 'missing-data-row' : '';
+                                }
                             });
                             bind_datatable_selection_events();
                         } else {
                             datatable.refresh(table_data);
                         }
+                        
                         // Update chart (respect 'Show Selected rows' toggle)
                         const showSelected = $('#selected-rows-toggle').is(':checked');
                         let chart_data_final;

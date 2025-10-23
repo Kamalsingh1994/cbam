@@ -308,7 +308,7 @@ class ETSImportProcessor:
                             'high': extracted_values['high_value'],
                             'low': extracted_values['low_value'],
                             'type': extracted_values['ets_price_type_value'],
-                            'year': extracted_values['price_year_value']
+                            'price_ year': extracted_values['price_year_value']
                         }
                     })
                     
@@ -372,6 +372,7 @@ class ETSImportProcessor:
                           volume_value=None, high_value=None, low_value=None, ets_price_type_value=None, price_year_value=None):
         """Create new ETS Carbon Price record with minimal logging"""
         try:
+            print("price_year_value: ", price_year_value)
             # Create new record
             ets_doc_data = {
                 "doctype": "ETS Carbon Price",
@@ -613,7 +614,7 @@ class ETSImportProcessor:
                                 except:
                                     # If date conversion fails, skip the date field
                                     pass
-                            elif 'year' in col_name.lower():
+                            elif 'price_year' in col_name.lower():
                                 child_record["price_year"] = col_value
                             elif 'type' in col_name.lower():
                                 child_record["ets_price_type"] = col_value
@@ -648,12 +649,14 @@ class ETSImportProcessor:
             'type': [],
             'year': []
         }
-        
-        # Map each column to its appropriate field type
         for mapped_col, actual_col in self.column_mapping.items():
-            col_lower = mapped_col.lower()
-            
-            if any(keyword in col_lower for keyword in ['date', 'time', 'period', 'year', 'month', 'day']) or 'date' in col_lower:
+            col_lower = mapped_col.lower().strip()
+            # Prefer 'price_year' as the first candidate
+            if col_lower == 'price_year':
+                field_mappings['year'].insert(0, actual_col)
+            elif 'year' in col_lower:
+                field_mappings['year'].append(actual_col)
+            if any(keyword in col_lower for keyword in ['date', 'time', 'period', 'month', 'day']) and 'date' in col_lower:
                 field_mappings['date'].append(actual_col)
             elif 'volume' in col_lower:
                 field_mappings['volume'].append(actual_col)
@@ -663,9 +666,6 @@ class ETSImportProcessor:
                 field_mappings['low'].append(actual_col)
             elif 'type' in col_lower:
                 field_mappings['type'].append(actual_col)
-            elif 'year' in col_lower:
-                field_mappings['year'].append(actual_col)
-        
         return field_mappings
     
     def _extract_row_values(self, row, field_mappings):
@@ -678,7 +678,18 @@ class ETSImportProcessor:
             'ets_price_type_value': None,
             'price_year_value': None
         }
-        
+        # --- PATCH: Prefer 'price_year' column for price_year_value, fallback to the first defined year column
+        year_found = False
+        for col in field_mappings.get('year', []):
+            if col.lower().strip() == "price_year" and pd.notna(row[col]):
+                extracted['price_year_value'] = row[col]
+                year_found = True
+                break
+        if not year_found:
+            for col in field_mappings.get('year', []):
+                if pd.notna(row[col]):
+                    extracted['price_year_value'] = row[col]
+                    break
         # Extract date value
         for col in field_mappings['date']:
             if pd.notna(row[col]):
@@ -710,10 +721,11 @@ class ETSImportProcessor:
                 break
         
         # Extract year value
-        for col in field_mappings['year']:
-            if pd.notna(row[col]):
-                extracted['price_year_value'] = row[col]
-                break
+        # This part is now handled by the new logic in _build_field_mappings
+        # for col in field_mappings['year']:
+        #     if pd.notna(row[col]):
+        #         extracted['price_year_value'] = row[col]
+        #         break
         
         return extracted
     

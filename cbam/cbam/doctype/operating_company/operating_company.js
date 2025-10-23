@@ -15,16 +15,17 @@ frappe.ui.form.on("Operating Company", {
             })
         }
         if(frappe.user.has_role("System Manager")){
+            // System Manager: always show Update Contact
             frm.add_custom_button(__("Update Contact"), function(){
-            
+                let type_options = ['Commercial Contact', 'CBAM Representative'];
                 let d = new frappe.ui.Dialog({
-                    "title": "Update Contact Details",
+                    title: "Update Contact Details",
                     fields :[
                         {
                             label: 'Contact Type',
                             fieldname: 'type',
                             fieldtype: 'Select',
-                            options: "\nCommercial Contact\nCBAM Representative",
+                            options: type_options.join('\n'),
                             reqd: 1,
                             onchange: function() {
                                 if(d.get_value("type")== "Commercial Contact"){
@@ -103,6 +104,90 @@ frappe.ui.form.on("Operating Company", {
                 })
                 d.show()  
             })
+        } else if(frappe.user.has_role("Declarant")) {
+            // Declarant can only create Commercial Contact and only if missing
+            const isCommercialMissing = !(frm.doc.main_contact_employee_email && frm.doc.main_contact_employee_email.trim());
+            if(isCommercialMissing) {
+                frm.add_custom_button(__("Update Contact"), function(){
+                    let type_options = ['Commercial Contact'];
+                    let d = new frappe.ui.Dialog({
+                        title: "Update Contact Details",
+                        fields :[
+                            {
+                                label: 'Contact Type',
+                                fieldname: 'type',
+                                fieldtype: 'Select',
+                                options: type_options.join('\n'),
+                                reqd: 1,
+                                onchange: function() {
+                                    d.set_value("first_name", frm.doc.main_contact_employee_first_name)
+                                    d.set_value("email", frm.doc.main_contact_employee_email)
+                                    d.set_value("position", frm.doc.main_contact_employee_position)
+                                    d.set_value("last_name", frm.doc.main_contact_employee_last_name)
+                                    d.set_value("phone_no", frm.doc.main_contact_employee_phone_number)
+                                }
+                            },
+                            {
+                                fieldtype: "Section Break",
+                                depends_on: "eval:doc.type"
+                            },
+                            {
+                                label: 'First Name',
+                                fieldname: 'first_name',
+                                fieldtype: 'Data',
+                                reqd: 1
+                            },
+                            {
+                                label: 'Email',
+                                fieldname: 'email',
+                                fieldtype: 'Data',
+                                options: "Email",
+                                reqd: 1
+                            },
+                            {
+                                label: 'Position',
+                                fieldname: 'position',
+                                fieldtype: 'Data'
+                            },
+                           
+                            {
+                                fieldtype: "Column Break"
+                            },
+                            {
+                                label: 'Last Name',
+                                fieldname: 'last_name',
+                                fieldtype: 'Data',
+                                reqd: 1
+                            },
+                            {
+                                label: 'Phone No',
+                                fieldname: 'phone_no',
+                                fieldtype: 'Data'
+                            },
+                        ],
+                        size: 'large',
+                        primary_action_label: "Update Contact",
+                        primary_action(values){
+                            values.name = frm.doc.name;
+                            frappe.call({
+                                method: "update_contact",
+                                doc: frm.doc,
+                                args:{
+                                    values: values
+                                },
+                                freeze: true, 
+                                freeze_message: "Updating Contact Details",
+                                callback(r){
+                                    msgprint("Contact Updated Successfully")
+                                    d.hide()
+                                    frm.reload_doc()
+                                }
+                            })
+                        }
+                    })
+                    d.show()  
+                })
+            }
         }
         
 	},

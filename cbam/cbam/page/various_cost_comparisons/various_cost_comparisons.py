@@ -1,6 +1,7 @@
 import frappe
 import json
 from datetime import datetime
+from frappe.utils.user import get_system_managers
 
 
 @frappe.whitelist()
@@ -29,8 +30,10 @@ def get_report_data(filters=None, selected_filters=None, start=0, page_length=50
 
 def get_columns():
     return [
+        {"fieldname": "reporting_period", "fieldtype": "Data", "label": "Reporting Period", "width": 180},
         {"fieldname": "cn_code", "fieldtype": "Data", "label": "CN Code", "width": 150},
         {"fieldname": "article_number", "fieldtype": "Data", "label": "Article Number", "width": 200},
+        {"fieldname": "data_source", "fieldtype": "Data", "label": "Data Source", "width": 180},
         {"fieldname": "supplier", "fieldtype": "Data", "label": "Supplier", "width": 200},
         {"fieldname": "raw_mass_tonne", "fieldtype": "Data", "label": "Mass [t]", "width": 150},
         {"fieldname": "installation_country", "fieldtype": "Data", "label": "Installation Country", "width": 180},
@@ -39,6 +42,7 @@ def get_columns():
         {"fieldname": "standard_emission_cost", "fieldtype": "Data", "label": "Standard Cost [€]", "width": 180},
         {"fieldname": "real_emission_value", "fieldtype": "Data", "label": "Specific (Direct) Emission Value [tCO2/t product]", "width": 280},
         {"fieldname": "real_emission_cost", "fieldtype": "Data", "label": "Cost Based on Specific Emissions [€]", "width": 280},
+        {"fieldname": "calculation_data_status", "fieldtype": "Data", "label": "Calculation Data", "width": 140},
     ]
 
 def get_data(filters=None, selected_filters=None, start=0, page_length=50):
@@ -159,7 +163,9 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
                     IFNULL(eg.raw_mass_tonne,0.0) AS raw_mass_tonne,
                     eg.installation_country,
                     {build_cost_calculations('eg')},
-                    eg.name
+                    eg.name,
+                    'CBAM Report Data' as data_source,
+                    eg.reporting_period as reporting_period
                 FROM `tabExternal Good` eg
                 LEFT JOIN `tabCBAM Benchmark` cnb_eg 
                     ON cnb_eg.year = {year} AND cnb_eg.cn_code = eg.cn_code
@@ -174,7 +180,9 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
                     IFNULL(g.raw_mass_tonne,0.0) AS raw_mass_tonne,
                     g.installation_country,    
                     {build_cost_calculations('g')},
-                    g.name
+                    g.name,
+                    'Supplier Data' as data_source,
+                    g.internal_customs_import_number as reporting_period
                 FROM `tabGood` g
                 LEFT JOIN `tabCBAM Benchmark` cnb_g 
                     ON cnb_g.year = {year} AND cnb_g.cn_code = g.cn_code
@@ -199,7 +207,9 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
                     0.0 AS standard_emission_cost,
                     IFNULL(eg.specific_direct_embedded_emissions,0.0) AS real_emission_value,
                     0.0 AS real_emission_cost,
-                    eg.name
+                    eg.name,
+                    'CBAM Report Data' as data_source,
+                    eg.reporting_period as reporting_period
                 FROM `tabExternal Good` eg
                 {where_sql_eg}
                 UNION
@@ -214,15 +224,31 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
                     0.0 AS standard_emission_cost,
                     IFNULL(g.specific_direct_embedded_emissions,0.0) AS real_emission_value,
                     0.0 AS real_emission_cost,
-                    g.name
+                    g.name,
+                    'Supplier Data' as data_source,
+                    g.internal_customs_import_number as reporting_period
                 FROM `tabGood` g
                 {where_sql}
             ) AS main_table
             LIMIT {page_length} OFFSET {start}
         """
     data = frappe.db.sql(data_query, as_dict=1)
-    return data, total_count
 
+    required_fields = [
+        ("cbam_benchmark", "CBAM Benchmark"),
+        ("standard_emission_factor", "Standard Emission Value"),
+        ("real_emission_value", "Specific Direct Emission Value"),
+    ]
+    for row in data:
+        missing = []
+        for key, label in required_fields:
+            val = row.get(key)
+            if is_missing(val):
+                missing.append(label)
+        row['calculation_data_status'] = "<span style='color:#d97a12;font-weight:600'>Missing</span>" if missing else "<span style='color:#1f77b4;font-weight:600'>Available</span>"
+        row['missing_data_reason'] = ", ".join(missing) if missing else ""
+    
+    return data, total_count
 
 def set_conditions(declarants, filters, where_clauses, where_clauses_eg):
     if declarants:
@@ -250,8 +276,8 @@ def set_conditions(declarants, filters, where_clauses, where_clauses_eg):
         where_clauses.append(f"(g.internal_customs_import_number IN ({reporting_period_list}))")
         where_clauses_eg.append(f"(eg.reporting_period IN ({reporting_period_list}))")
 
-    # Only fetch Good records with status = 'Data Submitted'
-    where_clauses.append("g.status = 'Data Submitted'")
+    # Only fetch Good records with status = 'Data Submitted' OR 'Data Assigned'
+    where_clauses.append("g.status IN ('Data Submitted', 'Data Assigned')")
 
     where_sql = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
     where_sql_eg = "WHERE " + " AND ".join(where_clauses_eg) if where_clauses_eg else ""
@@ -494,3 +520,9 @@ def get_latest_ets_price(year=None, ets_price_type=None):
     result = frappe.db.sql(sql, sql_params, as_dict=True)
     
     return result[0] if result else None
+
+def is_missing(val):
+    try:
+        return val is None or str(val).strip() in ("", "0", "0.0")
+    except Exception:
+        return True
