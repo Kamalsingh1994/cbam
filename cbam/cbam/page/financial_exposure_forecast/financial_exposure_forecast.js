@@ -104,12 +104,12 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 <!-- Disclaimer Box -->
                 <div class="frappe-card mb-4 p-3" style="background-color: #f8f9fa; border-left: 4px solid #007bff;">
                     <div class="d-flex align-items-center" style="align-items: flex-start !important;">
-                        <i class="fa fa-info-circle text-primary me-2" style="font-size: 1.2em;"></i>&nbsp;
+                        <i class="fa fa-info-circle text-primary me-2" style="font-size: 1.2em;padding-top: 2px;"></i>&nbsp;
                         <div>
-                            <strong class="text-primary">Note: </strong>
-                            Financial exposure chart: For the calculation of financial exposure the following assumptions are used: 
-                            The standard emission values as given by the EU commission for the transition period; 
-                            the benchmarks are roughly estimated using the EU-ETS benchmarks; the CBAM factor is used as given by the EU commission.
+                            <strong class="text-primary">Disclaimer: </strong>
+                            Financial exposure chart: For the calculation of financial exposure the following assumptions are used: The standard emission
+                            values as given by the EU commission for the transition period; the benchmarks are roughly estimated using the EU-ETS benchmarks; 
+                            the CBAM factor is used as given by the EU commission.
                         </div>
                     </div>
                 </div>
