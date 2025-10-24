@@ -285,7 +285,8 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                     <div class="mb-3 p-3" style="padding: 10px 0px 0px 0px !important;">
                         <div class="alert alert-info mb-0" role="alert">
                             <i class="fa fa-info-circle me-2"></i>
-                            <strong>Disclaimer:</strong> You can sort the list by any column and choose which entries to show for comparison.
+                            <strong>Note:</strong> You can sort the list by any column and choose which entries to show for comparison.
+
                         </div>
                     </div>
 
