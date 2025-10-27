@@ -69,5 +69,17 @@ frappe.ui.form.on("Good", {
                 }
             });
         });
+        if (frm.doc.emission_data_attachment) {
+            let path = frm.doc.emission_data_attachment;
+            // Always show as clickable if path starts with /files/ or /private/files/
+            if ((path.startsWith('/files/') || path.startsWith('/private/files/'))) {
+                let file_name = path.split('/').pop();
+                let html = `<a href="${path}" target="_blank">${file_name}</a>`;
+                frm.fields_dict.emission_data_attachment.$wrapper.html(html);
+            } else {
+                // fallback, show as plain text or non-clickable
+                frm.fields_dict.emission_data_attachment.$wrapper.html(path);
+            }
+        }
     },
 });

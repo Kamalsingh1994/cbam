@@ -171,6 +171,9 @@ doc_events = {
     },
     "User": {
         "before_save": "cbam.override.user.update_operating_company_contact"
+    },
+    "File": {
+        "on_trash": "cbam.utils.utils.prevent_declarant_file_delete"
     }
 }
 

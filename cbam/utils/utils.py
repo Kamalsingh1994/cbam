@@ -98,3 +98,7 @@ def get_declarant_for_user():
     )
     return declarants
 
+def prevent_declarant_file_delete(doc, method=None):
+    # Only block for CBAM Emission Data
+    if doc.attached_to_doctype == "CBAM Emission Data" and "Declarant" in frappe.get_roles():
+        frappe.throw("Declarant is not allowed to delete attachments for CBAM Emission Data.")

@@ -415,8 +415,14 @@ function executeJS() {
                     fieldname: "cb2",
                     fieldtype: "Column Break",
                 },
-
-
+                {
+                    label: __("Upload Attachment"),
+                    fieldname: "emission_attachment",
+                    fieldtype: "Attach",
+                    reqd: false,
+                    description: "Attach supporting file for this emission (PDF, DOC, etc.)",
+                    default: docData ? docData.emission_attachment : ""
+                },
             ],
             size: 'extra-large', // small, large, extra-large 
             primary_action_label: `${update ? __("Update Emission") : __("Create Emission")}`,
