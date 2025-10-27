@@ -26,7 +26,18 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             height: 60px;
         }
         #annual-exposure-cards{
-            height: 60px;
+            height: auto;
+        }
+        .frappe-card:has(#annual-exposure-cards) {
+            scrollbar-width: thin;
+            scrollbar-color: #e3e3e3 #f8f9fa;
+        }
+        .frappe-card:has(#annual-exposure-cards)::-webkit-scrollbar {
+            height: 8px;
+        }
+        .frappe-card:has(#annual-exposure-cards)::-webkit-scrollbar-thumb {
+            background: #e3e3e3;
+            border-radius: 4px;
         }
         #dashboard-tabs .nav-link.active {
           background-color: #000 !important;
@@ -42,6 +53,18 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
           margin-left: 0 !important;
           margin-right: 0 !important;
           margin-bottom: 25px !important;
+        }
+        #annual-exposure-cards {
+            // margin-bottom: 32px !important;
+            position: relative;
+            z-index: 2;
+            background: #fff !important;
+            border-radius: 8px;
+        }
+        #chart-section-container {
+            position: relative;
+            margin-top: 16px !important;
+            z-index: 1;
         }
       </style>`).appendTo('head');
   
@@ -91,8 +114,8 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 </div>
 
                 <!-- Annual Exposure Stat Cards -->
-                <div class="frappe-card mb-3 p-2">
-                    <div class="d-flex flex-wrap" id="annual-exposure-cards" style="gap: 16px;">
+                <div class="frappe-card mb-3 p-2" style="overflow-x: auto; overflow-y: hidden; padding: 8px !important;">
+                    <div class="d-flex flex-nowrap" id="annual-exposure-cards" style="gap: 16px; min-width: fit-content; margin: 0;">
                         <!-- Cards will be populated dynamically -->
                     </div>
                 </div>
