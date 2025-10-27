@@ -1,20 +1,55 @@
 import frappe
 import json
+import os
+
+def _link_and_prefix_emission_attachment(doc_dict, doc_obj):
+    if doc_dict.get("doctype") == "CBAM Emission Data" and doc_dict.get("emission_attachment"):
+        file_url = doc_dict["emission_attachment"]
+        oc_ref = None
+        supplier = "NOSUPPLIER"
+        if hasattr(doc_obj, 'operating_company') and doc_obj.operating_company:
+            oc_doc = frappe.get_doc("Operating Company", doc_obj.operating_company)
+            oc_ref = oc_doc.name
+            supplier = getattr(oc_doc, "supplier", None) or "NOSUPPLIER"
+        else:
+            oc_ref = "OC-UNKNOWN"
+
+        file_doc = frappe.get_all("File", filters={"file_url": file_url}, fields=["name", "file_name", "file_url"])
+        if file_doc:
+            file_doc = frappe.get_doc("File", file_doc[0].name)
+            expected_prefix = f"{oc_ref}_{supplier}_"
+            if not file_doc.file_name.startswith(expected_prefix):
+                new_name = f"{expected_prefix}{file_doc.file_name}"
+                if file_doc.file_url and file_doc.file_url.startswith("/files/"):
+                    old_url = file_doc.file_url
+                    new_url = f"/files/{expected_prefix}{file_doc.file_name}"
+                    # Get actual filesystem path to files directory
+                    site_public = frappe.get_site_path("public")
+                    old_path = os.path.join(site_public, old_url.lstrip("/"))
+                    new_path = os.path.join(site_public, new_url.lstrip("/"))
+                    os.rename(old_path, new_path)
+                    file_doc.file_url = new_url
+                file_doc.file_name = new_name
+            file_doc.attached_to_doctype = "CBAM Emission Data"
+            file_doc.attached_to_name = doc_obj.name
+            file_doc.save(ignore_permissions=True)
 
 @frappe.whitelist()
 def create_new_doc(doc):
     doc = json.loads(doc)
-    return frappe.get_doc(doc).insert(ignore_permissions=True)
+    doc_obj = frappe.get_doc(doc).insert(ignore_permissions=True)
+    _link_and_prefix_emission_attachment(doc, doc_obj)
+    return doc_obj
 
 @frappe.whitelist()
 def update_doc(doc):
     doc = json.loads(doc)
     if not frappe.db.exists(doc.get("doctype"), doc.get("name")):
         frappe.throw("Document doesn't exist")
-    
     existing_doc = frappe.get_doc(doc.get("doctype"), doc.get("name"))
     existing_doc.update(doc)
     existing_doc.save(ignore_permissions=True)
+    _link_and_prefix_emission_attachment(doc, existing_doc)
     return existing_doc
 
 @frappe.whitelist()
@@ -37,3 +72,40 @@ def get_field_options(doc, fieldname):
     if field and field.options:
         return field.options.split("\n")
     return []
+
+@frappe.whitelist()
+def rename_any_file(file_url, new_file_name):
+    """Rename a file (public or private) and update its File DocType record's file_url and file_name."""
+    if not file_url or not new_file_name:
+        frappe.throw('Both file_url and new_file_name are required.')
+
+    if file_url.startswith("/private/files/"):
+        site_path = frappe.get_site_path("private")
+        # both source and target in private
+        old_path = os.path.join(site_path, "files", file_url.split("/")[-1])
+        new_url = f"/private/files/{new_file_name}"
+        new_path = os.path.join(site_path, "files", new_file_name)
+    elif file_url.startswith("/files/"):
+        site_path = frappe.get_site_path("public")
+        old_path = os.path.join(site_path, file_url.lstrip('/'))
+        new_url = f"/files/{new_file_name}"
+        new_path = os.path.join(site_path, new_url.lstrip('/'))
+    else:
+        frappe.throw("File URL must be public (/files/) or private (/private/files/).")
+
+    # Move file on disk
+    if not os.path.exists(old_path):
+        frappe.throw(f"File to rename not found: {old_path}")
+    os.rename(old_path, new_path)
+
+    # Update File DocType
+    file_docs = frappe.get_all("File", filters={"file_url": file_url}, fields=["name"])
+    if file_docs:
+        file_doc = frappe.get_doc("File", file_docs[0].name)
+        file_doc.file_name = new_file_name
+        file_doc.file_url = new_url
+        file_doc.save(ignore_permissions=True)
+        frappe.db.commit()
+        return {'file_url': new_url, 'file_name': new_file_name}
+    else:
+        frappe.throw('File record not found for given URL.')

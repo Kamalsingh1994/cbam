@@ -128,6 +128,7 @@
 				<td><strong>{{_('Electricity Emission Factor [tCO2/MWh]')}}</strong></td>
 				<td><strong>{{_('Source of Electricity Emission Factor')}}</strong></td>
 				<td><strong>{{_('Specific (Indirect) Embedded Emissions [tCO2/t]')}}</strong></td>
+				<td><strong>{{_('Emission Attachment')}}</strong></td>
 				<td><strong>{{_('Edit Emission')}}</strong></td>
 			</tr>
 			
@@ -144,6 +145,11 @@
 				<td>{{i.indirect_emission_factor}}</td>
 				<td>{{i.source_of_indirect_emission_factor or ""}}</td>
 				<td>{{i.specific_indirect_embedded_emissions or ""}}</td>
+				<td>
+              {% if i.emission_attachment %}
+                <a href="{{ i.emission_attachment }}" target="_blank">{{ i.emission_attachment.split('/')[-1] }}</a>
+              {% else %}-{% endif %}
+            </td>
 				<td style="text-align: center;">
 				<button class="btn btn-secondary btn-sm secondary-action edit-emission" data-emission="{{i.name}}">
 					{{_('Edit')}}

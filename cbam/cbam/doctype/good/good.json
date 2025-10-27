@@ -560,6 +560,12 @@
    "read_only": 1
   },
   {
+   "fieldname": "emission_data_attachment",
+   "fieldtype": "Read Only",
+   "label": "Emission Data Attachment",
+   "fetch_from": "emission_data.emission_attachment"
+  },
+  {
    "fieldname": "column_break_fdty",
    "fieldtype": "Column Break"
   },
