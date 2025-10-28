@@ -215,7 +215,7 @@ function executeJS() {
                     fieldname: "is_the_installation_tracking_emissions_data",
                     fieldtype: "Select",
                     options: "\nYes\nNo",
-                    default: docData ? docData.is_the_installation_tracking_emissions_data : ""
+                    default: docData ? docData.is_the_installation_tracking_emissions_data : "No"
                 },
                 {
                     label: __(""),
@@ -227,7 +227,7 @@ function executeJS() {
                     fieldname: "is_the_installation_subject_to_an_emission_trading_system",
                     fieldtype: "Select",
                     options: "\nYes\nNo",
-                    default: docData ? docData.is_the_installation_subject_to_an_emission_trading_system : ""
+                    default: docData ? docData.is_the_installation_subject_to_an_emission_trading_system : "No"
                 },
                 {
                     label: __("Which emission trading system (link to legal act)?"),
