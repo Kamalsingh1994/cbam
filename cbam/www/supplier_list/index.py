@@ -1,8 +1,9 @@
 import frappe
-
+from cbam.utils import require_website_user
 
 
 def get_context(context):
+    require_website_user()
     context = get_suppliers(context)
     return context
     

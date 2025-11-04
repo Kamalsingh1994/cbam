@@ -57,6 +57,12 @@ def get_roles(user):
     roles = frappe.get_roles(user)
     return roles
 
+def require_website_user():
+    """Redirect Guest users to login page. Call this at the start of get_context() for protected pages."""
+    from urllib.parse import urlencode
+    if frappe.session.user == "Guest":
+        frappe.redirect(f"/login?{urlencode({'redirect-to': frappe.request.path})}")
+
 @frappe.whitelist()
 def get_supplier():
     filters = {"commercial_contact_user": frappe.session.user}
