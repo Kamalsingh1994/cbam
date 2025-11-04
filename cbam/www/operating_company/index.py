@@ -1,9 +1,10 @@
 import frappe
 no_cache = 1
 from cbam.utils.supplier import get_supplier
-from cbam.utils import get_roles
+from cbam.utils import get_roles, require_website_user
 
 def get_context(context):
+    require_website_user()
     # context.user = frappe.session.user
     # context.employee_list = frappe.db.get_all('Supplier Employee', filters={'email': context.user}, fields=['name'], pluck="name")
     # if context.employee_list:
