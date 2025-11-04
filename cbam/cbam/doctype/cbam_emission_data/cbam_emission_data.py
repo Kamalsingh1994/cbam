@@ -10,9 +10,9 @@ class CBAMEmissionData(Document):
 		self.update_good_installation_name()
 		if self.emission_attachment:
 			oc = self.operating_company or "OC-UNKNOWN"
-			supplier = getattr(self, "supplier", None) or "NOSUPPLIER"
+			emission_id = self.name or "EMISSION-UNKNOWN"
 			original_file = self.emission_attachment.split('/')[-1]
-			expected_prefix = f"{oc}_{supplier}_"
+			expected_prefix = f"{oc}_{emission_id}_"
 
 			# Only rename if current filename does not match target pattern exactly once
 			already_correct = original_file.startswith(expected_prefix)
@@ -22,8 +22,19 @@ class CBAMEmissionData(Document):
 
 			# Remove all leading known prefixes before applying target prefix
 			base_name = original_file
+			# Remove new emission prefix if already present (to handle renames)
 			while base_name.startswith(expected_prefix):
 				base_name = base_name[len(expected_prefix):]
+			
+			# Remove old supplier-based prefix if present (migration from old format)
+			# Old format: OC-xxx_supplier_... -> remove everything up to second underscore
+			if base_name.startswith(f"{oc}_") and not base_name.startswith(expected_prefix):
+				# Check if it's old format (OC-xxx_supplier_)
+				parts_after_oc = base_name[len(f"{oc}_"):].split('_', 1)
+				if len(parts_after_oc) > 1:
+					# This is old format: OC-xxx_supplier_filename -> extract just filename
+					base_name = parts_after_oc[1]
+			
 			new_file_name = f"{expected_prefix}{base_name}"
 			if original_file == new_file_name:
 				return  # exactly same name--nothing to do
