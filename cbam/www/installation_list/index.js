@@ -24,9 +24,6 @@ frappe.ready(() => {
 });
 // end of translation
   
-
-  
-
 window.addEventListener("DOMContentLoaded", () => {
     executeJS();
     refreshElements(frappe)
@@ -421,7 +418,10 @@ function executeJS() {
                     fieldtype: "Attach",
                     reqd: false,
                     description: "Attach supporting file for this emission (PDF, DOC, etc.)",
-                    default: docData ? docData.emission_attachment : ""
+                    default: docData ? docData.emission_attachment : "",
+                    options: {
+                        allow_toggle_private: false
+                    }
                 },
             ],
             size: 'extra-large', // small, large, extra-large 
@@ -442,6 +442,7 @@ function executeJS() {
             }
         });          
         d.show();
+
 
         // This is to recalculate the indirect emissions when the electricity consumed or indirect emission factor changes
         d.fields_dict.electricity_consumed.df.change = function() {
