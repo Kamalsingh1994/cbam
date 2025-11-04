@@ -49,6 +49,13 @@ def get_child_suppliers(filters={}):
     _filters = {"parent_operating_company": parent_company}
     if filters:
         _filters.update(json.loads(filters))
-   
-    return frappe.db.get_all("Operating Company", _filters, ["name as value", "supplier_name as label"])
+
+    # Website users may not have read permission on Operating Company.
+    # Use ignore_permissions for this constrained lookup to avoid Not Permitted.
+    return frappe.get_all(
+        "Operating Company",
+        filters=_filters,
+        fields=["name as value", "supplier_name as label"],
+        ignore_permissions=True,
+    )
     
