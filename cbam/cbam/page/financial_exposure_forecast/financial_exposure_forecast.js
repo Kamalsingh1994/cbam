@@ -27,6 +27,11 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         }
         #annual-exposure-cards{
             height: 60px;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        .frappe-card:has(#annual-exposure-cards) {
+            overflow-x: auto;
         }
         #dashboard-tabs .nav-link.active {
           background-color: #000 !important;
@@ -92,7 +97,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
 
                 <!-- Annual Exposure Stat Cards -->
                 <div class="frappe-card mb-3 p-2">
-                    <div class="d-flex flex-wrap" id="annual-exposure-cards" style="gap: 16px;">
+                    <div class="d-flex flex-nowrap" id="annual-exposure-cards" style="gap: 16px;">
                         <!-- Cards will be populated dynamically -->
                     </div>
                 </div>
@@ -767,8 +772,42 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         if (Array.isArray(chart_data.series)) {
             chart_data.series.forEach(s => { s.data = ensureObjectPoints(s.data); });
         }
+        // Destroy existing chart if present to prevent error #16 (Highcharts already defined)
+        const chartContainer = document.getElementById('chart-section');
+        if (!chartContainer) {
+            console.error('Chart container not found');
+            return;
+        }
+        
+        // Destroy existing Highcharts instance if present
+        if (chartContainer._highchartsInstance) {
+            try {
+                chartContainer._highchartsInstance.destroy();
+            } catch(e) {
+                console.warn('Error destroying existing chart:', e);
+            }
+        }
+        
+        // Also check Highcharts.charts array for existing charts on this container
+        if (typeof window.Highcharts !== 'undefined' && window.Highcharts.charts) {
+            window.Highcharts.charts.forEach((chart, index) => {
+                if (chart && chart.renderTo && chart.renderTo.id === 'chart-section') {
+                    try {
+                        chart.destroy();
+                    } catch(e) {
+                        console.warn('Error destroying chart from Highcharts.charts:', e);
+                    }
+                }
+            });
+        }
+        
+        // Clear container content
+        chartContainer.innerHTML = '';
+        
         // Do NOT touch overlays/diamonds logic at all
-        Highcharts.chart('chart-section', {
+        let chartInstance;
+        try {
+            chartInstance = Highcharts.chart('chart-section', {
             chart: {
                 type: 'column',
                 height: 600,
@@ -776,6 +815,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 spacingBottom: 20 // reduced from 100
             },
             credits: { enabled: false },
+            accessibility: { enabled: false },
             title: { text: 'Financial Exposure Forecast' },
             xAxis: {
                 categories: categories,
@@ -1043,7 +1083,24 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     fontSize: '12px'
                 }
             }
-        });
+            });
+        } catch (error) {
+            console.error('Highcharts error:', error);
+            // Highcharts error #16: Highcharts already defined
+            // This typically means Highcharts is loaded multiple times or there's a conflict
+            if (error.message && (error.message.includes('16') || error.message.includes('already defined'))) {
+                console.warn('Highcharts conflict detected. Please refresh the page to resolve.');
+                $('#chart-section').html('<div class="text-center text-warning p-4">Chart library conflict detected. Please refresh the page.</div>');
+            } else {
+                $('#chart-section').html('<div class="text-center text-danger p-4">Chart rendering error. Please refresh the page.</div>');
+            }
+            return;
+        }
+        
+        // Store chart instance reference for cleanup
+        if (chartInstance && chartContainer) {
+            chartContainer._highchartsInstance = chartInstance;
+        }
         
         // Populate annual exposure stat cards
         populateAnnualExposureCards(accumulatedExposureMonth, categories);
@@ -1103,15 +1160,83 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             });
     }
 
-    // Loader for Highcharts
+    // Use centralized Highcharts loader from cbam.utils with fallback
     function load_highcharts(callback) {
-        if (typeof Highcharts !== 'undefined') {
-            callback();
+        // Ensure cbam.utils is available (wait if needed)
+        if (typeof cbam === 'undefined' || typeof cbam.utils === 'undefined' || typeof cbam.utils.loadHighcharts !== 'function') {
+            // Fallback: wait for bundle to load, then try again
+            let checkCount = 0;
+            const maxChecks = 50; // 5 seconds max wait
+            const checkInterval = setInterval(() => {
+                checkCount++;
+                if (typeof cbam !== 'undefined' && typeof cbam.utils !== 'undefined' && typeof cbam.utils.loadHighcharts === 'function') {
+                    clearInterval(checkInterval);
+                    cbam.utils.loadHighcharts((error) => {
+                        if (error) {
+                            console.error('Highcharts load error:', error);
+                            $('#chart-section').html('<div class="text-center text-danger p-4">Chart library failed to load. Please refresh the page.</div>');
+                        } else {
+                            callback();
+                        }
+                    });
+                } else if (checkCount >= maxChecks) {
+                    clearInterval(checkInterval);
+                    console.error('cbam.utils.loadHighcharts not available, using fallback loader');
+                    // Fallback to direct loading
+                    load_highcharts_fallback(callback);
+                }
+            }, 100);
             return;
         }
+        
+        // Use centralized loader
+        cbam.utils.loadHighcharts((error) => {
+            if (error) {
+                console.error('Highcharts load error:', error);
+                $('#chart-section').html('<div class="text-center text-danger p-4">Chart library failed to load. Please refresh the page.</div>');
+            } else {
+                callback();
+            }
+        });
+    }
+    
+    // Fallback loader if cbam.utils is not available
+    function load_highcharts_fallback(callback) {
+        if (typeof window.Highcharts !== 'undefined' && typeof window.Highcharts.chart === 'function') {
+            setTimeout(callback, 0);
+            return;
+        }
+        
+        const existingScript = document.querySelector('script[src*="highcharts.js"]');
+        if (existingScript) {
+            let checkCount = 0;
+            const maxChecks = 50;
+            const checkInterval = setInterval(() => {
+                checkCount++;
+                if (typeof window.Highcharts !== 'undefined' && typeof window.Highcharts.chart === 'function') {
+                    clearInterval(checkInterval);
+                    setTimeout(callback, 100);
+                } else if (checkCount >= maxChecks) {
+                    clearInterval(checkInterval);
+                    $('#chart-section').html('<div class="text-center text-danger p-4">Chart library failed to load. Please refresh the page.</div>');
+                }
+            }, 100);
+            return;
+        }
+        
         const script = document.createElement('script');
         script.src = 'https://code.highcharts.com/highcharts.js';
-        script.onload = callback;
+        script.async = true;
+        script.onload = () => {
+            if (typeof window.Highcharts !== 'undefined' && typeof window.Highcharts.chart === 'function') {
+                setTimeout(callback, 100);
+            } else {
+                $('#chart-section').html('<div class="text-center text-danger p-4">Chart library failed to initialize. Please refresh the page.</div>');
+            }
+        };
+        script.onerror = () => {
+            $('#chart-section').html('<div class="text-center text-danger p-4">Failed to load chart library. Please refresh the page.</div>');
+        };
         document.head.appendChild(script);
     }
     function update_export_button_state() {

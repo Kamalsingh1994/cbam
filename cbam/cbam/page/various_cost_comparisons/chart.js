@@ -53,6 +53,7 @@ cbam.update_chart = function update_chart(chart_data) {
             credits: {
                 enabled: false
             },
+            accessibility: { enabled: false },
             title: { text: __('Cost Exposure of Articles @ [selected ETS Price basis]') },
             xAxis: {
                 categories: labels,
@@ -81,13 +82,33 @@ cbam.update_chart = function update_chart(chart_data) {
         });
     }
 
-    if (typeof window.Highcharts === 'undefined') {
-        // Dynamically load Highcharts from CDN if not already loaded
-        const script = document.createElement('script');
-        script.src = 'https://code.highcharts.com/highcharts.js';
-        script.onload = () => renderHighChart();
-        document.head.appendChild(script);
-    } else {
-        renderHighChart();
+    // Use centralized Highcharts loader to prevent conflicts when navigating between pages
+    // With fallback if cbam.utils is not available
+    function loadChart() {
+        if (typeof cbam !== 'undefined' && typeof cbam.utils !== 'undefined' && typeof cbam.utils.loadHighcharts === 'function') {
+            cbam.utils.loadHighcharts((error) => {
+                if (error) {
+                    console.error('Highcharts load error:', error);
+                    $('#chart-section').html('<div class="text-center text-danger p-4">Chart library failed to load. Please refresh the page.</div>');
+                } else {
+                    renderHighChart();
+                }
+            });
+        } else {
+            // Fallback: direct loading if utils not available
+            if (typeof window.Highcharts === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://code.highcharts.com/highcharts.js';
+                script.onload = () => renderHighChart();
+                script.onerror = () => {
+                    $('#chart-section').html('<div class="text-center text-danger p-4">Chart library failed to load. Please refresh the page.</div>');
+                };
+                document.head.appendChild(script);
+            } else {
+                renderHighChart();
+            }
+        }
     }
+    
+    loadChart();
 }
