@@ -494,8 +494,8 @@ def get_available_years():
     user_roles = frappe.get_roles(user)
     is_system_manager = 'System Manager' in user_roles
     filters = {}
+    # Only filter by Declarant if user has explicit restrictions
     if not is_system_manager:
-        # Try to find a declarant linked to this user
         declarant = frappe.db.get_value("Declarant", {"email": user}, "name")
         if declarant:
             filters["declarant"] = declarant
@@ -541,15 +541,19 @@ def get_cbam_reports_by_year(year):
     """Get CBAM reports for a specific year based on from_date and to_date"""
     user = frappe.session.user
     
-    # Check if user is a System Manager
+    # Filter by user permissions if not System Manager
     user_roles = frappe.get_roles(user)
     is_system_manager = 'System Manager' in user_roles
+    
     filters = {}
+    
+    # Only filter by Declarant if user has explicit restrictions (not all non-managers)
     if not is_system_manager:
-        # Try to find a declarant linked to this user
+        # Check if user has limited scope
         declarant = frappe.db.get_value("Declarant", {"email": user}, "name")
         if declarant:
             filters["declarant"] = declarant
+    # System Managers and users with broader access see all reports
     
     # Add year filter using from_date and to_date
     year = int(year)

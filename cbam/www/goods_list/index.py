@@ -1,9 +1,10 @@
 import frappe
-from cbam.utils import get_roles
+from cbam.utils import get_roles, require_website_user
 no_cache = 1
 
 
 def get_context(context):
+    require_website_user()
     context = get_user_roles(context)
     context = get_goods_list(context)
     # context.user = frappe.session.user
