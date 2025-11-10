@@ -79,6 +79,22 @@ def rename_any_file(file_url, new_file_name):
     if not file_url or not new_file_name:
         frappe.throw('Both file_url and new_file_name are required.')
 
+    # Get File document first to check if it's a remote file
+    file_docs = frappe.get_all("File", filters={"file_url": file_url}, fields=["name"])
+    if not file_docs:
+        frappe.throw('File record not found for given URL.')
+    
+    file_doc = frappe.get_doc("File", file_docs[0].name)
+    
+    # Check if this is a remote file (stored in cloud like S3)
+    # Remote files start with http:// or https://
+    if file_doc.is_remote_file or file_url.startswith(("http://", "https://")):
+        # For remote files, only update the File DocType record, don't rename on disk
+        file_doc.file_name = new_file_name
+        file_doc.save(ignore_permissions=True)
+        frappe.db.commit()
+        return {'file_url': file_url, 'file_name': new_file_name}
+
     if file_url.startswith("/private/files/"):
         site_path = frappe.get_site_path("private")
         # both source and target in private
@@ -93,19 +109,43 @@ def rename_any_file(file_url, new_file_name):
     else:
         frappe.throw("File URL must be public (/files/) or private (/private/files/).")
 
-    # Move file on disk
+    # Check if file exists on disk before attempting rename
     if not os.path.exists(old_path):
-        frappe.throw(f"File to rename not found: {old_path}")
-    os.rename(old_path, new_path)
-
-    # Update File DocType
-    file_docs = frappe.get_all("File", filters={"file_url": file_url}, fields=["name"])
-    if file_docs:
-        file_doc = frappe.get_doc("File", file_docs[0].name)
+        # File doesn't exist on disk yet (might be in upload process or stored remotely)
+        # Log warning but don't block - update File DocType only
+        frappe.log_error(
+            f"File not found on disk during rename: {old_path}. Updating File DocType only.",
+            title="File Rename Skipped"
+        )
+        # Update File DocType record only without renaming physical file
         file_doc.file_name = new_file_name
-        file_doc.file_url = new_url
         file_doc.save(ignore_permissions=True)
         frappe.db.commit()
-        return {'file_url': new_url, 'file_name': new_file_name}
-    else:
-        frappe.throw('File record not found for given URL.')
+        return {'file_url': file_url, 'file_name': new_file_name}
+    
+    # Check if target path already exists
+    if os.path.exists(new_path):
+        # Target file already exists, skip rename to avoid conflict
+        frappe.log_error(
+            f"Target file already exists: {new_path}. Skipping rename.",
+            title="File Rename Skipped"
+        )
+        return {'file_url': file_url, 'file_name': file_doc.file_name}
+    
+    # Move file on disk
+    try:
+        os.rename(old_path, new_path)
+    except Exception as e:
+        # If rename fails for any reason, log it but don't block the process
+        frappe.log_error(
+            f"Failed to rename file from {old_path} to {new_path}: {str(e)}",
+            title="File Rename Failed"
+        )
+        return {'file_url': file_url, 'file_name': file_doc.file_name}
+
+    # Update File DocType
+    file_doc.file_name = new_file_name
+    file_doc.file_url = new_url
+    file_doc.save(ignore_permissions=True)
+    frappe.db.commit()
+    return {'file_url': new_url, 'file_name': new_file_name}
