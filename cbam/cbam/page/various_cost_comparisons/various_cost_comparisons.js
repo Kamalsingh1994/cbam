@@ -281,12 +281,29 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                         </div>
                     </div>
                     
-                    <!-- Disclaimer Section -->
+                    <!-- Note Section -->
                     <div class="mb-3 p-3" style="padding: 10px 0px 0px 0px !important;">
                         <div class="alert alert-info mb-0" role="alert">
                             <i class="fa fa-info-circle me-2"></i>
                             <strong>Note:</strong> You can sort the list by any column and choose which entries to show for comparison.
+                        </div>
+                    </div>
 
+                    <!-- Disclaimer Box -->
+                    <div class="frappe-card mb-4 p-3" style="background-color: #f8f9fa; border-left: 4px solid #007bff;">
+                        <div class="d-flex align-items-center" style="align-items: flex-start !important;">
+                            <i class="fa fa-info-circle text-primary me-2" style="font-size: 1.2em;padding-top: 2px;"></i>&nbsp;
+                            <div>
+                                <strong class="text-primary">Disclaimer: </strong><br>
+                                <strong>
+                                Please note that the calculations made on this page are only non-binding estimates. Due to the current legal situation, 
+                                a binding calculation is not possible at present, which is why we accept no liability for the accuracy and completeness 
+                                of the calculation results provided here
+                                </strong><br><br>
+                                For the calculation of financial exposure the following assumptions are used: The standard emission values as given by the EU commission 
+                                for the transitional period; the benchmarks are roughly estimated using the EU-ETS benchmarks; the CBAM factor is used as given by the 
+                                EU commission.
+                            </div>
                         </div>
                     </div>
 
