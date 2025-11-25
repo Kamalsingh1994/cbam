@@ -53,9 +53,25 @@ frappe.ui.form.on('Good', {
 
 frappe.ui.form.on("Good", {
     refresh(frm) {
+        // Make emission attachment clickable - should work for all statuses
+        if (frm.doc.emission_data_attachment) {
+            let path = frm.doc.emission_data_attachment;
+            // Always show as clickable if path starts with /files/ or /private/files/
+            if ((path.startsWith('/files/') || path.startsWith('/private/files/'))) {
+                let file_name = path.split('/').pop();
+                let html = `<a href="${path}" target="_blank" style="color: #2490ef; text-decoration: underline;">${file_name}</a>`;
+                frm.fields_dict.emission_data_attachment.$wrapper.html(html);
+            } else {
+                // fallback, show as plain text or non-clickable
+                frm.fields_dict.emission_data_attachment.$wrapper.html(path);
+            }
+        }
+
+        // Don't show "Send Data Request" button for these statuses
         if(["Data Submitted", "Rejected"].includes(frm.doc.status)){
             return
         }
+        
         frm.add_custom_button(__("Send Data Request"), function () {
             // console.log("create new supplier");
             frappe.call({
@@ -69,17 +85,5 @@ frappe.ui.form.on("Good", {
                 }
             });
         });
-        if (frm.doc.emission_data_attachment) {
-            let path = frm.doc.emission_data_attachment;
-            // Always show as clickable if path starts with /files/ or /private/files/
-            if ((path.startsWith('/files/') || path.startsWith('/private/files/'))) {
-                let file_name = path.split('/').pop();
-                let html = `<a href="${path}" target="_blank">${file_name}</a>`;
-                frm.fields_dict.emission_data_attachment.$wrapper.html(html);
-            } else {
-                // fallback, show as plain text or non-clickable
-                frm.fields_dict.emission_data_attachment.$wrapper.html(path);
-            }
-        }
     },
 });
