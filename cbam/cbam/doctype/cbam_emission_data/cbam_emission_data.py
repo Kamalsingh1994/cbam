@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+import os
 
 from cbam.utils import rename_any_file
 class CBAMEmissionData(Document):
@@ -38,11 +39,32 @@ class CBAMEmissionData(Document):
 			new_file_name = f"{expected_prefix}{base_name}"
 			if original_file == new_file_name:
 				return  # exactly same name--nothing to do
+			
+			# Check if source file exists before attempting rename
+			file_url = self.emission_attachment
+			if file_url.startswith("/private/files/"):
+				site_path = frappe.get_site_path("private")
+				source_path = os.path.abspath(os.path.join(site_path, "files", original_file))
+			elif file_url.startswith("/files/"):
+				site_path = frappe.get_site_path("public")
+				source_path = os.path.abspath(os.path.join(site_path, "files", original_file))
+			else:
+				# Remote file or invalid URL - skip rename
+				return
+			
+			# Only attempt rename if source file actually exists
+			if not os.path.exists(source_path):
+				frappe.log_error(
+					"File Rename Skipped - Source Not Found",
+					f"Source file does not exist: {source_path}. File might be used by another emission or stored remotely."
+				)
+				return
 				
 			result = rename_any_file(self.emission_attachment, new_file_name)
 			if result and isinstance(result, dict) and "file_url" in result:
-				frappe.db.set_value("CBAM Emission Data", self.name, "emission_attachment", result["file_url"])
-				frappe.db.commit()
+				# Update the field value if file URL changed
+				if result["file_url"] != self.emission_attachment:
+					self.emission_attachment = result["file_url"]
 		
 	def after_insert(self):
 		self.add_to_installation_cht()
