@@ -115,41 +115,35 @@ def rename_any_file(file_url, new_file_name):
     else:
         frappe.throw("File URL must be public (/files/) or private (/private/files/).")
 
-    # Check if file exists on disk before attempting rename
-    if not os.path.exists(old_path):
-        # File doesn't exist on disk yet (might be in upload process or stored remotely)
-        # Log warning but don't block - update File DocType only
-        frappe.log_error(
-            f"File not found on disk during rename: {old_path}. Updating File DocType only.",
-            title="File Rename Skipped"
-        )
-        # Update File DocType record only without renaming physical file
-        file_doc.file_name = new_file_name
-        file_doc.save(ignore_permissions=True)
-        frappe.db.commit()
-        return {'file_url': file_url, 'file_name': new_file_name}
-    
-    # Check if target path already exists
+    # Check if target path already exists (file already renamed for another emission)
     if os.path.exists(new_path):
-        # Target file already exists, skip rename to avoid conflict
+        # Target file with desired name already exists
+        # This is common when same file is used for multiple emissions
+        # Just return the new URL without error
+        return {'file_url': new_url, 'file_name': new_file_name}
+    
+    # Check if source file exists on disk before attempting rename
+    if not os.path.exists(old_path):
+        # Source file doesn't exist - might be uploaded to cloud, still uploading, or already renamed
+        # Don't error out - just return current URL to allow emission creation
         frappe.log_error(
-            f"Target file already exists: {new_path}. Skipping rename.",
-            title="File Rename Skipped"
+            "File Rename Skipped - Source Not Found",
+            f"Source file not found: {old_path}. This may happen with cloud storage or if file was already renamed."
         )
         return {'file_url': file_url, 'file_name': file_doc.file_name}
     
-    # Move file on disk
+    # Both source exists and target doesn't exist - safe to rename
     try:
         os.rename(old_path, new_path)
     except Exception as e:
         # If rename fails for any reason, log it but don't block the process
         frappe.log_error(
-            f"Failed to rename file from {old_path} to {new_path}: {str(e)}",
-            title="File Rename Failed"
+            "File Rename Failed",
+            f"Failed to rename file from {old_path} to {new_path}: {str(e)}"
         )
         return {'file_url': file_url, 'file_name': file_doc.file_name}
 
-    # Update File DocType
+    # Update File DocType after successful rename
     file_doc.file_name = new_file_name
     file_doc.file_url = new_url
     file_doc.save(ignore_permissions=True)
