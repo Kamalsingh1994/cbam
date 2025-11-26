@@ -131,13 +131,12 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         <div>
                             <strong class="text-primary">Disclaimer: </strong><br>
                             <strong>
-                           Please note that the calculations made on this page are only non-binding estimates. Due to the current legal situation, 
-                           a binding calculation is not possible at present, which is why we accept no liability for the accuracy and completeness 
-                           of the calculation results provided here
+                            Please note that the calculations made on this page are only non-binding estimates. Due to the current legal situation, a binding 
+                            calculation is not possible at present, which is why we accept no liability for the accuracy and completeness of the calculation results 
+                            provided here
                            </strong><br><br>
-                           For the calculation of financial exposure the following assumptions are used: The standard emission values as given by the EU commission 
-                           for the transitional period; the benchmarks are roughly estimated using the EU-ETS benchmarks; the CBAM factor is used as given by the 
-                           EU commission.
+                            For the calculations the following assumptions are used: The standard emission values as given by the EU commission for the transitional 
+                            period; the benchmarks are roughly estimated using the EU-ETS benchmarks; the CBAM factor is used as given by the EU commission.
                         </div>
                     </div>
                 </div>
