@@ -50,6 +50,8 @@ def update_doc(doc):
     existing_doc.update(doc)
     existing_doc.save(ignore_permissions=True)
     _link_and_prefix_emission_attachment(doc, existing_doc)
+    # Reload to get any changes made in on_update hook (like renamed file attachments)
+    existing_doc.reload()
     return existing_doc
 
 @frappe.whitelist()

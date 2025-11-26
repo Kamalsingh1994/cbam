@@ -9,11 +9,19 @@ from cbam.utils import rename_any_file
 class CBAMEmissionData(Document):
 	def on_update(self):
 		self.update_good_installation_name()
-		if self.emission_attachment:
+		
+		# Check if emission_attachment has actually changed (new file uploaded)
+		has_attachment_changed = self.has_value_changed("emission_attachment")
+		
+		if self.emission_attachment and has_attachment_changed:
 			oc = self.operating_company or "OC-UNKNOWN"
 			emission_id = self.name or "EMISSION-UNKNOWN"
 			original_file = self.emission_attachment.split('/')[-1]
 			expected_prefix = f"{oc}_{emission_id}_"
+
+			# If file already starts with "OC", don't rename it - use as is
+			if original_file.upper().startswith("OC"):
+				return
 
 			# Only rename if current filename does not match target pattern exactly once
 			already_correct = original_file.startswith(expected_prefix)
@@ -65,6 +73,9 @@ class CBAMEmissionData(Document):
 				# Update the field value if file URL changed
 				if result["file_url"] != self.emission_attachment:
 					self.emission_attachment = result["file_url"]
+					# Update the database directly to persist the new filename
+					frappe.db.set_value(self.doctype, self.name, "emission_attachment", result["file_url"], update_modified=False)
+					frappe.db.commit()
 		
 	def after_insert(self):
 		self.add_to_installation_cht()
