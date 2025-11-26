@@ -410,7 +410,7 @@ function executeJS() {
                 {
                     label: __(""),
                     fieldname: "cb2",
-                    fieldtype: "Column Break",
+                    fieldtype: "Column Break", 
                 },
                 {
                     label: __("Upload Attachment"),
