@@ -408,15 +408,64 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
     function mapDataToMonths(data, categories, originalCategories) {
         const arr = Array(categories.length).fill(null);
         originalCategories.forEach((cat, i) => {
-            const [mon, yr] = cat.split(' ');
-            const monthIdx = new Date(Date.parse(mon + ' 1, 2000')).getMonth();
-            const shortLabel = new Date(yr, monthIdx, 1).toLocaleString('default', { month: 'short' }) + ' ' + yr;
-            const longLabel = new Date(yr, monthIdx, 1).toLocaleString('default', { month: 'long' }) + ' ' + yr;
-            const idx = categories.findIndex(c =>
-                c.trim().toLowerCase() === shortLabel.toLowerCase() ||
-                c.trim().toLowerCase() === longLabel.toLowerCase()
-            );
-            if (idx !== -1) arr[idx] = data[i];
+            if (!cat) return;
+            const parts = cat.trim().split(' ');
+            if (parts.length < 2) return;
+            
+            const mon = parts[0];
+            const yr = parts[parts.length - 1]; // Get last part as year (handles "September 2025")
+            
+            // Try to parse month name - handle both full and short names
+            let monthIdx = -1;
+            try {
+                // Try parsing with English locale first
+                const testDate = new Date(mon + ' 1, 2000');
+                if (!isNaN(testDate.getTime())) {
+                    monthIdx = testDate.getMonth();
+                } else {
+                    // Fallback: try with explicit English month names
+                    const monthNames = {
+                        'january': 0, 'jan': 0, 'february': 1, 'feb': 1,
+                        'march': 2, 'mar': 2, 'april': 3, 'apr': 3,
+                        'may': 4, 'june': 5, 'jun': 5, 'july': 6, 'jul': 6,
+                        'august': 7, 'aug': 7, 'september': 8, 'sep': 8,
+                        'october': 9, 'oct': 9, 'november': 10, 'nov': 10,
+                        'december': 11, 'dec': 11
+                    };
+                    monthIdx = monthNames[mon.toLowerCase()];
+                    if (monthIdx === undefined) monthIdx = -1;
+                }
+            } catch (e) {
+                // If parsing fails, try manual lookup
+                const monthNames = {
+                    'january': 0, 'jan': 0, 'february': 1, 'feb': 1,
+                    'march': 2, 'mar': 2, 'april': 3, 'apr': 3,
+                    'may': 4, 'june': 5, 'jun': 5, 'july': 6, 'jul': 6,
+                    'august': 7, 'aug': 7, 'september': 8, 'sep': 8,
+                    'october': 9, 'oct': 9, 'november': 10, 'nov': 10,
+                    'december': 11, 'dec': 11
+                };
+                monthIdx = monthNames[mon.toLowerCase()];
+                if (monthIdx === undefined) monthIdx = -1;
+            }
+            
+            if (monthIdx === -1) return; // Skip if month couldn't be parsed
+            
+            const dateObj = new Date(yr, monthIdx, 1);
+            const shortLabel = getMonthNameEnglish(dateObj, 'short') + ' ' + yr;
+            const longLabel = getMonthNameEnglish(dateObj, 'long') + ' ' + yr;
+            
+            // Try to find matching category (try both short and long formats)
+            const idx = categories.findIndex(c => {
+                const cLower = c.trim().toLowerCase();
+                return cLower === shortLabel.toLowerCase() || 
+                       cLower === longLabel.toLowerCase() ||
+                       cLower === cat.toLowerCase(); // Also try exact match
+            });
+            
+            if (idx !== -1) {
+                arr[idx] = data[i];
+            }
         });
         return arr;
     }
@@ -427,7 +476,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         for (let year = startYear; year <= endYear; year++) {
             for (let m = 0; m < 12; m++) {
                 const date = new Date(year, m, 1);
-                const label = date.toLocaleString('default', { month: 'short' }) + ' ' + year;
+                const label = getMonthNameEnglish(date, 'short') + ' ' + year;
                 months.push(label);
             }
         }
@@ -436,13 +485,28 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
 
 
 
+    // Helper: Get month name in English (for consistent matching regardless of browser locale)
+    function getMonthNameEnglish(date, format) {
+        format = format || 'short';
+        // Always use English locale to ensure consistent month names
+        try {
+            return date.toLocaleString('en-US', { month: format });
+        } catch (e) {
+            // Fallback: manual month names
+            const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthNamesLong = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthIndex = date.getMonth();
+            return format === 'long' ? monthNamesLong[monthIndex] : monthNamesShort[monthIndex];
+        }
+    }
+
     // Helper: Format due date as '31 Dec 2025'
     function formatDueDate(dateStr) {
         if (!dateStr) return '';
         const d = new Date(dateStr);
         if (isNaN(d)) return dateStr;
         const day = d.getDate().toString().padStart(2, '0');
-        const month = d.toLocaleString('default', { month: 'short' });
+        const month = getMonthNameEnglish(d, 'short');
         const year = d.getFullYear();
         return `${day} ${month} ${year}`;
     }
@@ -519,37 +583,122 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             }
         }
 
-        // Generate monthly categories for ALL years including future years
-        const allYears = categories.map(cat => parseInt(cat.match(/\b(\d{4})\b/)[1])).filter(Boolean);
-        const minYear = Math.min(...allYears);
+        // Find years that have actual data (from original categories with actual/forecast data)
+        const yearsWithData = new Set();
+        const originalCategories = chart_data.categories || [];
         
-        // Find the latest due date to ensure categories include it
-        const allDueDates = Object.values(yearDueDatesMap).map(dateStr => new Date(dateStr));
-        const latestDueDate = allDueDates.length > 0 ? new Date(Math.max(...allDueDates.map(d => d.getTime()))) : null;
+        // Check which years have actual data (non-null, non-zero values)
+        originalCategories.forEach((cat, index) => {
+            const yearMatch = cat.match(/\b(\d{4})\b/);
+            if (yearMatch) {
+                const year = parseInt(yearMatch[1]);
+                // Check if this category has actual data (actualData or forecastData)
+                const hasActualData = (actualData[index] !== null && actualData[index] !== undefined && actualData[index] > 0) ||
+                                     (forecastData[index] !== null && forecastData[index] !== undefined && forecastData[index] > 0);
+                if (hasActualData) {
+                    yearsWithData.add(year);
+                }
+            }
+        });
         
-        // Use the maximum of data years or due date year to ensure due date lines are visible
-        const maxYear = latestDueDate ? Math.max(Math.max(...allYears), latestDueDate.getFullYear()) : Math.max(...allYears);
+        // Collect due date months that need to be shown even if the year has no data
+        // Format: "YYYY-MM" -> true
+        const dueDateMonthsToInclude = new Set();
+        Object.keys(yearDueDatesMap).forEach(reportingYear => {
+            const reportingYearInt = parseInt(reportingYear);
+            const prevYear = reportingYearInt - 1;
+            
+            // If the previous year has data, we need to show the due date month
+            if (!isNaN(prevYear) && yearsWithData.has(prevYear)) {
+                const dueDateRaw = yearDueDatesMap[reportingYear];
+                const d = new Date(dueDateRaw);
+                if (!isNaN(d.getTime())) {
+                    const dueDateYear = d.getFullYear();
+                    const dueDateMonth = d.getMonth();
+                    // Store as "YYYY-MM" format for easy lookup
+                    dueDateMonthsToInclude.add(dueDateYear + '-' + dueDateMonth);
+                }
+            }
+        });
         
-        const monthCategories = [];
-        for (let year = minYear; year <= maxYear; year++) {
-            for (let m = 0; m < 12; m++) {
-                const date = new Date(year, m, 1);
+        // Only generate categories for years that have actual data
+        // Years with no data will not have their months displayed (except due date months)
+        if (yearsWithData.size === 0) {
+            // Fallback: use original categories if no years found
+            categories = originalCategories;
+        } else {
+            const allYearsArray = Array.from(yearsWithData).sort((a, b) => a - b);
+            const minYear = Math.min(...allYearsArray);
+            
+            // Find max year: include years with data and due date years
+            const dueDateYears = new Set();
+            Object.values(yearDueDatesMap).forEach(dateStr => {
+                const d = new Date(dateStr);
+                if (!isNaN(d.getTime())) {
+                    dueDateYears.add(d.getFullYear());
+                }
+            });
+            const maxYear = Math.max(...Array.from(yearsWithData), ...Array.from(dueDateYears));
+            
+            // Find the latest due date to limit category generation
+            const allDueDates = Object.values(yearDueDatesMap).map(dateStr => new Date(dateStr));
+            const latestDueDate = allDueDates.length > 0 ? new Date(Math.max(...allDueDates.map(d => d.getTime()))) : null;
+            
+            const monthCategories = [];
+            for (let year = minYear; year <= maxYear; year++) {
+                const yearHasData = yearsWithData.has(year);
                 
-                // If we have a latest due date, stop generating categories after that month
-                if (latestDueDate && date > latestDueDate) {
-                    break;
+                if (yearHasData) {
+                    // This year has actual data - show all months
+                    for (let m = 0; m < 12; m++) {
+                        const date = new Date(year, m, 1);
+                        
+                        // If we have a latest due date, stop generating categories after that month
+                        if (latestDueDate && date > latestDueDate) {
+                            break;
+                        }
+                        
+                        const label = getMonthNameEnglish(date, 'short') + ' ' + year;
+                        monthCategories.push(label);
+                    }
+                } else {
+                    // This year has no data, but check if we need to include specific due date months
+                    for (let m = 0; m < 12; m++) {
+                        const monthKey = year + '-' + m;
+                        if (dueDateMonthsToInclude.has(monthKey)) {
+                            // This is a due date month - include it even though year has no data
+                            const date = new Date(year, m, 1);
+                            const label = getMonthNameEnglish(date, 'short') + ' ' + year;
+                            monthCategories.push(label);
+                        }
+                    }
                 }
                 
-                const label = date.toLocaleString('default', { month: 'short' }) + ' ' + year;
-                monthCategories.push(label);
+                // If we've reached the due date, break out of the year loop too
+                if (latestDueDate && year === latestDueDate.getFullYear()) {
+                    break;
+                }
             }
             
-            // If we've reached the due date, break out of the year loop too
-            if (latestDueDate && year === latestDueDate.getFullYear()) {
-                break;
-            }
+            // Sort categories to maintain chronological order
+            monthCategories.sort(function(a, b) {
+                const yearMatchA = a.match(/\b(\d{4})\b/);
+                const yearMatchB = b.match(/\b(\d{4})\b/);
+                if (!yearMatchA || !yearMatchB) return 0;
+                const yearA = parseInt(yearMatchA[1]);
+                const yearB = parseInt(yearMatchB[1]);
+                if (yearA !== yearB) return yearA - yearB;
+                // Extract month name and compare
+                const monthNameA = a.split(' ')[0];
+                const monthNameB = b.split(' ')[0];
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const monthIndexA = monthNames.indexOf(monthNameA);
+                const monthIndexB = monthNames.indexOf(monthNameB);
+                return monthIndexA - monthIndexB;
+            });
+            
+            categories = monthCategories;
         }
-        categories = monthCategories;
 
         // Remap all data series to only appear at quarter-ends
         const actualDataMonth = mapDataToMonths(actualData, categories, chart_data.categories || []);
@@ -567,41 +716,41 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         
         for (let i = 0; i < categories.length; i++) {
             const category = categories[i];
-            const monthMatch = category.match(/^(\w+)/);
+            if (!category) continue;
+            
+            // Extract month name - handle both "Sep 2025" and "September 2025" formats
+            const parts = category.trim().split(' ');
+            const monthName = parts[0] ? parts[0].toLowerCase() : '';
             const yearMatch = category.match(/\b(\d{4})\b/);
             const year = yearMatch ? parseInt(yearMatch[1]) : null;
             
-            if (monthMatch) {
-                const month = monthMatch[1].toLowerCase();
-                const isDecember = month === 'dec';
-                
-                if (isDecember) {
-                    if (accumulatedExposureBasicMonth[i] !== null && accumulatedExposureBasicMonth[i] !== undefined) {
-                        accumulatedExposureMonth.push(accumulatedExposureBasicMonth[i]);
-                    } else if (year && year > currentYear) {
-                        // For future years, use the actual calculated value from backend
-                        // Find the corresponding value in the original categories
-                        const originalIndex = chart_data.categories.findIndex(cat => {
-                            const catYearMatch = cat.match(/\b(\d{4})\b/);
-                            const catYear = catYearMatch ? parseInt(catYearMatch[1]) : null;
-                            return catYear === year;
-                        });
-                        
-                        if (originalIndex !== -1 && accumulatedExposureBasicMonth[originalIndex] !== null) {
-                            // Use the actual calculated value from backend
-                            accumulatedExposureMonth.push(accumulatedExposureBasicMonth[originalIndex]);
-                        } else {
-                            // Fallback to null if no data available
-                            accumulatedExposureMonth.push(null);
-                        }
+            // Check if it's December - handle both "Dec" and "December"
+            const isDecember = monthName === 'dec' || monthName === 'december';
+            
+            if (isDecember) {
+                if (accumulatedExposureBasicMonth[i] !== null && accumulatedExposureBasicMonth[i] !== undefined) {
+                    accumulatedExposureMonth.push(accumulatedExposureBasicMonth[i]);
+                } else if (year && year > currentYear) {
+                    // For future years, use the actual calculated value from backend
+                    // Find the corresponding value in the original categories
+                    const originalIndex = chart_data.categories.findIndex(cat => {
+                        const catYearMatch = cat.match(/\b(\d{4})\b/);
+                        const catYear = catYearMatch ? parseInt(catYearMatch[1]) : null;
+                        return catYear === year;
+                    });
+                    
+                    if (originalIndex !== -1 && accumulatedExposureBasicMonth[originalIndex] !== null) {
+                        // Use the actual calculated value from backend
+                        accumulatedExposureMonth.push(accumulatedExposureBasicMonth[originalIndex]);
                     } else {
+                        // Fallback to null if no data available
                         accumulatedExposureMonth.push(null);
                     }
                 } else {
-                    accumulatedExposureMonth.push(null); // No data for non-December months
+                    accumulatedExposureMonth.push(null);
                 }
             } else {
-                accumulatedExposureMonth.push(null);
+                accumulatedExposureMonth.push(null); // No data for non-December months
             }
         }
 
@@ -623,8 +772,8 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         // Debug: log due date, label, index, and categories for each plotLine
         Object.entries(yearDueDatesMap).forEach(([reportingYear, dueDateRaw]) => {
             const d = new Date(dueDateRaw);
-            const monthShort = d.toLocaleString('default', { month: 'short' });
-            const monthLong = d.toLocaleString('default', { month: 'long' });
+            const monthShort = getMonthNameEnglish(d, 'short');
+            const monthLong = getMonthNameEnglish(d, 'long');
             const yearStr = d.getFullYear().toString();
             const idx = categories.findIndex(cat => {
                 const c = cat.trim().toLowerCase();
@@ -651,8 +800,8 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             })
             .map(([reportingYear, dueDateRaw]) => {
             const d = new Date(dueDateRaw);
-            const monthShort = d.toLocaleString('default', { month: 'short' });
-            const monthLong = d.toLocaleString('default', { month: 'long' });
+            const monthShort = getMonthNameEnglish(d, 'short');
+            const monthLong = getMonthNameEnglish(d, 'long');
             const yearStr = d.getFullYear().toString();
             // Robustly find the index in categories for the due date month and year
             const idx = categories.findIndex(c => {
@@ -662,6 +811,27 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     cstr === `${monthLong} ${yearStr}`.toLowerCase()
                 );
             });
+            
+            // Check if the value for this year is 0 - if so, return null to skip this plot line
+            const prevYear = (parseInt(reportingYear, 10) - 1).toString();
+            const yearIndices = categories
+                .map((cat, idx) => ({ cat, idx }))
+                .filter(({ cat }) => cat.endsWith(prevYear))
+                .map(({ idx }) => idx);
+            
+            let value = null;
+            for (let i = yearIndices.length - 1; i >= 0; i--) {
+                const yearIdx = yearIndices[i];
+                if (accumulatedExposureMonth[yearIdx] !== null && accumulatedExposureMonth[yearIdx] !== undefined) {
+                    value = accumulatedExposureMonth[yearIdx];
+                    break;
+                }
+            }
+            
+            // Skip plot line if value is 0 or null
+            if (value === null || value === 0 || isNaN(value)) {
+                return null;
+            }
             
             // Use the reporting year directly in the label to avoid confusion
             const labelText = `CBAM Certificate cost  ${reportingYear - 1} due: ${formatDueDate(dueDateRaw)}`;
@@ -680,7 +850,8 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 },
                 zIndex: 5
             };
-        });
+        })
+        .filter(plotLine => plotLine !== null); // Remove null entries (where value was 0)
 
         // Add a line from December of the previous year to the due date, and a diamond at the due date
         const extraLineSeries = [];
@@ -740,8 +911,8 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
 
             // Find due date index
             const d = new Date(dueDateRaw);
-            const dueMonthShort = d.toLocaleString('default', { month: 'short' });
-            const dueMonthLong = d.toLocaleString('default', { month: 'long' });
+            const dueMonthShort = getMonthNameEnglish(d, 'short');
+            const dueMonthLong = getMonthNameEnglish(d, 'long');
             const dueYearStr = d.getFullYear().toString();
             const dueIdx = categories.findIndex(cat => {
                 const c = cat.trim().toLowerCase();
@@ -751,7 +922,8 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 );
             });
 
-            if (decIdx !== -1 && dueIdx !== -1 && value !== null) {
+            // Only create line and diamond if value is not null and greater than 0
+            if (decIdx !== -1 && dueIdx !== -1 && value !== null && value > 0) {
                 // Add the connecting line
                 extraLineSeries.push({
                     name: 'Certificate Submission Period',
@@ -877,9 +1049,16 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 })(),
                 // Accumulated exposure series - only shows in December (end of year)
                 // Data labels display the forecast total cost values for end-of-year costs
+                // Filter out 0 values - replace them with null so they won't be displayed
                 {
                     name: 'Accumulated Financial Exposure Based on Forecasts',
-                    data: accumulatedExposureMonth,
+                    data: accumulatedExposureMonth.map(value => {
+                        // Replace 0, null, undefined, or NaN values with null to hide them
+                        if (value === null || value === undefined || value === 0 || isNaN(value)) {
+                            return null;
+                        }
+                        return value;
+                    }),
                     type: 'scatter',
                     color: '#87ceeb',
                     marker: {
@@ -894,12 +1073,18 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     zIndex: 1,
                     dataLabels: {
                         enabled: true,
-                        format: '€{y:,.0f}',
                         style: {
                             fontSize: '12px',
                             color: 'red'
                         },
-                        y: -10
+                        y: -10,
+                        // Hide data labels for 0, null, undefined, or NaN values
+                        formatter: function() {
+                            if (this.y === null || this.y === undefined || this.y === 0 || isNaN(this.y)) {
+                                return '';
+                            }
+                            return '€' + this.y.toLocaleString('en-US', {maximumFractionDigits: 0});
+                        }
                     }
                 },
                 // Hide diamonds for future years - only show for current/past years
@@ -1026,7 +1211,8 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                                 if (this.series.name.includes('ETS Certificates') || 
                                     this.series.name.includes('Minimum Required Account Balance') ||
                                     this.series.name.includes('Forecast total cost Due')) {
-                                    certText = `<br/><span style=\"color:#888\">Required Certificates:</span> <b>${certificates.toLocaleString(undefined, {maximumFractionDigits: 2})}</b>`;
+                                    // Always use English locale for number formatting
+                                    certText = `<br/><span style=\"color:#888\">Required Certificates:</span> <b>${certificates.toLocaleString('en-US', {maximumFractionDigits: 2})}</b>`;
                                 }
                             }
                         }
@@ -1034,7 +1220,8 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     
                     // Always prepare cost display
                     if (cost !== null && !isNaN(cost)) {
-                        costDisplay = `€${cost.toLocaleString()}`;
+                        // Always use English locale for number formatting
+                        costDisplay = `€${cost.toLocaleString('en-US')}`;
                     } else {
                         costDisplay = '€0';  // Fallback if no cost
                     }
@@ -1099,12 +1286,19 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             }
         });
         
-        // Create stat cards for each year
+        // Create stat cards for each year (skip cards with 0 value)
         Object.keys(yearlyExposure)
             .sort((a, b) => parseInt(a) - parseInt(b))
             .forEach(year => {
                 const exposureValue = yearlyExposure[year];
-                const formattedValue = new Intl.NumberFormat('de-DE', {
+                
+                // Skip cards with 0 or null/undefined values
+                if (!exposureValue || exposureValue === 0 || isNaN(exposureValue)) {
+                    return;
+                }
+                
+                // Always use English locale for number formatting to avoid locale-dependent issues
+                const formattedValue = new Intl.NumberFormat('en-US', {
                     style: 'currency',
                     currency: 'EUR',
                     minimumFractionDigits: 0,
