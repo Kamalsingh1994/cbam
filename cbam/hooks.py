@@ -174,6 +174,9 @@ doc_events = {
     },
     "File": {
         "on_trash": "cbam.utils.utils.prevent_declarant_file_delete"
+    },
+    "CBAM Emission Data": {
+        "on_update": "cbam.cbam.doctype.good.good.update_good_sidebar_on_emission_data_update"
     }
 }
 

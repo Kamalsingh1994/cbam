@@ -1,5 +1,6 @@
 import frappe
 import json
+
 @frappe.whitelist()
 def assign_emission(goods, emission):
     goods = json.loads(goods)
