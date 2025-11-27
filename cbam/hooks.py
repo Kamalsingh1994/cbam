@@ -67,6 +67,7 @@ after_migrate = [
     "cbam.utils.utils.add_helpdesk_navbar_item",
     "cbam.utils.utils.remove_user_access_for_desk_user",
     "cbam.utils.utils.update_workspace_roles",
+    "cbam.utils.after_install.create_dynamic_web_templates_if_not_exists",
 ]
 # Svg Icons
 # ------------------
@@ -290,15 +291,6 @@ fixtures = [
         [
             "name", "in", [
                 "Declarant"
-            ]
-        ]
-    ]},
-    {"dt": "Dynamic Web Template", "filters": [
-        [
-            "name", "in", [
-                "Impressum-en",
-                "CBAM Home-en",
-                "Privacy Policy-en"
             ]
         ]
     ]}

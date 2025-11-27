@@ -53,7 +53,8 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-21 11:58:03.496355",
+ "make_attachments_public": 1,
+ "modified": "2025-11-27 07:32:58.188322",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Dynamic Web Template",
@@ -78,6 +79,7 @@
   }
  ],
  "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
