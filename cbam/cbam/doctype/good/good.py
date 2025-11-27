@@ -81,7 +81,9 @@ class Good(Document):
 	
 	def on_update(self):
 		"""Called after document is saved to database"""
-		self.add_emission_attachment_to_sidebar()
+		# Only process if document has a name (is saved)
+		if self.name:
+			self.add_emission_attachment_to_sidebar()
 	
 	def on_trash(self):
 		self.delete_all_good_item()
@@ -196,87 +198,134 @@ class Good(Document):
 
 	def add_emission_attachment_to_sidebar(self):
 		"""Add/Update all files with same file_url from emission_data_attachment to sidebar"""
-		# Get old emission_data_attachment if document was updated
-		old_attachment = None
-		doc_before_save = self.get_doc_before_save()
-		if doc_before_save and self.has_value_changed("emission_data_attachment"):
-			old_attachment = doc_before_save.get("emission_data_attachment")
+		if not self.name:
+			return
 		
-		# Get current emission_data_attachment
-		current_attachment = self.emission_data_attachment
-		
-		# Remove all old files with the old file_url if attachment changed
-		if old_attachment and old_attachment != current_attachment:
-			# Get all files attached to Good document with the old file_url
-			old_files = frappe.get_all("File", {
-				"file_url": old_attachment,
+		try:
+			# Get old emission_data_attachment if document was updated
+			old_attachment = None
+			old_emission_data = None
+			doc_before_save = self.get_doc_before_save()
+			if doc_before_save:
+				old_attachment = doc_before_save.get("emission_data_attachment")
+				old_emission_data = doc_before_save.get("emission_data")
+			
+			# Check if emission_data has changed - if so, we need to update sidebar
+			emission_data_changed = old_emission_data != self.emission_data
+			
+			# Get current emission_data_attachment
+			# Always get from emission_data directly to ensure we have the latest value
+			# This is important because fetch fields might not be updated yet when on_update runs
+			current_attachment = None
+			if self.emission_data:
+				current_attachment = frappe.db.get_value("CBAM Emission Data", self.emission_data, "emission_attachment")
+			
+			# Fallback to fetch field value if emission_data not linked
+			if not current_attachment:
+				current_attachment = self.emission_data_attachment
+				# If document is saved, fetch the latest value from DB to get updated fetch field
+				if self.name:
+					db_value = frappe.db.get_value("Good", self.name, "emission_data_attachment")
+					if db_value:
+						current_attachment = db_value
+			
+			# If emission_data changed, also check old attachment from old emission_data
+			if emission_data_changed and old_emission_data:
+				old_attachment = frappe.db.get_value("CBAM Emission Data", old_emission_data, "emission_attachment")
+			
+			# Remove all old files with the old file_url if attachment changed
+			if old_attachment and old_attachment != current_attachment:
+				# Get all files attached to Good document with the old file_url
+				old_files = frappe.get_all("File", {
+					"file_url": old_attachment,
+					"attached_to_doctype": "Good",
+					"attached_to_name": self.name
+				}, ["name"])
+				
+				# Remove all old files
+				for old_file in old_files:
+					try:
+						frappe.delete_doc("File", old_file.name, ignore_permissions=True, force=True)
+					except Exception as e:
+						frappe.log_error(f"Error removing old emission attachment: {str(e)}", "Good.add_emission_attachment_to_sidebar")
+				
+				if old_files:
+					frappe.db.commit()
+			
+			# If no current attachment, return (old ones already removed above if they existed)
+			if not current_attachment:
+				return
+			
+			file_url = current_attachment
+			
+			# Get ALL files with this file_url (there can be multiple files with same URL but different filenames)
+			all_files_with_url = frappe.get_all("File", {
+				"file_url": file_url
+			}, ["name", "file_name", "is_private"], order_by="creation desc")
+			
+			if not all_files_with_url:
+				# No files found with this URL, try to create one from the URL
+				file_name = file_url.split('/')[-1]
+				if file_name and file_name != file_url:
+					try:
+						is_private = 1 if file_url.startswith("/private/files/") else 0
+						new_file = frappe.get_doc({
+							"doctype": "File",
+							"file_name": file_name,
+							"file_url": file_url,
+							"attached_to_doctype": "Good",
+							"attached_to_name": self.name,
+							"is_private": is_private,
+							"folder": "Home/Attachments"
+						})
+						new_file.insert(ignore_permissions=True)
+						frappe.db.commit()
+					except Exception as e:
+						frappe.log_error(f"Error creating file from URL: {str(e)}", "Good.add_emission_attachment_to_sidebar")
+				return
+			
+			# Get list of files already attached to this Good document with this file_url
+			existing_files = frappe.get_all("File", {
+				"file_url": file_url,
 				"attached_to_doctype": "Good",
 				"attached_to_name": self.name
-			}, ["name"])
+			}, ["file_name"])
 			
-			# Remove all old files
-			for old_file in old_files:
+			existing_file_names = {f.file_name for f in existing_files}
+			
+			# Attach all files with this file_url that are not already attached
+			for file_info in all_files_with_url:
+				file_name = file_info.file_name
+				
+				# Skip if this file is already attached to this Good document
+				if file_name in existing_file_names:
+					continue
+				
+				# Create a new File record with the same file_url reference
+				# Determine if file is private
+				is_private = file_info.is_private if file_info.is_private is not None else (1 if file_url.startswith("/private/files/") else 0)
+				
+				# Create new File record attached to this Good document
 				try:
-					frappe.delete_doc("File", old_file.name, ignore_permissions=True, force=True)
+					new_file = frappe.get_doc({
+						"doctype": "File",
+						"file_name": file_name,
+						"file_url": file_url,
+						"attached_to_doctype": "Good",
+						"attached_to_name": self.name,
+						"is_private": is_private,
+						"folder": "Home/Attachments"
+					})
+					new_file.insert(ignore_permissions=True)
+				except frappe.DuplicateEntryError:
+					# File already exists, skip
+					pass
 				except Exception as e:
-					frappe.log_error(f"Error removing old emission attachment: {str(e)}", "Good.add_emission_attachment_to_sidebar")
+					frappe.log_error(f"Error adding emission attachment to sidebar: {str(e)}", "Good.add_emission_attachment_to_sidebar")
 			
-			if old_files:
-				frappe.db.commit()
-		
-		# If no current attachment, return (old ones already removed above if they existed)
-		if not current_attachment:
-			return
-		
-		file_url = current_attachment
-		
-		# Get ALL files with this file_url (there can be multiple files with same URL but different filenames)
-		all_files_with_url = frappe.get_all("File", {
-			"file_url": file_url
-		}, ["name", "file_name", "is_private"], order_by="creation desc")
-		
-		if not all_files_with_url:
-			return
-		
-		# Get list of files already attached to this Good document with this file_url
-		existing_files = frappe.get_all("File", {
-			"file_url": file_url,
-			"attached_to_doctype": "Good",
-			"attached_to_name": self.name
-		}, ["file_name"])
-		
-		existing_file_names = {f.file_name for f in existing_files}
-		
-		# Attach all files with this file_url that are not already attached
-		for file_info in all_files_with_url:
-			file_name = file_info.file_name
-			
-			# Skip if this file is already attached
-			if file_name in existing_file_names:
-				continue
-			
-			# Determine if file is private
-			is_private = file_info.is_private if file_info.is_private is not None else (1 if file_url.startswith("/private/files/") else 0)
-			
-			# Create File record attached to this Good document
-			try:
-				new_file = frappe.get_doc({
-					"doctype": "File",
-					"file_name": file_name,
-					"file_url": file_url,
-					"attached_to_doctype": "Good",
-					"attached_to_name": self.name,
-					"is_private": is_private,
-					"folder": "Home/Attachments"
-				})
-				new_file.insert(ignore_permissions=True)
-			except frappe.DuplicateEntryError:
-				# File already exists, skip
-				pass
-			except Exception as e:
-				frappe.log_error(f"Error adding emission attachment to sidebar: {str(e)}", "Good.add_emission_attachment_to_sidebar")
-		
-		frappe.db.commit()
+			frappe.db.commit()
+		except Exception as e:
+			frappe.log_error(f"Error in add_emission_attachment_to_sidebar: {str(e)}", "Good.add_emission_attachment_to_sidebar")
 
 	def update_good_items(self):
 		frappe.db.set_value("Good Item", {"good_number": self.name}, {
@@ -298,7 +347,7 @@ class Good(Document):
 		try:
 			user = frappe.get_doc("User", user_email)
 		except frappe.DoesNotExistError:
-			frappe.throw(_("User not found"))
+			frappe.throw("User not found")
 		role_list = [r.role for r in user.roles]
 		if "Supplier" in role_list and self.confirmation_web_form == "true" and self.is_data_confirmed != True:
 			frappe.throw("Please check the 'Data Confirmed' checkbox before submitting the form.")
@@ -420,3 +469,22 @@ def on_submit(doc, method):
     doc.street_and_number = supplier.get("street_and_number")
     doc.company_email = supplier.get("company_email")
     doc.company_phone_number = supplier.get("company_phone_number")
+
+def update_good_sidebar_on_emission_data_update(emission_data_doc, method):
+	"""Update Good document sidebar attachments when emission_data is updated"""
+	if not emission_data_doc.emission_attachment:
+		return
+	
+	# Find all Good documents linked to this emission_data
+	good_docs = frappe.get_all("Good", 
+		filters={"emission_data": emission_data_doc.name},
+		fields=["name"]
+	)
+	
+	for good in good_docs:
+		try:
+			good_doc = frappe.get_doc("Good", good.name)
+			# Update the sidebar attachment
+			good_doc.add_emission_attachment_to_sidebar()
+		except Exception as e:
+			frappe.log_error(f"Error updating Good sidebar on emission_data update: {str(e)}", "update_good_sidebar_on_emission_data_update")
