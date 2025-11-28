@@ -19,10 +19,27 @@ def _link_and_prefix_emission_attachment(doc_dict, doc_obj):
             file_doc = frappe.get_doc("File", file_doc[0].name)
             expected_prefix = f"{oc_ref}_{supplier}_"
             if not file_doc.file_name.startswith(expected_prefix):
-                new_name = f"{expected_prefix}{file_doc.file_name}"
+                # Get file extension
+                original_name = file_doc.file_name
+                if '.' in original_name:
+                    name_part, ext = original_name.rsplit('.', 1)
+                    ext = '.' + ext
+                else:
+                    name_part = original_name
+                    ext = ''
+                
+                # Calculate max length for name part (140 chars total - prefix - extension)
+                max_name_length = 140 - len(expected_prefix) - len(ext)
+                
+                # Truncate name part if needed
+                if len(name_part) > max_name_length:
+                    name_part = name_part[:max_name_length]
+                
+                new_name = f"{expected_prefix}{name_part}{ext}"
+                
                 if file_doc.file_url and file_doc.file_url.startswith("/files/"):
                     old_url = file_doc.file_url
-                    new_url = f"/files/{expected_prefix}{file_doc.file_name}"
+                    new_url = f"/files/{new_name}"
                     # Get actual filesystem path to files directory
                     site_public = frappe.get_site_path("public")
                     old_path = os.path.join(site_public, old_url.lstrip("/"))
