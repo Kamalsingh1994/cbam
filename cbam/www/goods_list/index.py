@@ -38,7 +38,11 @@ def get_user_roles(context, re_render=False):
     return context
 
 def get_goods_list(context, re_render=False):
-    goods_list = frappe.db.get_list("Good", filters={"status": ["!=", "Draft"]})
+    # Build filters for goods list
+    # Exclude Rejected status (rejected goods should disappear from supplier view)
+    filters = {"status": ["not in", ["Draft", "Rejected"]]}
+    goods_list = frappe.db.get_list("Good", filters=filters)
+    
     if re_render:
         context["goods_list"] = goods_list
     else:
