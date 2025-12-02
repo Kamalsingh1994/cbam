@@ -1,5 +1,6 @@
 import frappe
 from cbam.utils import get_roles, require_website_user
+from cbam.utils.supplier import get_supplier
 no_cache = 1
 
 
@@ -38,7 +39,21 @@ def get_user_roles(context, re_render=False):
     return context
 
 def get_goods_list(context, re_render=False):
-    goods_list = frappe.db.get_list("Good", filters={"status": ["!=", "Draft"]})
+    # Build filters for goods list
+    filters = {"status": ["!=", "Draft"]}
+    
+    # For supplier users (Commercial Contact or CBAM Rep), filter by their operating company
+    # and exclude Rejected status (rejected goods should disappear from supplier view)
+    operating_company = get_supplier()
+    if operating_company:
+        # Supplier view: only show goods for their operating company, exclude Rejected status
+        filters["operating_company"] = operating_company
+        filters["status"] = ["not in", ["Draft", "Rejected"]]
+        goods_list = frappe.db.get_list("Good", filters=filters)
+    else:
+        # System manager or other users: show all goods except Draft
+        goods_list = frappe.db.get_list("Good", filters=filters)
+    
     if re_render:
         context["goods_list"] = goods_list
     else:
