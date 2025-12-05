@@ -1,7 +1,11 @@
 {% extends "templates/cbamweb.html" %}
 
 
-
+{% block header %}
+<style>
+  .modal-footer .btn-secondary { display: none !important; }
+</style>
+{% endblock %}
 
 {% block page_content %}
 {% include "templates/includes/web_sidebar.html" %}

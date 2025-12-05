@@ -8,7 +8,8 @@ def send_missing_data_summary():
     filters = {}
     selected_filters = {"year": year}
     all_data = get_report_data(filters=filters, selected_filters=selected_filters, start=0, page_length=100000)["data"]
-    missing = [r for r in all_data if r.get('calculation_data_status') == "Missing"]
+    # Check if "Missing" is in the status string (handles HTML formatted status)
+    missing = [r for r in all_data if "Missing" in str(r.get('calculation_data_status', ''))]
     if not missing:
         return
     html = """

@@ -42,16 +42,37 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
         </ul>
     `);
 
-    // Ensure Highcharts is loaded
-    if (typeof Highcharts === 'undefined') {
-        var script = document.createElement('script');
-        script.src = 'https://code.highcharts.com/highcharts.js';
-        script.onload = function() {
-            // After loading, re-render chart if data is present
-            if (allData && allData.length) renderChart(allData);
-        };
-        document.head.appendChild(script);
+    // Use centralized Highcharts loader to prevent conflicts when navigating between pages
+    // With fallback if cbam.utils is not available
+    function loadHighchartsForDashboard() {
+        if (typeof cbam !== 'undefined' && typeof cbam.utils !== 'undefined' && typeof cbam.utils.loadHighcharts === 'function') {
+            cbam.utils.loadHighcharts((error) => {
+                if (error) {
+                    console.error('Highcharts load error:', error);
+                } else {
+                    // After loading, re-render chart if data is present
+                    if (allData && allData.length) renderChart(allData);
+                }
+            });
+        } else {
+            // Fallback: direct loading if utils not available
+            if (typeof Highcharts === 'undefined') {
+                var script = document.createElement('script');
+                script.src = 'https://code.highcharts.com/highcharts.js';
+                script.onload = function() {
+                    if (allData && allData.length) renderChart(allData);
+                };
+                script.onerror = function() {
+                    console.error('Failed to load Highcharts');
+                };
+                document.head.appendChild(script);
+            } else {
+                if (allData && allData.length) renderChart(allData);
+            }
+        }
     }
+    
+    loadHighchartsForDashboard();
 
     // Add filter section above the chart
     $(page.body).append(`
@@ -433,7 +454,8 @@ frappe.pages['ets-price-dashboard'].on_page_load = function(wrapper) {
                 }
             },
             series: series,
-            credits: { enabled: false }
+            credits: { enabled: false },
+            accessibility: { enabled: false }
         });
     }
 

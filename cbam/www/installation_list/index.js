@@ -24,9 +24,6 @@ frappe.ready(() => {
 });
 // end of translation
   
-
-  
-
 window.addEventListener("DOMContentLoaded", () => {
     executeJS();
     refreshElements(frappe)
@@ -215,7 +212,7 @@ function executeJS() {
                     fieldname: "is_the_installation_tracking_emissions_data",
                     fieldtype: "Select",
                     options: "\nYes\nNo",
-                    default: docData ? docData.is_the_installation_tracking_emissions_data : ""
+                    default: docData ? docData.is_the_installation_tracking_emissions_data : "No"
                 },
                 {
                     label: __(""),
@@ -227,7 +224,7 @@ function executeJS() {
                     fieldname: "is_the_installation_subject_to_an_emission_trading_system",
                     fieldtype: "Select",
                     options: "\nYes\nNo",
-                    default: docData ? docData.is_the_installation_subject_to_an_emission_trading_system : ""
+                    default: docData ? docData.is_the_installation_subject_to_an_emission_trading_system : "No"
                 },
                 {
                     label: __("Which emission trading system (link to legal act)?"),
@@ -413,10 +410,19 @@ function executeJS() {
                 {
                     label: __(""),
                     fieldname: "cb2",
-                    fieldtype: "Column Break",
+                    fieldtype: "Column Break", 
                 },
-
-
+                {
+                    label: __("Upload Attachment"),
+                    fieldname: "emission_attachment",
+                    fieldtype: "Attach",
+                    reqd: false,
+                    description: "Attach supporting file for this emission (PDF, DOC, etc.)",
+                    default: docData ? docData.emission_attachment : "",
+                    options: {
+                        allow_toggle_private: false
+                    }
+                },
             ],
             size: 'extra-large', // small, large, extra-large 
             primary_action_label: `${update ? __("Update Emission") : __("Create Emission")}`,
@@ -436,6 +442,7 @@ function executeJS() {
             }
         });          
         d.show();
+
 
         // This is to recalculate the indirect emissions when the electricity consumed or indirect emission factor changes
         d.fields_dict.electricity_consumed.df.change = function() {

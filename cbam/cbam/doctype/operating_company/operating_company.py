@@ -162,12 +162,28 @@ class OperatingCompany(Document):
 	@frappe.whitelist()
 	def send_signup_request(self):
 		email = frappe.get_doc("Notification", frappe.db.get_single_value("CBAM Settings", "signup_template"))
-		
-		
 		email.send(self)
+		
 		self.status = "Pending Verification"
 		self.save(ignore_permissions=True)
 
+		# Send the native set-password email to the main contact/commercial contact
+		if self.main_contact_employee_email:
+			try:
+				# Ensure user exists; create if not present (optional)
+				if not frappe.db.exists("User", self.main_contact_employee_email):
+					user = frappe.new_doc("User")
+					user.email = self.main_contact_employee_email
+					user.first_name = self.main_contact_employee_first_name or ""
+					user.last_name = self.main_contact_employee_last_name or ""
+					user.enabled = 1
+					user.send_welcome_email = 0
+					user.insert(ignore_permissions=True)
+				else:
+					user = frappe.get_doc("User", self.main_contact_employee_email)
+				user.reset_password(send_email=True)
+			except Exception as e:
+				frappe.log_error(frappe.get_traceback(), "Error sending set password email from signup request")
 
 	def create_permissions(self, user):
 		if not user:
@@ -260,9 +276,6 @@ def send_bulk_signup_request(operating_companys):
 		for company in operating_companys:
 			operating_company = frappe.get_doc("Operating Company", company.get("name"))
 			operating_company.send_signup_request()
-
-
-
 
 def update_goods_on_operating_company_change(doc, method):
     # Fetch all Goods records linked to this Operating Company and not "Data Submitted"

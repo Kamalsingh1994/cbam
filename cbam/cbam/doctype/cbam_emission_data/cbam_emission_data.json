@@ -29,6 +29,7 @@
   "column_break_iywy",
   "production_method",
   "electricity_consumed",
+  "emission_attachment",
   "goods_covered_by_this_emissions_calculation_section",
   "cn_codes"
  ],
@@ -178,12 +179,17 @@
    "fieldtype": "Small Text",
    "label": "Emission Notes",
    "mandatory_depends_on": "eval:!doc.specific_direct_embedded_emissions"
+  },
+  {
+   "fieldname": "emission_attachment",
+   "fieldtype": "Attach",
+   "label": "Emission Attachment"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-08 12:32:50.259818",
+ "modified": "2025-10-24 12:03:02.705364",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CBAM Emission Data",
