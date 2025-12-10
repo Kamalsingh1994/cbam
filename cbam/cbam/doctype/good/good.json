@@ -322,17 +322,20 @@
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval:doc.rejection_reason || doc.rejected_from_supplier",
    "fieldname": "rejection_details_section",
    "fieldtype": "Section Break",
    "label": "Rejection Details"
   },
   {
+   "depends_on": "eval:doc.rejection_reason || doc.rejected_from_supplier",
    "fieldname": "rejection_reason",
    "fieldtype": "Small Text",
    "label": "Rejection Reason",
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.rejection_reason || doc.rejected_from_supplier",
    "fieldname": "rejected_from_supplier",
    "fieldtype": "Link",
    "ignore_user_permissions": 1,
