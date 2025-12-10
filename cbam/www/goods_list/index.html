@@ -19,6 +19,7 @@
                     <option value="Data Requested">{{ _('Data Requested') }}</option>
                     <option value="Data Assigned">{{ _('Data Assigned') }}</option>
                     <option value="Data Submitted">{{ _('Data Submitted') }}</option>
+                    <option value="Rejected">{{ _('Rejected') }}</option>
                   </select>
 
                 </div>
@@ -184,6 +185,7 @@
                 {% elif doc.status == "Data Submitted" %}
                   {% set color = "green"%}
                 {% elif doc.status == "Rejected" %}
+                  {% set color = "red"%}
                   {% set mar_left_class= "m-left-sm" %}
                 {% endif %}
                 <div class="list-row-col list-subject level ">
@@ -347,6 +349,20 @@
                   <div class="tc-field-cont field-cont">
                       <span class="field-label">{{_('Specific (Indirect) Embedded Emissions [tCO2/t]')}}</span>
                       <div class="field tc-field">{{_(doc.specific_indirect_embedded_emissions) or ""}}</div>
+                  </div>
+              </div>
+              {% endif %}
+              {% if doc.rejection_reason or doc.rejected_from_supplier %}
+              <h2>{{_('Rejection Details')}}</h2>
+              <div class="container responsive-md" style="width: 100%">
+                  <div class="tc-field-cont field-cont">
+                      <span class="field-label">{{_('Rejected from Supplier')}}</span>
+                      <div class="field tc-field">{{_(doc.rejected_from_supplier) or ""}}</div>
+                  </div>
+                  
+                  <div class="tc-field-cont field-cont">
+                      <span class="field-label">{{_('Rejection Reason')}}</span>
+                      <div class="field tc-field" style="height: auto !important; white-space: pre-wrap; overflow-wrap: break-word;">{{_(doc.rejection_reason) or ""}}</div>
                   </div>
               </div>
               {% endif %}
