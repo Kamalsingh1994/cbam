@@ -6,6 +6,7 @@ from frappe.model.document import Document
 from cbam.send_email.create_email import create_email
 from cbam.send_email.create_new_supplier_user import create_new_supplier_user
 from frappe.model.naming import getseries
+from cbam.utils.benchmark import calculate_country_specific_benchmark
 
 
 class Good(Document):
@@ -24,6 +25,7 @@ class Good(Document):
 			self.supplier_number, self.supplier_name = frappe.db.get_values("Operating Company", self.operating_company, ['supplier_number', 'supplier_name'])[0]
 
 		self.update_name()
+		self.calculate_benchmark()
 
 	def update_name(self):
 		for row in self.split_details:
@@ -36,8 +38,83 @@ class Good(Document):
 				row.name_ = frappe.db.get_value("CBAM Installation", row.source_name, "name_of_the_installation")
 
 	def set_countries(self):
-		self.country_of_origin = frappe.db.get_value("Country", {"code": self.country_of_origin_code}, "name")
-		self.shipping_country = frappe.db.get_value("Country", {"code": self.shipping_country_code}, "name")
+		# Only set country_of_origin from code if code is provided and country_of_origin is not already set
+		# This prevents resetting country_of_origin when user sets it directly
+		if self.country_of_origin_code:
+			country_from_code = frappe.db.get_value("Country", {"code": self.country_of_origin_code}, "name")
+			if country_from_code:
+				self.country_of_origin = country_from_code
+		# If country_of_origin is set directly but code is not, try to get code from country
+		elif self.country_of_origin and not self.country_of_origin_code:
+			country_code = frappe.db.get_value("Country", self.country_of_origin, "code")
+			if country_code:
+				self.country_of_origin_code = country_code
+		
+		# Only set shipping_country from code if code is provided
+		if self.shipping_country_code:
+			shipping_from_code = frappe.db.get_value("Country", {"code": self.shipping_country_code}, "name")
+			if shipping_from_code:
+				self.shipping_country = shipping_from_code
+		# If shipping_country is set directly but code is not, try to get code from country
+		elif self.shipping_country and not self.shipping_country_code:
+			shipping_code = frappe.db.get_value("Country", self.shipping_country, "code")
+			if shipping_code:
+				self.shipping_country_code = shipping_code
+
+	def calculate_benchmark(self):
+		"""Calculate and store country-specific CBAM benchmark"""
+		# Use manual override if enabled
+		if self.use_benchmark_override and self.benchmark_manual_override:
+			self.country_specific_default_cbam_benchmark = self.benchmark_manual_override
+			self.benchmark_calculation_status = "Manual Override"
+			self.benchmark_calculation_details = json.dumps({
+				"source": "manual_override",
+				"override_value": self.benchmark_manual_override
+			})
+			self.benchmark_last_calculated_at = frappe.utils.now()
+			return
+		
+		# Calculate benchmark if CN code and country are available
+		if self.cn_code and self.country_of_origin:
+			try:
+				result = calculate_country_specific_benchmark(
+					self.cn_code,
+					self.country_of_origin,
+					self.hand_over_date
+				)
+				
+				self.country_specific_default_cbam_benchmark = result.get("benchmark_value")
+				self.benchmark_calculation_status = result.get("status", "Error")
+				self.benchmark_calculation_details = json.dumps(result.get("details", {}))
+				self.benchmark_last_calculated_at = frappe.utils.now()
+				
+				# Log warnings if any (keep title short for error log)
+				warnings = result.get("warnings", [])
+				if warnings and self.benchmark_calculation_status != "Calculated":
+					# Truncate warnings for title, full details in message
+					warnings_str = ', '.join(warnings)
+					message = f"Good: {self.name}\nCN Code: {self.cn_code}\nCountry: {self.country_of_origin}\nWarnings: {warnings_str}"
+					title = f"Benchmark warnings: Good {self.name}"[:140]
+					frappe.log_error(title, message)
+			except Exception as e:
+				error_msg = str(e)[:500]  # Limit error message length
+				message = f"Good: {self.name}\nCN Code: {self.cn_code}\nCountry: {self.country_of_origin}\nError: {error_msg}"
+				title = f"Benchmark calc error: Good {self.name}"[:140]
+				frappe.log_error(title, message)
+				self.country_specific_default_cbam_benchmark = None
+				self.benchmark_calculation_status = "Error"
+				self.benchmark_calculation_details = json.dumps({"error": str(e)})
+				self.benchmark_last_calculated_at = frappe.utils.now()
+		else:
+			# Missing required fields
+			self.country_specific_default_cbam_benchmark = None
+			self.benchmark_calculation_status = "Missing Data"
+			self.benchmark_calculation_details = json.dumps({
+				"missing_fields": {
+					"cn_code": not bool(self.cn_code),
+					"country_of_origin": not bool(self.country_of_origin)
+				}
+			})
 
 
 	def _before_save(self):

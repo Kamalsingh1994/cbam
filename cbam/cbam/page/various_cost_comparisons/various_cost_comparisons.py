@@ -137,16 +137,16 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
         sev_alias = f"sev_{table_alias}"
         
         return f"""
-            IFNULL({cnb_alias}.bench_mark, 0.0) AS cbam_benchmark,
+            COALESCE(IFNULL({table_alias}.country_specific_default_cbam_benchmark, 0.0), 0.0) AS cbam_benchmark,
             IFNULL({sev_alias}.emission_value, 0.0) AS standard_emission_factor,
             ((
                 IFNULL({sev_alias}.emission_value, 0.0)
-                - (IFNULL({cnb_alias}.bench_mark, 0.0) * {cbam_factor})
+                - (COALESCE(IFNULL({table_alias}.country_specific_default_cbam_benchmark, 0.0), 0.0) * {cbam_factor})
                 - ((IFNULL({sev_alias}.emission_value, 0.0) * IFNULL({table_alias}.carbon_price_due, 0.0)) / {ets_carbon_price})
             ) * IFNULL({table_alias}.raw_mass_tonne, 0.0) * {ets_carbon_price}) AS standard_emission_cost,
             IFNULL({table_alias}.specific_direct_embedded_emissions,0.0) AS real_emission_value,
             ((
-                IFNULL({table_alias}.specific_direct_embedded_emissions,0.0) - ({cbam_factor} * IFNULL({cnb_alias}.bench_mark, 0.0))
+                IFNULL({table_alias}.specific_direct_embedded_emissions,0.0) - ({cbam_factor} * COALESCE(IFNULL({table_alias}.country_specific_default_cbam_benchmark, 0.0), 0.0))
                 - ((IFNULL({table_alias}.specific_direct_embedded_emissions,0.0) * IFNULL({table_alias}.carbon_price_due, 0.0)) / {ets_carbon_price})
             ) * IFNULL({table_alias}.raw_mass_tonne, 0.0) * {ets_carbon_price}) AS real_emission_cost
         """
@@ -167,8 +167,6 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
                     'CBAM Report Data' as data_source,
                     eg.reporting_period as reporting_period
                 FROM `tabExternal Good` eg
-                LEFT JOIN `tabCBAM Benchmark` cnb_eg 
-                    ON cnb_eg.year = {year} AND cnb_eg.cn_code = eg.cn_code
                 LEFT JOIN `tabStandard Emission Value` sev_eg 
                     ON sev_eg.year = {year} AND sev_eg.cn_code = eg.cn_code AND sev_eg.country = eg.installation_country
                 {where_sql_eg}
@@ -184,8 +182,6 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
                     'Supplier Data' as data_source,
                     g.internal_customs_import_number as reporting_period
                 FROM `tabGood` g
-                LEFT JOIN `tabCBAM Benchmark` cnb_g 
-                    ON cnb_g.year = {year} AND cnb_g.cn_code = g.cn_code
                 LEFT JOIN `tabStandard Emission Value` sev_g 
                     ON sev_g.year = {year} AND sev_g.cn_code = g.cn_code AND sev_g.country = g.installation_country
                 {where_sql}
@@ -202,7 +198,7 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
                     eg.supplier,
                     IFNULL(eg.raw_mass_tonne,0.0) AS raw_mass_tonne,
                     eg.installation_country,
-                    0.0 AS cbam_benchmark,
+                    COALESCE(IFNULL(eg.country_specific_default_cbam_benchmark, 0.0), 0.0) AS cbam_benchmark,
                     0.0 AS standard_emission_factor,
                     0.0 AS standard_emission_cost,
                     IFNULL(eg.specific_direct_embedded_emissions,0.0) AS real_emission_value,
@@ -219,7 +215,7 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
                     g.supplier_name AS supplier,
                     IFNULL(g.raw_mass_tonne,0.0) AS raw_mass_tonne,
                     g.installation_country,
-                    0.0 AS cbam_benchmark,
+                    COALESCE(IFNULL(g.country_specific_default_cbam_benchmark, 0.0), 0.0) AS cbam_benchmark,
                     0.0 AS standard_emission_factor,
                     0.0 AS standard_emission_cost,
                     IFNULL(g.specific_direct_embedded_emissions,0.0) AS real_emission_value,
@@ -240,6 +236,13 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
         ("real_emission_value", "Specific Direct Emission Value"),
     ]
     for row in data:
+        # Round benchmark value to 4 decimal places (German calculation standard)
+        if row.get("cbam_benchmark") is not None:
+            try:
+                row["cbam_benchmark"] = round(float(row["cbam_benchmark"]), 4)
+            except (ValueError, TypeError):
+                pass  # Keep original value if conversion fails
+        
         missing = []
         for key, label in required_fields:
             val = row.get(key)

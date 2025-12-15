@@ -19,6 +19,18 @@ frappe.ui.form.on('Good', {
                 }
             }
         });
+        
+        // Add recalculate benchmark button
+        if (frm.doc.cn_code && frm.doc.country_of_origin && !frm.is_new()) {
+            frm.add_custom_button(__("Recalculate Benchmark"), function() {
+                recalculate_benchmark(frm);
+            }, __("Actions"));
+        }
+        
+        // Show calculation status indicator
+        if (frm.doc.benchmark_calculation_status) {
+            show_benchmark_status(frm);
+        }
     },
     raw_mass(frm) {
         if (frm.doc.raw_mass != null) {
@@ -140,5 +152,91 @@ frappe.ui.form.on("Good", {
                 }
             });
         });
+        
+        // Add recalculate benchmark button
+        if (frm.doc.cn_code && frm.doc.country_of_origin && !frm.is_new()) {
+            frm.add_custom_button(__("Recalculate Benchmark"), function() {
+                recalculate_benchmark(frm);
+            }, __("Actions"));
+        }
+        
+        // Show calculation status indicator
+        if (frm.doc.benchmark_calculation_status) {
+            show_benchmark_status(frm);
+        }
     },
 });
+
+function recalculate_benchmark(frm) {
+    frappe.call({
+        method: "cbam.utils.benchmark.recalculate_good_benchmark",
+        args: {
+            good_name: frm.doc.name
+        },
+        freeze: true,
+        freeze_message: __("Recalculating benchmark..."),
+        callback: function(r) {
+            if (r.message && r.message.success) {
+                frappe.show_alert({
+                    message: __("Benchmark recalculated successfully"),
+                    indicator: "green"
+                });
+                frm.reload_doc();
+            } else {
+                frappe.show_alert({
+                    message: __("Error recalculating benchmark: {0}", [r.message?.error || "Unknown error"]),
+                    indicator: "red"
+                });
+            }
+        }
+    });
+}
+
+function show_benchmark_status(frm) {
+    const status = frm.doc.benchmark_calculation_status;
+    const status_colors = {
+        "Calculated": "green",
+        "Missing Data": "orange",
+        "Error": "red",
+        "Manual Override": "blue"
+    };
+    
+    const color = status_colors[status] || "gray";
+    const benchmark_value = frm.doc.country_specific_default_cbam_benchmark;
+    
+    // Parse calculation details to check if global default was used
+    let source_info = "";
+    let show_warning = false;
+    try {
+        if (frm.doc.benchmark_calculation_details) {
+            const details = JSON.parse(frm.doc.benchmark_calculation_details);
+            if (details.source === "global_default") {
+                show_warning = true;
+                source_info = '<span style="color: orange; font-size: 11px; margin-left: 10px;">⚠ Using Global Default (no country-specific default found)</span>';
+            }
+        }
+    } catch (e) {
+        // Ignore JSON parse errors
+    }
+    
+    if (frm.fields_dict.benchmark_calculation_status) {
+        const status_field = frm.fields_dict.benchmark_calculation_status;
+        const wrapper = $(status_field.$wrapper);
+        
+        // Remove existing indicator if any
+        wrapper.find('.benchmark-status-indicator').remove();
+        
+        // Add status indicator
+        if (status && (benchmark_value !== null && benchmark_value !== undefined || status !== "Calculated")) {
+            wrapper.append(`
+                <div class="benchmark-status-indicator" style="margin-top: 5px;">
+                    <span class="indicator-pill ${color}" style="padding: 4px 8px; border-radius: 3px; font-size: 11px; background-color: ${color === "green" ? "#d4edda" : color === "orange" ? "#fff3cd" : color === "red" ? "#f8d7da" : "#d1ecf1"}; color: ${color === "green" ? "#155724" : color === "orange" ? "#856404" : color === "red" ? "#721c24" : "#0c5460"};">
+                        ${status}
+                    </span>
+                    ${benchmark_value ? `<span style="margin-left: 10px; font-weight: 600;">Value: ${benchmark_value}</span>` : ''}
+                    ${source_info}
+                </div>
+            `);
+        }
+    }
+}

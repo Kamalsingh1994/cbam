@@ -189,18 +189,18 @@ def get_data(filters=None):
             IFNULL(eg.carbon_price_due,0.0) as carbon_price_due,
             IFNULL(eg.specific_direct_embedded_emissions,0.0) AS real_emission_value,
             IFNULL(e.emission_value,0.0) AS standard_emission_value,
-            IFNULL(b.bench_mark,0.0) AS bench_mark,
+            COALESCE(eg.country_specific_default_cbam_benchmark, 0.0) AS bench_mark,
             eg.reporting_period,
             IFNULL(cbam.cbam_factor,0.0) AS cbam_factor,
             {ets_carbon_price} as ets_carbon_price,
             ((
-                IFNULL(eg.specific_direct_embedded_emissions,0) - (IFNULL(cbam.cbam_factor,0) * IFNULL(b.bench_mark,0))
+                IFNULL(eg.specific_direct_embedded_emissions,0) - (IFNULL(cbam.cbam_factor,0) * COALESCE(eg.country_specific_default_cbam_benchmark, 0.0))
                 - ((IFNULL(eg.specific_direct_embedded_emissions,0) * IFNULL(eg.carbon_price_due, 0)) / {ets_carbon_price})
             ) * IFNULL(eg.raw_mass, 0) * {ets_carbon_price}) AS real_emission_cost,
 
             ((
                 IFNULL(e.emission_value, 0.0) 
-                - (IFNULL(b.bench_mark, 0.0) * IFNULL(cbam.cbam_factor, 0.0))
+                - (COALESCE(eg.country_specific_default_cbam_benchmark, 0.0) * IFNULL(cbam.cbam_factor, 0.0))
                 - ((IFNULL(e.emission_value, 0.0) * IFNULL(eg.carbon_price_due, 0.0)) / {ets_carbon_price})
             ) 
             * IFNULL(eg.raw_mass, 0.0) * {ets_carbon_price}) AS standard_emission_cost
@@ -208,9 +208,6 @@ def get_data(filters=None):
         FROM `tabExternal Good` eg
         LEFT JOIN `tabStandard Emission Value` e 
             ON eg.cn_code = e.cn_code AND eg.installation_country = e.country
-            
-        LEFT JOIN `tabCBAM Benchmark` b 
-            ON b.cn_code = eg.cn_code
 
         LEFT JOIN `tabReporting Period` rp
             ON rp.reporting_period = eg.reporting_period AND rp.parent IS NOT NULL AND rp.parenttype = 'CBAM Factor'
@@ -233,18 +230,18 @@ def get_data(filters=None):
             IFNULL(g.carbon_price_due,0.0) AS carbon_price_due,
             IFNULL(g.specific_direct_embedded_emissions,0) AS real_emission_value,
             IFNULL(e.emission_value,0.0) AS standard_emission_value,
-            IFNULL(b.bench_mark,0.0) AS bench_mark,
+            COALESCE(g.country_specific_default_cbam_benchmark, 0.0) AS bench_mark,
             g.internal_customs_import_number as reporting_period,
             IFNULL(cbam.cbam_factor,0.0) AS cbam_factor,
             {ets_carbon_price} as ets_carbon_price,
             ((
-                IFNULL(g.specific_direct_embedded_emissions,0.0) - (IFNULL(cbam.cbam_factor,0.0) * IFNULL(b.bench_mark,0.0))
+                IFNULL(g.specific_direct_embedded_emissions,0.0) - (IFNULL(cbam.cbam_factor,0.0) * COALESCE(g.country_specific_default_cbam_benchmark, 0.0))
                 - ((IFNULL(g.specific_direct_embedded_emissions,0.0) * IFNULL(g.carbon_price_due,0.0)) / {ets_carbon_price})
             ) * IFNULL(g.raw_mass,0.0) * {ets_carbon_price}) AS real_emission_cost,
 
             ((
                 IFNULL(e.emission_value, 0.0)
-                - (IFNULL(b.bench_mark, 0.0) * IFNULL(cbam.cbam_factor, 0.0))
+                - (COALESCE(g.country_specific_default_cbam_benchmark, 0.0) * IFNULL(cbam.cbam_factor, 0.0))
                 - ((IFNULL(e.emission_value, 0.0) * IFNULL(g.carbon_price_due, 0.0)) / {ets_carbon_price})
             )
             * IFNULL(g.raw_mass, 0.0) * {ets_carbon_price}) AS standard_emission_cost
@@ -253,8 +250,6 @@ def get_data(filters=None):
 
         LEFT JOIN `tabStandard Emission Value` e 
             ON g.cn_code = e.cn_code AND g.installation_country = e.country
-        LEFT JOIN `tabCBAM Benchmark` b 
-            ON b.cn_code = g.cn_code
  
         LEFT JOIN `tabReporting Period` rp 
             ON rp.reporting_period = g.internal_customs_import_number AND rp.parent IS NOT NULL
@@ -275,6 +270,9 @@ def get_data(filters=None):
         if key not in unique_keys:
             # Optional: skip rows that have mostly blanks
             if any([row.get("real_emission_value"), row.get("standard_emission_value"), row.get("buying_price")]):
+                # Round benchmark value to 4 decimal places (German calculation standard)
+                if row.get("bench_mark") is not None:
+                    row["bench_mark"] = round(float(row["bench_mark"]), 4)
                 final_data.append(row)
                 unique_keys.add(key)
 
