@@ -125,11 +125,12 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
                     continue
 
                 cbam_factor = extract_numeric_value(cbam_factor)
-                bench_mark_key = (report_year, cn_code)
-
-                if bench_mark_key not in bench_mark_cache:
-                    bench_mark_cache[bench_mark_key] = frappe.db.get_value("CBAM Benchmark", {"year": report_year, "cn_code": cn_code}, "bench_mark") or 0.0
-                bench_mark = extract_numeric_value(bench_mark_cache[bench_mark_key])
+                
+                # Get benchmark from External Good (stored value)
+                # Fallback to 0.0 if not calculated
+                bench_mark = extract_numeric_value(getattr(eg, "country_specific_default_cbam_benchmark", None) or 0.0)
+                # Round to 4 decimal places (German calculation standard)
+                bench_mark = round(bench_mark, 4)
                 sev_key = (report_year, installation_country, cn_code)
 
                 if sev_key not in standard_emission_value_cache:
@@ -215,9 +216,18 @@ def duplicate_future_year_rows(base_rows, future_years):
             )
             cbam_factor = extract_numeric_value(cbam_factor_doc[0].cbam_factor) if cbam_factor_doc else 0.0
             future_row["cbam_factor"] = cbam_factor
-            # Benchmark
-            bench_mark = frappe.db.get_value("CBAM Benchmark", {"year": future_year, "cn_code": cn_code}, "bench_mark") or 0.0
-            future_row["bench_mark_emission_value"] = extract_numeric_value(bench_mark)
+            # Benchmark - recalculate for future year
+            # Try to get from stored value first, but for future years we need to recalculate
+            from cbam.utils.benchmark import calculate_country_specific_benchmark
+            benchmark_result = calculate_country_specific_benchmark(
+                cn_code,
+                installation_country,
+                f"{future_year}-01-01"  # Reference date for future year
+            )
+            bench_mark = benchmark_result.get("benchmark_value") or 0.0
+            # Round to 4 decimal places (German calculation standard)
+            bench_mark = round(extract_numeric_value(bench_mark), 4)
+            future_row["bench_mark_emission_value"] = bench_mark
             # SEV
             sev = frappe.db.get_value(
                 "Standard Emission Value",

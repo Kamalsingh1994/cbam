@@ -94,7 +94,15 @@
   "electricity_consumed",
   "column_break_pfox",
   "source_of_electricity",
-  "emission_name"
+  "emission_name",
+  "country_specific_default_cbam_benchmark_section",
+  "country_specific_default_cbam_benchmark",
+  "benchmark_calculation_status",
+  "column_break_benchmark",
+  "benchmark_calculation_details",
+  "benchmark_last_calculated_at",
+  "use_benchmark_override",
+  "benchmark_manual_override"
  ],
  "fields": [
   {
@@ -601,6 +609,53 @@
    "hidden": 1,
    "label": "Emission Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "country_specific_default_cbam_benchmark_section",
+   "fieldtype": "Section Break",
+   "label": "Country Specific Default CBAM Benchmark"
+  },
+  {
+   "fieldname": "country_specific_default_cbam_benchmark",
+   "fieldtype": "Float",
+   "label": "Country Specific Default CBAM Benchmark",
+   "read_only": 1,
+   "description": "Emission Benchmark selected based on Country of Origin and CN Code, multiplied by Benchmark Multiplication Factor"
+  },
+  {
+   "fieldname": "benchmark_calculation_status",
+   "fieldtype": "Select",
+   "label": "Benchmark Calculation Status",
+   "options": "Calculated\nMissing Data\nError\nManual Override",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_benchmark",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "benchmark_calculation_details",
+   "fieldtype": "Small Text",
+   "label": "Benchmark Calculation Details",
+   "read_only": 1
+  },
+  {
+   "fieldname": "benchmark_last_calculated_at",
+   "fieldtype": "Datetime",
+   "label": "Last Calculated At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "use_benchmark_override",
+   "fieldtype": "Check",
+   "label": "Use Manual Override"
+  },
+  {
+   "fieldname": "benchmark_manual_override",
+   "fieldtype": "Float",
+   "label": "Manual Benchmark Override",
+   "description": "Override calculated benchmark value",
+   "depends_on": "eval:doc.use_benchmark_override"
   },
   {
    "fieldname": "mass_per_article",

@@ -20,6 +20,18 @@ frappe.ui.form.on("External Good", {
   refresh(frm) {
     add_custom_links("report_id", "CBAM Report", cur_frm.doc.report_id, "CBAM Report");
     add_custom_links("reporting_period", "Customs Import", cur_frm.doc.reporting_period, "Reporting Period");
+    
+    // Add recalculate benchmark button
+    if (frm.doc.cn_code && frm.doc.installation_country && !frm.is_new()) {
+      frm.add_custom_button(__("Recalculate Benchmark"), function() {
+        recalculate_external_good_benchmark(frm);
+      }, __("Actions"));
+    }
+    
+    // Show calculation status indicator
+    if (frm.doc.benchmark_calculation_status) {
+      show_benchmark_status_eg(frm);
+    }
   },
   raw_mass_tonne(frm) {
       if (frm.doc.raw_mass_tonne != null) {
@@ -71,4 +83,59 @@ add_custom_links = (fieldname, doctype, docname, doctype_label) => {
         </div>
       </div>`
   );
+}
+
+function recalculate_external_good_benchmark(frm) {
+  frappe.call({
+    method: "cbam.utils.benchmark.recalculate_external_good_benchmark",
+    args: {
+      external_good_name: frm.doc.name
+    },
+    freeze: true,
+    freeze_message: __("Recalculating benchmark..."),
+    callback: function(r) {
+      if (r.message && r.message.success) {
+        frappe.show_alert({
+          message: __("Benchmark recalculated successfully"),
+          indicator: "green"
+        });
+        frm.reload_doc();
+      } else {
+        frappe.show_alert({
+          message: __("Error recalculating benchmark: {0}", [r.message?.error || "Unknown error"]),
+          indicator: "red"
+        });
+      }
+    }
+  });
+}
+
+function show_benchmark_status_eg(frm) {
+  const status = frm.doc.benchmark_calculation_status;
+  const status_colors = {
+    "Calculated": "green",
+    "Missing Data": "orange",
+    "Error": "red",
+    "Manual Override": "blue"
+  };
+  
+  const color = status_colors[status] || "gray";
+  const benchmark_value = frm.doc.country_specific_default_cbam_benchmark;
+  
+  if (frm.fields_dict.benchmark_calculation_status && benchmark_value !== null && benchmark_value !== undefined) {
+    const status_field = frm.fields_dict.benchmark_calculation_status;
+    const wrapper = $(status_field.$wrapper);
+    
+    // Add status indicator
+    if (!wrapper.find('.benchmark-status-indicator').length) {
+      wrapper.append(`
+        <div class="benchmark-status-indicator" style="margin-top: 5px;">
+          <span class="indicator-pill ${color}" style="padding: 4px 8px; border-radius: 3px; font-size: 11px;">
+            ${status}
+          </span>
+          ${benchmark_value ? `<span style="margin-left: 10px; font-weight: 600;">Value: ${benchmark_value}</span>` : ''}
+        </div>
+      `);
+    }
+  }
 }
