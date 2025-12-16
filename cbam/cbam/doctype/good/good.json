@@ -95,6 +95,7 @@
   "column_break_pfox",
   "source_of_electricity",
   "emission_name",
+  "emission_data_attachment",
   "country_specific_default_cbam_benchmark_section",
   "country_specific_default_cbam_benchmark",
   "benchmark_calculation_status",
@@ -571,10 +572,10 @@
    "read_only": 1
   },
   {
+   "fetch_from": "emission_data.emission_attachment",
    "fieldname": "emission_data_attachment",
    "fieldtype": "Read Only",
-   "label": "Emission Data Attachment",
-   "fetch_from": "emission_data.emission_attachment"
+   "label": "Emission Data Attachment"
   },
   {
    "fieldname": "column_break_fdty",
@@ -616,11 +617,11 @@
    "label": "Country Specific Default CBAM Benchmark"
   },
   {
+   "description": "Emission Benchmark selected based on Country of Origin and CN Code, multiplied by Benchmark Multiplication Factor",
    "fieldname": "country_specific_default_cbam_benchmark",
    "fieldtype": "Float",
    "label": "Country Specific Default CBAM Benchmark",
-   "read_only": 1,
-   "description": "Emission Benchmark selected based on Country of Origin and CN Code, multiplied by Benchmark Multiplication Factor"
+   "read_only": 1
   },
   {
    "fieldname": "benchmark_calculation_status",
@@ -646,16 +647,17 @@
    "read_only": 1
   },
   {
+   "default": "0",
    "fieldname": "use_benchmark_override",
    "fieldtype": "Check",
    "label": "Use Manual Override"
   },
   {
+   "depends_on": "eval:doc.use_benchmark_override",
+   "description": "Override calculated benchmark value",
    "fieldname": "benchmark_manual_override",
    "fieldtype": "Float",
-   "label": "Manual Benchmark Override",
-   "description": "Override calculated benchmark value",
-   "depends_on": "eval:doc.use_benchmark_override"
+   "label": "Manual Benchmark Override"
   },
   {
    "fieldname": "mass_per_article",
@@ -715,7 +717,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-08 13:25:37.215898",
+ "modified": "2025-12-15 11:06:53.523511",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
