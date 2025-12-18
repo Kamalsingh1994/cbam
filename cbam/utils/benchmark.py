@@ -432,15 +432,22 @@ def update_affected_goods_by_cn_code(cn_code):
 	if not cn_code:
 		return
 	
-	# Get all goods with this CN code
+	# Get all goods with this CN code (exclude submitted and cancelled)
 	goods = frappe.get_all("Good",
-		filters={"cn_code": cn_code, "status": ["!=", "Draft"]},
+		filters={
+			"cn_code": cn_code,
+			"status": ["not in", ["Data Submitted", "Cancelled"]],
+			"docstatus": ["not in", [1, 2]]  # Not submitted (1) or cancelled (2)
+		},
 		fields=["name"]
 	)
 	
-	# Get all external goods with this CN code
+	# Get all external goods with this CN code (exclude submitted and cancelled)
 	external_goods = frappe.get_all("External Good",
-		filters={"cn_code": cn_code},
+		filters={
+			"cn_code": cn_code,
+			"docstatus": ["not in", [1, 2]]  # Not submitted (1) or cancelled (2)
+		},
 		fields=["name"]
 	)
 	
@@ -490,15 +497,22 @@ def update_affected_goods_by_country(country):
 	if not country:
 		return
 	
-	# Get all goods with this country of origin
+	# Get all goods with this country of origin (exclude submitted and cancelled)
 	goods = frappe.get_all("Good",
-		filters={"country_of_origin": country, "status": ["!=", "Draft"]},
+		filters={
+			"country_of_origin": country,
+			"status": ["not in", ["Data Submitted", "Cancelled"]],
+			"docstatus": ["not in", [1, 2]]  # Not submitted (1) or cancelled (2)
+		},
 		fields=["name"]
 	)
 	
-	# Get all external goods with this installation country
+	# Get all external goods with this installation country (exclude submitted and cancelled)
 	external_goods = frappe.get_all("External Good",
-		filters={"installation_country": country},
+		filters={
+			"installation_country": country,
+			"docstatus": ["not in", [1, 2]]  # Not submitted (1) or cancelled (2)
+		},
 		fields=["name"]
 	)
 	
@@ -521,7 +535,9 @@ def update_affected_goods_by_country(country):
 			try:
 				recalculate_good_benchmark(good.name)
 			except Exception as e:
-				frappe.log_error(f"Error updating Good {good.name}: {str(e)}")
+				error_msg = str(e)[:500]
+				title = f"Error updating Good {good.name}"[:140]
+				frappe.log_error(title, f"Good: {good.name}\nError: {error_msg}")
 		
 		for eg in external_goods:
 			try:
@@ -536,11 +552,18 @@ def update_affected_goods_by_country(country):
 def batch_update_benchmarks_by_cn_code(cn_code):
 	"""Background job to update benchmarks for a CN code"""
 	goods = frappe.get_all("Good", 
-		filters={"cn_code": cn_code, "status": ["!=", "Draft"]}, 
+		filters={
+			"cn_code": cn_code,
+			"status": ["not in", ["Data Submitted", "Cancelled"]],
+			"docstatus": ["not in", [1, 2]]  # Not submitted (1) or cancelled (2)
+		}, 
 		fields=["name"]
 	)
 	external_goods = frappe.get_all("External Good", 
-		filters={"cn_code": cn_code}, 
+		filters={
+			"cn_code": cn_code,
+			"docstatus": ["not in", [1, 2]]  # Not submitted (1) or cancelled (2)
+		}, 
 		fields=["name"]
 	)
 	
@@ -579,11 +602,18 @@ def batch_update_benchmarks_by_cn_code(cn_code):
 def batch_update_benchmarks_by_country(country):
 	"""Background job to update benchmarks for a country"""
 	goods = frappe.get_all("Good", 
-		filters={"country_of_origin": country, "status": ["!=", "Draft"]}, 
+		filters={
+			"country_of_origin": country,
+			"status": ["not in", ["Data Submitted", "Cancelled"]],
+			"docstatus": ["not in", [1, 2]]  # Not submitted (1) or cancelled (2)
+		}, 
 		fields=["name"]
 	)
 	external_goods = frappe.get_all("External Good", 
-		filters={"installation_country": country}, 
+		filters={
+			"installation_country": country,
+			"docstatus": ["not in", [1, 2]]  # Not submitted (1) or cancelled (2)
+		}, 
 		fields=["name"]
 	)
 	
