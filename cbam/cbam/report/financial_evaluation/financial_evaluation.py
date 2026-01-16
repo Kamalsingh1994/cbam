@@ -49,7 +49,7 @@ def get_columns():
 			"fieldname": "cn_code",
 			"fieldtype": "Data",
 			"label": "CN Code",
-			"width": 150	
+			"width": 150
 		},
 		{
 			"fieldname": "article_number",
@@ -124,7 +124,7 @@ def get_columns():
             "label": "ETS Carbon Price",
         }
 	]
-             
+
     return columns
 
 def get_data(filters=None):
@@ -161,7 +161,7 @@ def get_data(filters=None):
         article_number_list = ', '.join(f"'{s}'" for s in filters["article_number"])
         where_clauses.append(f"(g.article_number IN ({article_number_list}))")
         where_clauses_eg.append(f"(eg.article_no IN ({article_number_list}))")
-    
+
     # Reporting Period filter
     if filters.get("reporting_period"):
         reporting_period_list = ', '.join(f"'{s}'" for s in filters["reporting_period"])
@@ -172,13 +172,13 @@ def get_data(filters=None):
     where_sql = ""
     if where_clauses:
         where_sql = "WHERE " + " AND ".join(where_clauses)
-        
+
     where_sql_eg = ""
     if where_clauses_eg:
         where_sql_eg = "WHERE " + " AND ".join(where_clauses_eg) if where_clauses_eg else ""
-        
+
     data = frappe.db.sql(f"""
-        SELECT 
+        SELECT
             eg.cn_code,
             eg.article_no AS article_number,
             eg.supplier,
@@ -199,14 +199,14 @@ def get_data(filters=None):
             ) * IFNULL(eg.raw_mass, 0) * {ets_carbon_price}) AS real_emission_cost,
 
             ((
-                IFNULL(e.emission_value, 0.0) 
+                IFNULL(e.emission_value, 0.0)
                 - (COALESCE(eg.country_specific_default_cbam_benchmark, 0.0) * IFNULL(cbam.cbam_factor, 0.0))
                 - ((IFNULL(e.emission_value, 0.0) * IFNULL(eg.carbon_price_due, 0.0)) / {ets_carbon_price})
-            ) 
+            )
             * IFNULL(eg.raw_mass, 0.0) * {ets_carbon_price}) AS standard_emission_cost
 
         FROM `tabExternal Good` eg
-        LEFT JOIN `tabStandard Emission Value` e 
+        LEFT JOIN `tabStandard Emission Value` e
             ON eg.cn_code = e.cn_code AND eg.installation_country = e.country
 
         LEFT JOIN `tabReporting Period` rp
@@ -216,14 +216,14 @@ def get_data(filters=None):
             ON cbam.name = rp.parent
 
 		{where_sql_eg}
-        
+
         UNION
 
-        SELECT 
+        SELECT
             g.cn_code,
             g.article_number,
             g.supplier_name AS supplier,
-            g.installation_country,	
+            g.installation_country,
             IFNULL(g.raw_mass,0.0) AS raw_mass,
             IFNULL(g.mass_per_article,0.0) AS mass_per_article,
             IFNULL(g.buying_price,0.0) AS buying_price,
@@ -248,10 +248,10 @@ def get_data(filters=None):
 
         FROM `tabGood` g
 
-        LEFT JOIN `tabStandard Emission Value` e 
+        LEFT JOIN `tabStandard Emission Value` e
             ON g.cn_code = e.cn_code AND g.installation_country = e.country
- 
-        LEFT JOIN `tabReporting Period` rp 
+
+        LEFT JOIN `tabReporting Period` rp
             ON rp.reporting_period = g.internal_customs_import_number AND rp.parent IS NOT NULL
         LEFT JOIN `tabCBAM Factor` cbam
             ON cbam.name = rp.parent AND rp.parenttype = 'CBAM Factor'
@@ -261,6 +261,9 @@ def get_data(filters=None):
 
     unique_keys = set()
     final_data = []
+
+    # Import SEV fallback function
+    from cbam.utils.benchmark import get_standard_emission_value
 
     for row in data:
         key = (
@@ -273,6 +276,43 @@ def get_data(filters=None):
                 # Round benchmark value to 4 decimal places (German calculation standard)
                 if row.get("bench_mark") is not None:
                     row["bench_mark"] = round(float(row["bench_mark"]), 4)
+
+                # Apply SEV fallback if standard_emission_value is 0 or None
+                if not row.get("standard_emission_value") or row.get("standard_emission_value") == 0.0:
+                    # Get year from reporting_period if available, otherwise use current year
+                    year = None
+                    if row.get("reporting_period"):
+                        # Try to extract year from reporting period
+                        try:
+                            year_doc = frappe.db.get_value("Reporting Period", row["reporting_period"], "year")
+                            if year_doc:
+                                year = frappe.db.get_value("Year", year_doc, "year")
+                        except:
+                            pass
+
+                    if not year:
+                        from datetime import datetime
+                        year = datetime.now().year
+
+                    # Try to get SEV with fallback to parent CN code groups
+                    cn_code = row.get("cn_code")
+                    country = row.get("installation_country")
+                    if cn_code and country:
+                        sev_value = get_standard_emission_value(cn_code, country, year)
+                        if sev_value:
+                            row["standard_emission_value"] = sev_value
+                            # Recalculate standard_emission_cost with new SEV value
+                            if row.get("bench_mark") and row.get("cbam_factor") and row.get("raw_mass"):
+                                try:
+                                    standard_emission_cost = (
+                                        (sev_value - (row["bench_mark"] * row["cbam_factor"])
+                                        - ((sev_value * row.get("carbon_price_due", 0.0)) / ets_carbon_price if ets_carbon_price else 0))
+                                        * row["raw_mass"] * ets_carbon_price
+                                    )
+                                    row["standard_emission_cost"] = standard_emission_cost
+                                except:
+                                    pass
+
                 final_data.append(row)
                 unique_keys.add(key)
 

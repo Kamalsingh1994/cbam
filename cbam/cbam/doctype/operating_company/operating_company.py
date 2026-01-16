@@ -5,22 +5,22 @@ import frappe
 import json
 from frappe.model.document import Document
 
-MISSING_CONTACT_MESSAGE = """The contact email provided already exists for another Operating Company. 
+MISSING_CONTACT_MESSAGE = """The contact email provided already exists for another Operating Company.
 		The System Manager will look into it and get back to you. Please wait before using this Supplier."""
 
 class OperatingCompany(Document):
-	
+
 	def check_user_exists(self, user):
 		cc_filters = {
-			"commercial_contact_user": user, 
+			"commercial_contact_user": user,
 			"name": ["!=", self.name]
 		}
 		cr_filters = {
-			"cbam_representative_user": user, 
+			"cbam_representative_user": user,
 			"name": ["!=", self.name]
 		}
-		
-		if (not frappe.db.exists("Operating Company", cc_filters) 
+
+		if (not frappe.db.exists("Operating Company", cc_filters)
 	  		and not frappe.db.exists("Operating Company", cr_filters)):
 			return True
 		return False
@@ -32,7 +32,7 @@ class OperatingCompany(Document):
 		if self.main_contact_employee_email:
 			if self.check_user_exists(self.main_contact_employee_email):
 				self.create_commercial_contact()
-				self.status = "Pending Verification"		
+				self.status = "Pending Verification"
 			else:
 				frappe.msgprint(MISSING_CONTACT_MESSAGE)
 				# Only send email once
@@ -51,13 +51,13 @@ class OperatingCompany(Document):
 		self.validate_conflict()
 
 
-	
+
 
 
 	def validate_cr_user(self):
-		if self.cbam_representive_employee_email:	
+		if self.cbam_representive_employee_email:
 			if self.check_user_exists(self.cbam_representive_employee_email):
-				
+
 				self.create_cbam_user()
 				self.status = "Pending Verification"
 			else:
@@ -73,9 +73,9 @@ class OperatingCompany(Document):
 
 
 	def validate_conflict(self):
-	
+
 		if self.status in [
-			"CBAM Rep User Conflict", 
+			"CBAM Rep User Conflict",
 			"Missing Commercial Contact"
 		]:
 			self.user_conflict = 1
@@ -100,12 +100,12 @@ class OperatingCompany(Document):
 				user.last_name = self.main_contact_employee_last_name if (
 					self.main_contact_employee_first_name) else ""
 				user.email = self.main_contact_employee_email
-				
+
 				user.append("roles",{
 					"role": frappe.db.get_single_value("CBAM Settings", "commercial_contact_user_role")
 				})
 				user.save(ignore_permissions=True)
-				
+
 				username = user.name
 
 
@@ -120,8 +120,8 @@ class OperatingCompany(Document):
 		user = None
 		if self.cbam_representive_employee_email == self.commercial_contact_user:
 			user = frappe.get_doc("User", self.commercial_contact_user)
-		
-			
+
+
 		elif frappe.db.exists("User", self.cbam_representive_employee_email):
 			existing_username = frappe.db.get_value("User", self.cbam_representive_employee_email, "name")
 			user = frappe.get_doc("User", existing_username)
@@ -141,7 +141,7 @@ class OperatingCompany(Document):
 				"role": frappe.db.get_single_value("CBAM Settings", "cbam_representative_user_role")
 			})
 			user.save(ignore_permissions=True)
-					
+
 			self.cbam_representative_user = user.name
 			self.create_permissions(user.name)
 
@@ -163,7 +163,7 @@ class OperatingCompany(Document):
 	def send_signup_request(self):
 		email = frappe.get_doc("Notification", frappe.db.get_single_value("CBAM Settings", "signup_template"))
 		email.send(self)
-		
+
 		self.status = "Pending Verification"
 		self.save(ignore_permissions=True)
 
@@ -190,7 +190,7 @@ class OperatingCompany(Document):
 			return
 		if not frappe.db.exists("User Permission", {"user": user, "allow":"Operating Company"}):
 			us_pem = frappe.new_doc("User Permission")
-			us_pem.user = user 
+			us_pem.user = user
 			us_pem.allow = "Operating Company"
 			us_pem.for_value = self.name
 			us_pem.is_default = 1
@@ -206,6 +206,7 @@ class OperatingCompany(Document):
 
 	@frappe.whitelist()
 	def update_contact(self, values):
+		frappe.log_error("update_contact", values)
 		values = frappe._dict(values)
 		old_user = ''
 		if values.type == "Commercial Contact":
@@ -227,7 +228,7 @@ class OperatingCompany(Document):
 			self.cbam_representive_employee_position = values.position
 			self.cbam_representive_employee_email = values.email
 			old_user = self.cbam_representative_user
-		
+
 		if not self.is_new():
 			self.save()
 
@@ -279,7 +280,7 @@ def send_bulk_signup_request(operating_companys):
 
 def update_goods_on_operating_company_change(doc, method):
     # Fetch all Goods records linked to this Operating Company and not "Data Submitted"
-    goods_list = frappe.get_all("Good", 
+    goods_list = frappe.get_all("Good",
         filters={
             "operating_company": doc.name,
             "status": ["!=", "Data Submitted"]
