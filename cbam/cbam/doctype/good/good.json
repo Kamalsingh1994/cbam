@@ -94,7 +94,8 @@
   "electricity_consumed",
   "column_break_pfox",
   "source_of_electricity",
-  "emission_name"
+  "emission_name",
+  "emission_data_attachment"
  ],
  "fields": [
   {
@@ -560,10 +561,10 @@
    "read_only": 1
   },
   {
+   "fetch_from": "emission_data.emission_attachment",
    "fieldname": "emission_data_attachment",
    "fieldtype": "Read Only",
-   "label": "Emission Data Attachment",
-   "fetch_from": "emission_data.emission_attachment"
+   "label": "Emission Data Attachment"
   },
   {
    "fieldname": "column_break_fdty",
@@ -657,7 +658,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-08 13:25:37.215898",
+ "modified": "2026-01-19 17:02:26.897016",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",
