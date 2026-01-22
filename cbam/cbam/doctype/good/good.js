@@ -284,6 +284,12 @@ frappe.ui.form.on("Good Default Emission Value", {
     }
 });
 
+frappe.ui.form.on("Good", {
+    refresh(frm) {
+        show_rejection_banner(frm);
+    }
+});
+
 function highlight_applicable_product_rows(frm) {
     const grid = frm.fields_dict.country_specific_default_emission_values?.grid;
     if (!grid || !grid.grid_rows || grid.grid_rows.length === 0) {
@@ -296,4 +302,20 @@ function highlight_applicable_product_rows(frm) {
             $(grid_row.row).toggleClass("applicable-product-row", !!row.applicable_product);
         }
     });
+}
+
+function show_rejection_banner(frm) {
+    if (frm.doc.status !== "Rejected") {
+        frm.dashboard.clear_headline();
+        return;
+    }
+    let message = "";
+    if (frm.doc.rejected_within_supply_chain) {
+        message = __("This good has been rejected within the supply chain and has not been rejected to the Declarant.");
+    } else if (frm.doc.rejected_to_declarant) {
+        message = __("This good has been rejected back to the Declarant.");
+    }
+    if (message) {
+        frm.dashboard.set_headline(message);
+    }
 }

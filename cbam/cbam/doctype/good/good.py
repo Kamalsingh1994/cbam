@@ -26,6 +26,7 @@ class Good(Document):
 
 		self.update_name()
 		self.calculate_benchmark()
+		self.update_rejection_flags()
 		self.calculate_default_emission_values()
 
 	def update_name(self):
@@ -151,6 +152,25 @@ class Good(Document):
 					child.applicable_product = 1
 
 		self._sync_default_emission_selection_status()
+
+	def update_rejection_flags(self):
+		"""Set rejection flags for declarant visibility."""
+		if self.status != "Rejected":
+			self.rejected_within_supply_chain = 0
+			self.rejected_to_declarant = 0
+			return
+
+		if not self.rejected_from_supplier or not self.operating_company:
+			self.rejected_within_supply_chain = 0
+			self.rejected_to_declarant = 0
+			return
+
+		if self.rejected_from_supplier == self.operating_company:
+			self.rejected_within_supply_chain = 0
+			self.rejected_to_declarant = 1
+		else:
+			self.rejected_within_supply_chain = 1
+			self.rejected_to_declarant = 0
 
 	def _sync_default_emission_selection_status(self):
 		applicable_rows = [row for row in self.country_specific_default_emission_values if row.applicable_product]
