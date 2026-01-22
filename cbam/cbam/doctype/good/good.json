@@ -67,6 +67,9 @@
   "rejection_details_section",
   "rejected_from_supplier",
   "rejection_reason",
+  "rejection_flags_section",
+  "rejected_within_supply_chain",
+  "rejected_to_declarant",
   "split_details_section",
   "split_details",
   "requested_data_section",
@@ -355,6 +358,27 @@
    "options": "Operating Company",
    "read_only": 1,
    "read_only_depends_on": "eval:!frappe.user.has_role(\"System Manager\")"
+  },
+  {
+   "depends_on": "eval:doc.status == \"Rejected\"",
+   "fieldname": "rejection_flags_section",
+   "fieldtype": "Section Break",
+   "label": "Rejection Flags"
+  },
+  {
+   "default": "0",
+   "fieldname": "rejected_within_supply_chain",
+   "fieldtype": "Check",
+   "label": "Good rejected within Supply Chain",
+   "description": "This good has been rejected within the supply chain i.e. has not been rejected to Declarant.",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "rejected_to_declarant",
+   "fieldtype": "Check",
+   "label": "Rejected to Declarant",
+   "read_only": 1
   },
   {
    "fieldname": "split_details_section",
