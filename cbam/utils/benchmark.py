@@ -63,7 +63,7 @@ def calculate_country_specific_benchmark(cn_code, country, reference_date=None):
 	details["reference_year"] = reference_year
 
 	try:
-		# Step 1: Get Country Default Benchmark
+		# Step 1: Get Country Default Values
 		cdb = get_country_default_benchmark(country, cn_code)
 
 		if not cdb:
@@ -83,13 +83,13 @@ def calculate_country_specific_benchmark(cn_code, country, reference_date=None):
 			details["source"] = "country_specific"
 
 		indicator = cdb.get("cbam_benchmark_indicator")
-		factor = cdb.get("benchmark_multiplication_factor", 1.0)
+		factor = 1.0
 
 		details["indicator_used"] = indicator
 		details["factor_used"] = factor
 
 		if not indicator:
-			warnings.append("Indicator missing in Country Default Benchmark")
+			warnings.append("Indicator missing in Country Default Values")
 			return {
 				"benchmark_value": None,
 				"status": "Missing Data",
@@ -212,7 +212,7 @@ def get_cn_code_hierarchy(cn_code):
 
 def get_country_default_benchmark(country, cn_code):
 	"""
-	Get Country Default Benchmark for a specific country and CN code
+	Get Country Default Values for a specific country and CN code
 	With fallback to parent CN code groups (6-digit → 4-digit)
 
 	Returns:
@@ -225,8 +225,8 @@ def get_country_default_benchmark(country, cn_code):
 	# Get CN code hierarchy for fallback lookup
 	cn_code_hierarchy = get_cn_code_hierarchy(cn_code)
 
-	# Get Country Default Benchmark document
-	cdb_docs = frappe.get_all("Country Default Benchmark",
+	# Get Country Default Values document
+	cdb_docs = frappe.get_all("Country Default Values",
 		filters={"country": country, "is_global_default": 0},
 		fields=["name"]
 	)
@@ -234,7 +234,7 @@ def get_country_default_benchmark(country, cn_code):
 	if not cdb_docs:
 		return None
 
-	cdb_doc = frappe.get_doc("Country Default Benchmark", cdb_docs[0].name)
+	cdb_doc = frappe.get_doc("Country Default Values", cdb_docs[0].name)
 
 	# Try each CN code in hierarchy (most specific first)
 	for cn_code_to_try in cn_code_hierarchy:
@@ -244,8 +244,8 @@ def get_country_default_benchmark(country, cn_code):
 			# row.cn_code is a Link field (name of CN Code doctype)
 			if row.cn_code == cn_code_to_try:
 				return {
-					"cbam_benchmark_indicator": row.cbam_benchmark_indicator,
-					"benchmark_multiplication_factor": flt(row.benchmark_multiplication_factor),
+					"cbam_benchmark_indicator": row.production_route_cbam_benchmark_indicator,
+					"benchmark_multiplication_factor": 1.0,
 					"cn_code_used": cn_code_to_try
 				}
 
@@ -254,7 +254,7 @@ def get_country_default_benchmark(country, cn_code):
 
 def get_global_default_benchmark(cn_code):
 	"""
-	Get Global Default Benchmark (no country specified) for a CN code
+	Get Global Default Values (no country specified) for a CN code
 	With fallback to parent CN code groups (6-digit → 4-digit)
 
 	Returns:
@@ -267,8 +267,8 @@ def get_global_default_benchmark(cn_code):
 	# Get CN code hierarchy for fallback lookup
 	cn_code_hierarchy = get_cn_code_hierarchy(cn_code)
 
-	# Get Global Default Benchmark document
-	cdb_docs = frappe.get_all("Country Default Benchmark",
+	# Get Global Default Values document
+	cdb_docs = frappe.get_all("Country Default Values",
 		filters={"is_global_default": 1},
 		fields=["name"]
 	)
@@ -276,7 +276,7 @@ def get_global_default_benchmark(cn_code):
 	if not cdb_docs:
 		return None
 
-	cdb_doc = frappe.get_doc("Country Default Benchmark", cdb_docs[0].name)
+	cdb_doc = frappe.get_doc("Country Default Values", cdb_docs[0].name)
 
 	# Try each CN code in hierarchy (most specific first)
 	for cn_code_to_try in cn_code_hierarchy:
@@ -286,12 +286,96 @@ def get_global_default_benchmark(cn_code):
 			# row.cn_code is a Link field (name of CN Code doctype)
 			if row.cn_code == cn_code_to_try:
 				return {
-					"cbam_benchmark_indicator": row.cbam_benchmark_indicator,
-					"benchmark_multiplication_factor": flt(row.benchmark_multiplication_factor),
+					"cbam_benchmark_indicator": row.production_route_cbam_benchmark_indicator,
+					"benchmark_multiplication_factor": 1.0,
 					"cn_code_used": cn_code_to_try
 				}
 
 	return None
+
+
+def _serialize_default_emission_row(row):
+	return {
+		"cn_code": row.cn_code,
+		"description": row.description,
+		"default_value_direct_emissions": row.default_value_direct_emissions,
+		"default_value_indirect_emissions": row.default_value_indirect_emissions,
+		"default_value_total_emissions": row.default_value_total_emissions,
+		"default_value_2026": row.default_value_2026,
+		"default_value_2027": row.default_value_2027,
+		"default_value_2028_onwards": row.default_value_2028_onwards,
+		"production_route_cbam_benchmark_indicator": row.production_route_cbam_benchmark_indicator
+	}
+
+
+def pick_default_emission_value(row, report_year):
+	"""Pick default emission value based on reporting year."""
+	if not row:
+		return None
+
+	try:
+		year_value = int(report_year) if report_year else None
+	except (ValueError, TypeError):
+		year_value = None
+
+	if year_value == 2026 and row.get("default_value_2026") is not None:
+		return row.get("default_value_2026")
+	if year_value == 2027 and row.get("default_value_2027") is not None:
+		return row.get("default_value_2027")
+	if year_value and year_value >= 2028 and row.get("default_value_2028_onwards") is not None:
+		return row.get("default_value_2028_onwards")
+
+	return row.get("default_value_total_emissions")
+
+
+def get_country_default_emission_values(country, cn_code):
+	"""
+	Get Default Emission Values for a specific country and CN code
+	With fallback to parent CN code groups (6-digit → 4-digit) and global defaults.
+	"""
+	if not cn_code or not country:
+		return [], {"source": None, "cn_code_used": None}
+
+	cn_code_hierarchy = get_cn_code_hierarchy(cn_code)
+
+	cdb_docs = frappe.get_all("Country Default Values",
+		filters={"country": country, "is_global_default": 0},
+		fields=["name"]
+	)
+	source = "country_specific"
+
+	if not cdb_docs:
+		cdb_docs = frappe.get_all("Country Default Values",
+			filters={"is_global_default": 1},
+			fields=["name"]
+		)
+		source = "global_default"
+
+	if not cdb_docs:
+		return [], {"source": None, "cn_code_used": None}
+
+	cdb_doc = frappe.get_doc("Country Default Values", cdb_docs[0].name)
+
+	for cn_code_to_try in cn_code_hierarchy:
+		matching_rows = [
+			_serialize_default_emission_row(row)
+			for row in cdb_doc.benchmark_values
+			if row.cn_code == cn_code_to_try
+		]
+		if matching_rows:
+			return matching_rows, {"source": source, "cn_code_used": cn_code_to_try}
+
+	return [], {"source": source, "cn_code_used": None}
+
+
+def get_default_emission_value(country, cn_code, report_year):
+	"""Get a single Default Emission Value when no Good selection exists."""
+	rows, _details = get_country_default_emission_values(country, cn_code)
+	if not rows:
+		return None
+	if len(rows) > 1:
+		return None
+	return pick_default_emission_value(rows[0], report_year)
 
 
 def get_cbam_benchmark(cn_code, indicator, year):
@@ -352,47 +436,9 @@ def get_cbam_benchmark(cn_code, indicator, year):
 
 def get_standard_emission_value(cn_code, country, year):
 	"""
-	Get Standard Emission Value with fallback to parent CN code groups (6-digit → 4-digit)
-
-	Args:
-		cn_code: CN Code (string, int, or Link name)
-		country: Country name (string or Link)
-		year: Year (int, string, or Link to Year)
-
-	Returns:
-		float: emission_value or None if not found
+	Deprecated: use Default Emission Values from Country Default Values.
 	"""
-	# Get year value
-	year_value = None
-	if isinstance(year, str):
-		# Check if it's a Year doctype name
-		year_value = frappe.db.get_value("Year", year, "year")
-		if not year_value:
-			# Try to parse as integer
-			try:
-				year_value = int(year)
-			except (ValueError, TypeError):
-				pass
-	else:
-		year_value = year
-
-	if not year_value:
-		return None
-
-	# Get CN code hierarchy for fallback lookup
-	cn_code_hierarchy = get_cn_code_hierarchy(cn_code)
-
-	# Try each CN code in hierarchy (most specific first)
-	for cn_code_to_try in cn_code_hierarchy:
-		sev = frappe.db.get_value(
-			"Standard Emission Value",
-			{"year": year_value, "country": country, "cn_code": cn_code_to_try},
-			"emission_value"
-		)
-		if sev is not None:
-			return flt(sev)
-
-	return None
+	return get_default_emission_value(country, cn_code, year)
 
 
 @frappe.whitelist()
@@ -433,6 +479,22 @@ def recalculate_good_benchmark(good_name):
 	except Exception as e:
 		error_msg = str(e)[:500]  # Limit error message length
 		title = f"Error recalculating Good {good_name}"[:140]
+		frappe.log_error(title, f"Good: {good_name}\nError: {error_msg}")
+		return {"success": False, "error": str(e)}
+
+
+@frappe.whitelist()
+def recalculate_good_default_emission_values(good_name):
+	"""Recalculate default emission values for a Good"""
+	try:
+		good = frappe.get_doc("Good", good_name)
+		good.calculate_default_emission_values()
+		good.save(ignore_permissions=True)
+		frappe.db.commit()
+		return {"success": True}
+	except Exception as e:
+		error_msg = str(e)[:500]
+		title = f"Error recalculating default emissions for {good_name}"[:140]
 		frappe.log_error(title, f"Good: {good_name}\nError: {error_msg}")
 		return {"success": False, "error": str(e)}
 
@@ -485,6 +547,22 @@ def recalculate_external_good_benchmark(external_good_name):
 	except Exception as e:
 		error_msg = str(e)[:500]  # Limit error message length
 		title = f"Error recalculating Ext Good {external_good_name}"[:140]
+		frappe.log_error(title, f"External Good: {external_good_name}\nError: {error_msg}")
+		return {"success": False, "error": str(e)}
+
+
+@frappe.whitelist()
+def recalculate_external_good_default_emission_values(external_good_name):
+	"""Recalculate default emission values for an External Good"""
+	try:
+		eg = frappe.get_doc("External Good", external_good_name)
+		eg.calculate_default_emission_values()
+		eg.save(ignore_permissions=True)
+		frappe.db.commit()
+		return {"success": True}
+	except Exception as e:
+		error_msg = str(e)[:500]
+		title = f"Error recalculating default emissions for {external_good_name}"[:140]
 		frappe.log_error(title, f"External Good: {external_good_name}\nError: {error_msg}")
 		return {"success": False, "error": str(e)}
 
@@ -577,6 +655,7 @@ def update_affected_goods_by_cn_code(cn_code):
 		for good in goods:
 			try:
 				recalculate_good_benchmark(good.name)
+				recalculate_good_default_emission_values(good.name)
 			except Exception as e:
 				error_msg = str(e)[:500]
 				title = f"Error updating Good {good.name}"[:140]
@@ -585,6 +664,7 @@ def update_affected_goods_by_cn_code(cn_code):
 		for eg in external_goods:
 			try:
 				recalculate_external_good_benchmark(eg.name)
+				recalculate_external_good_default_emission_values(eg.name)
 			except Exception as e:
 				error_msg = str(e)[:500]
 				title = f"Error updating Ext Good {eg.name}"[:140]
@@ -597,7 +677,7 @@ def update_affected_goods_by_cn_code(cn_code):
 def update_affected_goods_by_country(country):
 	"""
 	Update all goods and external goods with a specific country
-	Called when Country Default Benchmark changes
+	Called when Country Default Values change
 
 	Args:
 		country: Country to update goods for
@@ -642,6 +722,7 @@ def update_affected_goods_by_country(country):
 		for good in goods:
 			try:
 				recalculate_good_benchmark(good.name)
+				recalculate_good_default_emission_values(good.name)
 			except Exception as e:
 				error_msg = str(e)[:500]
 				title = f"Error updating Good {good.name}"[:140]
@@ -650,6 +731,7 @@ def update_affected_goods_by_country(country):
 		for eg in external_goods:
 			try:
 				recalculate_external_good_benchmark(eg.name)
+				recalculate_external_good_default_emission_values(eg.name)
 			except Exception as e:
 				error_msg = str(e)[:500]
 				title = f"Error updating Ext Good {eg.name}"[:140]
@@ -681,6 +763,7 @@ def batch_update_benchmarks_by_cn_code(cn_code):
 	for good in goods:
 		try:
 			result = recalculate_good_benchmark(good.name)
+			recalculate_good_default_emission_values(good.name)
 			if result.get("success"):
 				updated += 1
 		except Exception as e:
@@ -692,6 +775,7 @@ def batch_update_benchmarks_by_cn_code(cn_code):
 	for eg in external_goods:
 		try:
 			result = recalculate_external_good_benchmark(eg.name)
+			recalculate_external_good_default_emission_values(eg.name)
 			if result.get("success"):
 				updated += 1
 		except Exception as e:
@@ -731,6 +815,7 @@ def batch_update_benchmarks_by_country(country):
 	for good in goods:
 		try:
 			result = recalculate_good_benchmark(good.name)
+			recalculate_good_default_emission_values(good.name)
 			if result.get("success"):
 				updated += 1
 		except Exception as e:
@@ -742,6 +827,7 @@ def batch_update_benchmarks_by_country(country):
 	for eg in external_goods:
 		try:
 			result = recalculate_external_good_benchmark(eg.name)
+			recalculate_external_good_default_emission_values(eg.name)
 			if result.get("success"):
 				updated += 1
 		except Exception as e:

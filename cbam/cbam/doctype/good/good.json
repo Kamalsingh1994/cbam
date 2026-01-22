@@ -103,7 +103,10 @@
   "benchmark_calculation_details",
   "benchmark_last_calculated_at",
   "use_benchmark_override",
-  "benchmark_manual_override"
+  "benchmark_manual_override",
+  "country_specific_default_emission_values_section",
+  "select_applicable_product_for_cn_code",
+  "country_specific_default_emission_values"
  ],
  "fields": [
   {
@@ -617,7 +620,7 @@
    "label": "Country Specific Default CBAM Benchmark"
   },
   {
-   "description": "Emission Benchmark selected based on Country of Origin and CN Code, multiplied by Benchmark Multiplication Factor",
+   "description": "Emission Benchmark selected based on Country of Origin and CN Code",
    "fieldname": "country_specific_default_cbam_benchmark",
    "fieldtype": "Float",
    "label": "Country Specific Default CBAM Benchmark",
@@ -658,6 +661,26 @@
    "fieldname": "benchmark_manual_override",
    "fieldtype": "Float",
    "label": "Manual Benchmark Override"
+  },
+  {
+   "fieldname": "country_specific_default_emission_values_section",
+   "fieldtype": "Section Break",
+   "label": "Country Specific Default Emission Values"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "select_applicable_product_for_cn_code",
+   "fieldtype": "Check",
+   "label": "Select applicable Product for CN Code",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "country_specific_default_emission_values",
+   "fieldtype": "Table",
+   "label": "Default Emission Values",
+   "options": "Good Default Emission Value"
   },
   {
    "fieldname": "mass_per_article",
@@ -717,7 +740,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-12-15 11:06:53.523511",
+ "modified": "2026-01-21 12:48:00.623899",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "Good",

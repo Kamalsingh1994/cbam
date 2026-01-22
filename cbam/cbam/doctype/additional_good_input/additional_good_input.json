@@ -106,7 +106,7 @@
   {
    "fieldname": "standard_emissions_value",
    "fieldtype": "Float",
-   "label": "Standard emissions value"
+   "label": "Default emissions value"
   },
   {
    "fieldname": "real_emissions_value",
@@ -126,7 +126,7 @@
   {
    "fieldname": "standard_emission_incuding_negative_values_section",
    "fieldtype": "Section Break",
-   "label": "Standard Emission (incuding negative values)"
+   "label": "Default Emission (incuding negative values)"
   },
   {
    "fieldname": "total_mass_se",
@@ -161,7 +161,7 @@
   {
    "fieldname": "price_of_standard_emission_section",
    "fieldtype": "Section Break",
-   "label": "price of standard emission"
+   "label": "price of default emission"
   },
   {
    "fieldname": "total_mass_sep",
