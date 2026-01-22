@@ -3,7 +3,7 @@
  "allow_import": 1,
  "allow_rename": 1,
  "autoname": "naming_series:naming_series",
- "creation": "2025-05-28 12:13:56.907372",
+ "creation": "2026-01-22 09:53:03.998793",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -40,7 +40,10 @@
   "benchmark_calculation_details",
   "benchmark_last_calculated_at",
   "use_benchmark_override",
-  "benchmark_manual_override"
+  "benchmark_manual_override",
+  "country_specific_default_emission_values_section",
+  "select_applicable_product_for_cn_code",
+  "country_specific_default_emission_values"
  ],
  "fields": [
   {
@@ -250,12 +253,31 @@
    "fieldname": "benchmark_manual_override",
    "fieldtype": "Float",
    "label": "Manual Benchmark Override"
+  },
+  {
+   "fieldname": "country_specific_default_emission_values_section",
+   "fieldtype": "Section Break",
+   "label": "Country Specific Default Emission Values"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "select_applicable_product_for_cn_code",
+   "fieldtype": "Check",
+   "label": "Select applicable Product for CN Code"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "country_specific_default_emission_values",
+   "fieldtype": "Table",
+   "label": "Default Emission Values",
+   "options": "External Good Default Emission Value"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-15 09:00:56.104108",
+ "modified": "2026-01-22 09:54:29.636682",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "External Good",

@@ -19,19 +19,23 @@ frappe.ui.form.on('Good', {
                 }
             }
         });
-        
+
         // Add recalculate benchmark button
         if (frm.doc.cn_code && frm.doc.country_of_origin && !frm.is_new()) {
             frm.add_custom_button(__("Recalculate Benchmark"), function() {
                 recalculate_benchmark(frm);
             }, __("Actions"));
         }
-        
+
         // Show calculation status indicator
         if (frm.doc.benchmark_calculation_status) {
             show_benchmark_status(frm);
         }
+		highlight_applicable_product_rows(frm);
     },
+	onload(frm) {
+		highlight_applicable_product_rows(frm);
+	},
     raw_mass(frm) {
         if (frm.doc.raw_mass != null) {
             const value = flt(frm.doc.raw_mass) / 1000;
@@ -83,7 +87,7 @@ frappe.ui.form.on("Good", {
         if (frm.doc.emission_data_attachment) {
             let attachment_path = frm.doc.emission_data_attachment;
             let file_name = attachment_path.split('/').pop();
-            
+
             // Wait for sidebar to be ready
             setTimeout(() => {
                 let sidebar_attachment = $(frm.sidebar.wrapper).find('.sidebar-attachments');
@@ -138,7 +142,7 @@ frappe.ui.form.on("Good", {
         if(["Data Submitted", "Rejected"].includes(frm.doc.status)){
             return
         }
-        
+
         frm.add_custom_button(__("Send Data Request"), function () {
             // console.log("create new supplier");
             frappe.call({
@@ -152,14 +156,14 @@ frappe.ui.form.on("Good", {
                 }
             });
         });
-        
+
         // Add recalculate benchmark button
         if (frm.doc.cn_code && frm.doc.country_of_origin && !frm.is_new()) {
             frm.add_custom_button(__("Recalculate Benchmark"), function() {
                 recalculate_benchmark(frm);
             }, __("Actions"));
         }
-        
+
         // Show calculation status indicator
         if (frm.doc.benchmark_calculation_status) {
             show_benchmark_status(frm);
@@ -200,10 +204,10 @@ function show_benchmark_status(frm) {
         "Error": "red",
         "Manual Override": "blue"
     };
-    
+
     const color = status_colors[status] || "gray";
     const benchmark_value = frm.doc.country_specific_default_cbam_benchmark;
-    
+
     // Parse calculation details to check if global default was used
     let source_info = "";
     let show_warning = false;
@@ -218,14 +222,14 @@ function show_benchmark_status(frm) {
     } catch (e) {
         // Ignore JSON parse errors
     }
-    
+
     if (frm.fields_dict.benchmark_calculation_status) {
         const status_field = frm.fields_dict.benchmark_calculation_status;
         const wrapper = $(status_field.$wrapper);
-        
+
         // Remove existing indicator if any
         wrapper.find('.benchmark-status-indicator').remove();
-        
+
         // Add status indicator
         if (status && (benchmark_value !== null && benchmark_value !== undefined || status !== "Calculated")) {
             wrapper.append(`
@@ -239,4 +243,57 @@ function show_benchmark_status(frm) {
             `);
         }
     }
+}
+
+function update_default_emission_toggle(frm) {
+    const rows = frm.doc.country_specific_default_emission_values || [];
+    const hasApplicable = rows.some(row => row.applicable_product);
+    const shouldSelect = rows.length > 1 && !hasApplicable;
+    if (frm.doc.select_applicable_product_for_cn_code !== (shouldSelect ? 1 : 0)) {
+        frm.set_value("select_applicable_product_for_cn_code", shouldSelect ? 1 : 0);
+    }
+}
+
+frappe.ui.form.on("Good", {
+    country_specific_default_emission_values_add(frm) {
+        update_default_emission_toggle(frm);
+    },
+    country_specific_default_emission_values_remove(frm) {
+        update_default_emission_toggle(frm);
+    },
+    refresh(frm) {
+        update_default_emission_toggle(frm);
+    }
+});
+
+frappe.ui.form.on("Good Default Emission Value", {
+    applicable_product(frm, cdt, cdn) {
+        const row = locals[cdt][cdn];
+        if (!row.applicable_product) {
+            update_default_emission_toggle(frm);
+            return;
+        }
+        (frm.doc.country_specific_default_emission_values || []).forEach(other => {
+            if (other.name !== row.name && other.applicable_product) {
+                other.applicable_product = 0;
+            }
+        });
+        frm.refresh_field("country_specific_default_emission_values");
+        frm.set_value("select_applicable_product_for_cn_code", 0);
+        highlight_applicable_product_rows(frm);
+    }
+});
+
+function highlight_applicable_product_rows(frm) {
+    const grid = frm.fields_dict.country_specific_default_emission_values?.grid;
+    if (!grid || !grid.grid_rows || grid.grid_rows.length === 0) {
+        setTimeout(() => highlight_applicable_product_rows(frm), 150);
+        return;
+    }
+    (frm.doc.country_specific_default_emission_values || []).forEach(row => {
+        const grid_row = grid.get_row(row.name);
+        if (grid_row && grid_row.row) {
+            $(grid_row.row).toggleClass("applicable-product-row", !!row.applicable_product);
+        }
+    });
 }

@@ -52,33 +52,33 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
         // Helper: Get table data, optionally per tonne
         function get_table_data(data, per_tonne = false) {
             return data.map(row => {
-                let real_emission_cost, standard_emission_cost;
+                let real_emission_cost, default_emission_cost;
                 if (!per_tonne) {
                     real_emission_cost = Number(row.real_emission_cost) || 0;
-                    standard_emission_cost = Number(row.standard_emission_cost) || 0;
+                    default_emission_cost = Number(row.default_emission_cost) || 0;
                 } else {
                     let mass_tonnes = Number(row.raw_mass_tonne) || 0;
                     if (mass_tonnes > 0) {
                         real_emission_cost = (Number(row.real_emission_cost) || 0) / mass_tonnes;
-                        standard_emission_cost = (Number(row.standard_emission_cost) || 0) / mass_tonnes;
+                        default_emission_cost = (Number(row.default_emission_cost) || 0) / mass_tonnes;
                     } else {
                         real_emission_cost = 0;
-                        standard_emission_cost = 0;
+                        default_emission_cost = 0;
                     }
                 }
-                
+
                 // Convert units for display
                 const cbam_benchmark = Number(row.cbam_benchmark) || 0;
-                const standard_emission_factor = Number(row.standard_emission_factor) || 0;
+                const default_emission_factor = Number(row.default_emission_factor) || 0;
                 const real_emission_value = Number(row.real_emission_value) || 0;
-                
+
                 return {
                     ...row,
                     cbam_benchmark: cbam_benchmark.toFixed(3),
-                    standard_emission_factor: standard_emission_factor.toFixed(3),
+                    default_emission_factor: default_emission_factor.toFixed(3),
                     real_emission_value: real_emission_value.toFixed(3),
                     real_emission_cost: real_emission_cost.toFixed(3),
-                    standard_emission_cost: standard_emission_cost.toFixed(3)
+                    default_emission_cost: default_emission_cost.toFixed(3)
                 };
             });
         }
@@ -158,11 +158,11 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                 // Find the year and ETS price type fields
                 const yearField = $('label:contains("Year")').closest('.form-group').find('select');
                 const etsPriceTypeField = $('label:contains("ETS Price Basis")').closest('.form-group').find('select');
-                
+
                 if (yearField.length > 0 && etsPriceTypeField.length > 0) {
                     // Populate ETS Price Type options
                     const etsOptions = ['', 'Spot Price', 'Future (Dec)'];
-                    
+
                     // Update the ETS Price Type field options
                     etsPriceTypeField.empty();
                     etsOptions.forEach(option => {
@@ -172,17 +172,17 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                             etsPriceTypeField.append(`<option value="${option}">${option}</option>`);
                         }
                     });
-                    
+
                     // Set default value to Spot Price
                     etsPriceTypeField.val('Spot Price');
-                    
+
                     // Add change event listener to year field
                     yearField.on('change', function() {
                         const selectedYear = parseInt($(this).val());
                         const currentYear = new Date().getFullYear();
-                        
 
-                        
+
+
                         if (selectedYear && selectedYear > currentYear) {
                             // Future year: set ETS Price Type to Future (Dec) and make read-only
                             etsPriceTypeField.val('Future (Dec)');
@@ -196,7 +196,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                             etsPriceTypeField.prop('disabled', false);
                             etsPriceTypeField.val('Spot Price');
                         }
-                        
+
                         // Trigger filter change to update ETS Price
                         if (selectedYear) {
                             const selectedEtsType = etsPriceTypeField.val();
@@ -207,16 +207,16 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                             }
                         }
                     });
-                    
+
                     // Add change event listener to ETS Price Type field
                     etsPriceTypeField.on('change', function() {
                         const selectedEtsType = $(this).val();
 
-                        
+
                         // Ensure Year field is never read-only
                         yearField.prop('disabled', false);
                         yearField.prop('readonly', false);
-                        
+
                         // Update ETS Price when ETS Price Type changes
                         const selectedYear = parseInt(yearField.val());
 
@@ -225,7 +225,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                             cbam.refresh_ets_price_options(filters, selectedEtsType, selectedYear);
                         }
                     });
-                    
+
                     // Apply initial logic
                     yearField.trigger('change');
                 }
@@ -263,8 +263,8 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                             <button class="btn btn-primary btn-xs clear-selections text-nowrap filter-clear-btn" id="clear-group-1">Clear All</button>
                         </div>
                     </div>
-                    
-                    
+
+
                     <div class="frappe-card mb-4" id="table-toggle-section">
                         <div class="p-2 d-flex align-items-center gap-5">
                             <span class="ms-2 small">Show Cost per tonne of Product</span>&nbsp;
@@ -280,7 +280,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                             </label>
                         </div>
                     </div>
-                    
+
                     <!-- Note Section -->
                     <div class="mb-3 p-3" style="padding: 10px 0px 0px 0px !important;">
                         <div class="alert alert-info mb-0" role="alert">
@@ -296,11 +296,11 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                             <div>
                                 <strong class="text-primary">Disclaimer: </strong><br>
                                 <strong>
-                                Please note that the calculations made on this page are only non-binding estimates. Due to the current legal situation, a binding 
-                                calculation is not possible at present, which is why we accept no liability for the accuracy and completeness of the calculation results 
+                                Please note that the calculations made on this page are only non-binding estimates. Due to the current legal situation, a binding
+                                calculation is not possible at present, which is why we accept no liability for the accuracy and completeness of the calculation results
                                 provided here
                                 </strong><br><br>
-                                For the calculations the following assumptions are used: The standard emission values as given by the EU commission for the transitional 
+                                For the calculations the following assumptions are used: The default emission values as given by the EU commission for the transitional
                                 period; the benchmarks are roughly estimated using the EU-ETS benchmarks; the CBAM factor is used as given by the EU commission.
                             </div>
                         </div>
@@ -385,14 +385,14 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                     if (r.message && r.message.length > 0) {
                         // Set the options for the Select field
                         yearFilter.df.options = r.message;
-                        
+
                         // Refresh the filter
                         yearFilter.refresh();
-                        
+
                         // Set default value to current year if available, otherwise first available year
                         const currentYear = frappe.datetime.get_today().split('-')[0];
                         const availableYears = r.message;
-                        
+
                         if (availableYears.includes(currentYear)) {
                             yearFilter.set_value(currentYear);
                         } else if (availableYears.length > 0) {
@@ -432,22 +432,22 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                 load_report_table(true, filters);
                 return;
             }
-            
+
             clear_stats();
             frappe.call({
                 method: 'cbam.cbam.page.various_cost_comparisons.various_cost_comparisons.get_cards_value',
                 args: { filters },
                 callback: function (r) {
                     if (!r.message) return;
-                    
+
                     const updated_values = {
                         'cbam-factor': r.message.cbam_factor || 0.0,
                         'ets-price': r.message.ets_price || 0.0,
                     };
-                    
+
                     Object.entries(updated_values).forEach(([key, val]) => {
                         let displayValue = val;
-                        
+
                         // Special formatting for CBAM Factor - convert to percentage with 1 decimal place
                         if (key === 'cbam-factor' && val !== 0.0 && val !== null && val !== undefined) {
                             const numValue = parseFloat(val);
@@ -457,15 +457,15 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                                 $(`.stat-value[data-stat="${key}"]`).attr('data-original-value', val);
                             }
                         }
-                        
+
                         // Special formatting for ETS Price - add Euro symbol with 2 decimal places
                         if (key === 'ets-price' && val !== 0.0 && val !== null && val !== undefined) {
                             displayValue = `€${parseFloat(val).toFixed(2)}`;
                         }
-                        
+
                         $(`.stat-value[data-stat="${key}"]`).text(displayValue);
                     });
-                    
+
                     // After updating stat cards, reload table and chart with new values
                     load_report_table(true, filters);
                 },
@@ -474,7 +474,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                 }
             });
         }
-        /** 
+        /**
          * Clear and render stat cards with default values.
          */
         function clear_stats() {
@@ -482,7 +482,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
             if ($('#compact-stat-row .stat-card').length > 0) {
                 return;
             }
-            
+
             const compact_stats = [
                 { label: 'CBAM Factor', value: '--' },
                 { label: 'ETS Price', value: '€--', display_label: 'EUA Price [€/t CO2]' },
@@ -559,7 +559,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                         } else {
                             datatable.refresh(table_data);
                         }
-                        
+
                         // Update chart (respect 'Show Selected rows' toggle)
                         const showSelected = $('#selected-rows-toggle').is(':checked');
                         let chart_data_final;
@@ -569,7 +569,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
                         } else {
                             chart_data_final = cbam.get_chart_data(all_data, per_tonne);
                         }
-                       
+
                         setTimeout(() => cbam.update_chart(chart_data_final), 100);
                         render_pagination_controls();
                     }
@@ -672,7 +672,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
             <ul class="nav nav-tabs mb-3" id="dashboard-tabs">
                 <!-- <li class="nav-item">
                     <a class="nav-link" href="/app/ets-price-dashboard">ETS Price Dashboard</a>
-                </li> -->  
+                </li> -->
                 <li class="nav-item">
                     <a class="nav-link" href="/app/financial-exposure-forecast">Financial Exposure Forecast</a>
                 </li>
@@ -694,7 +694,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
             color: #000;
             font-weight: 500;
           }
-          
+
           /* Compact stat card styles - matching filter height and inline with filters */
           .stat-card {
             min-width: 120px;
@@ -707,26 +707,26 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
             display: inline-block;
             vertical-align: top;
           }
-          
+
           .stat-card:hover {
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
             border-color: #9ca3af;
           }
-          
+
           .stat-card .text-muted {
             font-size: 0.7rem;
             line-height: 1.2;
             color: #6b7280;
           }
-          
+
           .stat-card .stat-value {
             font-size: 0.875rem !important;
             line-height: 1.2;
             white-space: nowrap;
             color: #111827;
           }
-          
+
           /* Ensure filters and stat cards are properly aligned */
           #filter-section-group-2 {
             display: flex;
@@ -735,7 +735,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
             justify-content: flex-start;
             width: 100%;
           }
-          
+
           #compact-stat-row {
             display: flex;
             align-items: center;
@@ -743,7 +743,7 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
             justify-content: flex-end;
             width: 100%;
           }
-          
+
           /* Ensure filters have consistent width using filter.js column classes */
           #filter-section-group-2 .form-control,
           #filter-section-group-2 .frappe-control {
@@ -751,21 +751,21 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
             width: 100%;
             max-width: 160px;
           }
-          
+
           /* Year filter should be slightly wider */
           #filter-section-group-2 .form-control[data-fieldname="year"] {
             min-width: 140px;
             width: 100%;
             max-width: 150px;
           }
-          
+
           /* ETS Price Type filter should be wider for the text */
           #filter-section-group-2 .form-control[data-fieldname="ets_price_type"] {
             min-width: 160px;
             width: 100%;
             max-width: 170px;
           }
-          
+
           /* Responsive adjustments */
           @media (max-width: 768px) {
             .stat-card {
@@ -773,21 +773,21 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
               max-width: 200px;
               height: 36px !important;
             }
-            
+
             .stat-card .text-muted {
               font-size: 0.65rem;
             }
-            
+
             .stat-card .stat-value {
               font-size: 0.8rem !important;
             }
-            
+
             #filter-section-group-2,
             #compact-stat-row {
               flex-wrap: wrap;
               gap: 0.15rem;
             }
-            
+
             /* Maintain filter widths on mobile */
             #filter-section-group-2 .form-control,
             #filter-section-group-2 .frappe-control {
@@ -795,13 +795,13 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
               width: 100%;
               max-width: none;
             }
-            
+
             #filter-section-group-2 .form-control[data-fieldname="year"] {
               min-width: 140px;
               width: 100%;
               max-width: none;
             }
-            
+
             #filter-section-group-2 .form-control[data-fieldname="ets_price_type"] {
               min-width: 140px;
               width: 100%;
@@ -810,5 +810,5 @@ frappe.pages['various-cost-comparisons'].on_page_load = function(wrapper) {
           }
         </style>`).appendTo('head');
     })();
-    
+
 };

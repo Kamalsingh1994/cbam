@@ -4,6 +4,5 @@
 from frappe.model.document import Document
 
 
-class CountryDefaultBenchmarkValue(Document):
+class GoodDefaultEmissionValue(Document):
 	pass
-

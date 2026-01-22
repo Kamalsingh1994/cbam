@@ -57,7 +57,8 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
     year_due_dates = {}
     cbam_factor_cache = {}
     bench_mark_cache = {}
-    standard_emission_value_cache = {}
+    default_emission_value_cache = {}
+	default_emission_rows_cache = {}
     for report in cbam_reports:
         parent = frappe.get_doc("CBAM Report", report)
         report_year = get_year_from_creation(parent.creation)
@@ -133,13 +134,35 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
                 bench_mark = round(bench_mark, 4)
                 sev_key = (report_year, installation_country, cn_code)
 
-                if sev_key not in standard_emission_value_cache:
-                    # Use fallback function to get SEV with parent CN code groups
-                    from cbam.utils.benchmark import get_standard_emission_value
-                    sev_value = get_standard_emission_value(cn_code, installation_country, report_year)
-                    standard_emission_value_cache[sev_key] = sev_value or 0.0
+                if sev_key not in default_emission_value_cache:
+                    sev_value = None
+                    if eg.name not in default_emission_rows_cache:
+                        default_emission_rows_cache[eg.name] = frappe.get_all(
+                            "External Good Default Emission Value",
+                            filters={"parent": eg.name},
+                            fields=[
+                                "cn_code",
+                                "default_value_total_emissions",
+                                "default_value_2026",
+                                "default_value_2027",
+                                "default_value_2028_onwards",
+                                "production_route_cbam_benchmark_indicator",
+                                "applicable_product",
+                            ]
+                        )
+                    from cbam.utils.benchmark import pick_default_emission_value
+                    selected_rows = default_emission_rows_cache[eg.name]
+                    applicable = [row for row in selected_rows if row.get("applicable_product")]
+                    if len(applicable) == 1:
+                        sev_value = pick_default_emission_value(applicable[0], report_year)
+                    elif len(selected_rows) == 1:
+                        sev_value = pick_default_emission_value(selected_rows[0], report_year)
+                    if sev_value is None:
+                        from cbam.utils.benchmark import get_default_emission_value
+                        sev_value = get_default_emission_value(installation_country, cn_code, report_year)
+                    default_emission_value_cache[sev_key] = sev_value or 0.0
 
-                standard_emission_value = extract_numeric_value(standard_emission_value_cache[sev_key])
+                default_emission_value = extract_numeric_value(default_emission_value_cache[sev_key])
 
                 try:
                     real_emission_cost = (
@@ -151,13 +174,13 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
                     real_emission_cost = 0.0
 
                 try:
-                    standard_emission_cost = (
-                        (standard_emission_value - (bench_mark * cbam_factor)
-                        - ((standard_emission_value * carbon_price_due) / ets_price if ets_price else 0))
+                    default_emission_cost = (
+                        (default_emission_value - (bench_mark * cbam_factor)
+                        - ((default_emission_value * carbon_price_due) / ets_price if ets_price else 0))
                         * raw_mass_tonne * ets_price
                     )
                 except Exception:
-                    standard_emission_cost = 0.0
+                    default_emission_cost = 0.0
 
                 row_data = {
                     "year": quarter_year,  # Use quarter_year (report year) instead of ETS price year
@@ -170,12 +193,12 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
                     "carbon_price_due": carbon_price_due,
                     "installation_country": installation_country,
                     "specific_direct_embedded_emissions": specific_direct_embedded_emissions,
-                    "standard_emission_value": standard_emission_value,
+                    "default_emission_value": default_emission_value,
                     "bench_mark_emission_value": bench_mark,
                     "cbam_factor": cbam_factor,
                     "ets_price": ets_price,
                     "real_emission_cost": real_emission_cost,
-                    "standard_emission_cost": standard_emission_cost,
+                    "default_emission_cost": default_emission_cost,
                     "from_date": parent.from_date,
                     "to_date": parent.to_date,
                 }
@@ -228,19 +251,19 @@ def duplicate_future_year_rows(base_rows, future_years):
             bench_mark = round(extract_numeric_value(bench_mark), 4)
             future_row["bench_mark_emission_value"] = bench_mark
             # SEV with fallback to parent CN code groups
-            from cbam.utils.benchmark import get_standard_emission_value
-            sev = get_standard_emission_value(cn_code, installation_country, future_year) or 0.0
-            future_row["standard_emission_value"] = extract_numeric_value(sev)
+            from cbam.utils.benchmark import get_default_emission_value
+            sev = get_default_emission_value(installation_country, cn_code, future_year) or 0.0
+            future_row["default_emission_value"] = extract_numeric_value(sev)
 
             # Recalculate costs
             try:
-                standard_emission_cost = (
-                    (future_row["standard_emission_value"] - (future_row["bench_mark_emission_value"] * future_row["cbam_factor"]))
+                default_emission_cost = (
+                    (future_row["default_emission_value"] - (future_row["bench_mark_emission_value"] * future_row["cbam_factor"]))
                     * raw_mass_tonne * ets_price
                 )
             except Exception:
-                standard_emission_cost = 0.0
-            future_row["standard_emission_cost"] = standard_emission_cost
+                default_emission_cost = 0.0
+            future_row["default_emission_cost"] = default_emission_cost
             try:
                 real_emission_cost = (
                     (specific_direct_embedded_emissions - (cbam_factor * future_row["bench_mark_emission_value"]))
@@ -261,7 +284,7 @@ def aggregate_year_totals(data, uploaded_quarters):
         if year:
             # Sum all items for each year to get total CBAM cost for that year
             year_totals[year]["actual"] += row.get("real_emission_cost", 0) or 0
-            year_totals[year]["standard"] += row.get("standard_emission_cost", 0) or 0
+            year_totals[year]["standard"] += row.get("default_emission_cost", 0) or 0
 
     # Mark years as actual data if they have uploaded quarters, others as forecast
     for year in year_totals:
@@ -313,9 +336,9 @@ def build_chart_data(data, year_totals, current_year, uploaded_quarters, year_du
             category_label = f"{month_name} {year}"
             chart_categories.append(category_label)
             if year == base_year:
-                # Sum all standard_emission_cost for this quarter
+                # Sum all default_emission_cost for this quarter
                 quarter_rows = [r for r in base_rows if r.get('year') == year and r.get('quarter') == quarter]
-                quarter_sum = sum(r.get('standard_emission_cost', 0) or 0 for r in quarter_rows)
+                quarter_sum = sum(r.get('default_emission_cost', 0) or 0 for r in quarter_rows)
                 if quarter_rows and quarter_sum != 0:
                     actual_data.append(quarter_sum)
                     forecast_data.append(None)
@@ -334,9 +357,9 @@ def build_chart_data(data, year_totals, current_year, uploaded_quarters, year_du
                 else:
                     # No data for this quarter, forecast = sum of standard values for previous quarters
                     actual_data.append(None)
-                    prev_quarters = [r.get('standard_emission_cost') for r in base_rows
+                    prev_quarters = [r.get('default_emission_cost') for r in base_rows
                                      if r.get('year') == year and r.get('quarter') is not None
-                                     and r.get('quarter') < quarter and r.get('standard_emission_cost') is not None]
+                                     and r.get('quarter') < quarter and r.get('default_emission_cost') is not None]
                     forecast_value = sum(prev_quarters) if prev_quarters else 0.0
                     forecast_data.append(forecast_value)
                     # ETS price fallback
@@ -352,7 +375,7 @@ def build_chart_data(data, year_totals, current_year, uploaded_quarters, year_du
             else:
                 # For future years, sum all rows for this quarter (like current year)
                 quarter_rows = [r for r in future_rows if r.get('year') == year and r.get('quarter') == quarter]
-                quarter_sum = sum(r.get('standard_emission_cost', 0) or 0 for r in quarter_rows)
+                quarter_sum = sum(r.get('default_emission_cost', 0) or 0 for r in quarter_rows)
                 actual_data.append(None)
 
                 # Debug logging removed to prevent BrokenPipeError
@@ -364,9 +387,9 @@ def build_chart_data(data, year_totals, current_year, uploaded_quarters, year_du
                     ets_prices.append(ets_price)
                 else:
                     # Q3 and Q4: calculate as sum of previous quarters (like current year)
-                    prev_quarters = [r.get('standard_emission_cost') for r in future_rows
+                    prev_quarters = [r.get('default_emission_cost') for r in future_rows
                                    if r.get('year') == year and r.get('quarter') is not None
-                                   and r.get('quarter') < quarter and r.get('standard_emission_cost') is not None]
+                                   and r.get('quarter') < quarter and r.get('default_emission_cost') is not None]
                     forecast_value = sum(prev_quarters) if prev_quarters else 0.0
                     # Debug logging removed to prevent BrokenPipeError
                     forecast_data.append(forecast_value)
@@ -586,11 +609,11 @@ def get_columns():
         {"id": "raw_mass_tonne", "name": _( "Raw Mass [t]"), "width": 120},
         {"id": "carbon_price_due", "name": _( "Carbon Price Due"), "width": 150},
         {"id": "installation_country", "name": _( "Installation Country"), "width": 170},
-        {"id": "standard_emission_value", "name": _( "Standard Emission Value"), "width": 200},
+        {"id": "default_emission_value", "name": _( "Default Emission Value"), "width": 200},
         {"id": "bench_mark_emission_value", "name": _( "Benchmark Emission Value"), "width": 210},
         {"id": "cbam_factor", "name": _( "CBAM Factor"), "width": 120},
         {"id": "ets_price", "name": _( "ETS Price"), "width": 120},
-        {"id": "standard_emission_cost", "name": _( "Standard Cost"), "width": 150},
+        {"id": "default_emission_cost", "name": _( "Default Cost"), "width": 150},
     ]
 
     return columns

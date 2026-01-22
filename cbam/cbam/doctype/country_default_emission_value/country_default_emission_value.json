@@ -3,7 +3,7 @@
  "allow_import": 1,
  "allow_rename": 1,
  "autoname": "naming_series:naming_series",
- "creation": "2025-05-28 13:07:06.761430",
+ "creation": "2026-01-21 00:00:00.000000",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -13,7 +13,9 @@
   "indirect_emission_value",
   "column_break_rjvl",
   "country",
-  "year",
+  "default_value_2026",
+  "default_value_2027",
+  "default_value_2028_onwards",
   "reporting_period"
  ],
  "fields": [
@@ -32,10 +34,10 @@
   {
    "fieldname": "emission_value",
    "fieldtype": "Data",
-   "label": "Direct Emission Value [tCO2/tproduct]"
+   "label": "Default Emission Value (direct) [tCO2/tproduct]"
   },
   {
-   "default": "SEV-",
+   "default": "CDEV-",
    "fieldname": "naming_series",
    "fieldtype": "Data",
    "hidden": 1,
@@ -55,24 +57,33 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "year",
-   "fieldtype": "Link",
-   "label": "Year",
-   "options": "Year"
+   "fieldname": "default_value_2026",
+   "fieldtype": "Float",
+   "label": "2026 Default Value (including mark-up)"
+  },
+  {
+   "fieldname": "default_value_2027",
+   "fieldtype": "Float",
+   "label": "2027 Default Value (including mark-up)"
+  },
+  {
+   "fieldname": "default_value_2028_onwards",
+   "fieldtype": "Float",
+   "label": "2028 and onwards Default Value (including mark-up)"
   },
   {
    "fieldname": "indirect_emission_value",
    "fieldtype": "Data",
-   "label": "Indirect Emission Value [tCO2/tproduct]"
+   "label": "Default Emission Value (indirect) [tCO2/tproduct]"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-17 11:42:20.338506",
+ "modified": "2026-01-21 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "CBAM",
- "name": "Standard Emission Value",
+ "name": "Country Default Emission Value",
  "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [

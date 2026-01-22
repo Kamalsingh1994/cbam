@@ -20,18 +20,19 @@ frappe.ui.form.on("External Good", {
   refresh(frm) {
     add_custom_links("report_id", "CBAM Report", cur_frm.doc.report_id, "CBAM Report");
     add_custom_links("reporting_period", "Customs Import", cur_frm.doc.reporting_period, "Reporting Period");
-    
+
     // Add recalculate benchmark button
     if (frm.doc.cn_code && frm.doc.installation_country && !frm.is_new()) {
       frm.add_custom_button(__("Recalculate Benchmark"), function() {
         recalculate_external_good_benchmark(frm);
       }, __("Actions"));
     }
-    
+
     // Show calculation status indicator
     if (frm.doc.benchmark_calculation_status) {
       show_benchmark_status_eg(frm);
     }
+    update_external_default_emission_toggle(frm);
   },
   raw_mass_tonne(frm) {
       if (frm.doc.raw_mass_tonne != null) {
@@ -57,6 +58,41 @@ frappe.ui.form.on("External Good", {
   quantity_of_articles: function(frm) {
     calculate_mass_per_article(frm);
     },
+});
+
+function update_external_default_emission_toggle(frm) {
+  const rows = frm.doc.country_specific_default_emission_values || [];
+  const hasApplicable = rows.some(row => row.applicable_product);
+  const shouldSelect = rows.length > 1 && !hasApplicable;
+  if (frm.doc.select_applicable_product_for_cn_code !== (shouldSelect ? 1 : 0)) {
+    frm.set_value("select_applicable_product_for_cn_code", shouldSelect ? 1 : 0);
+  }
+}
+
+frappe.ui.form.on("External Good", {
+  country_specific_default_emission_values_add(frm) {
+    update_external_default_emission_toggle(frm);
+  },
+  country_specific_default_emission_values_remove(frm) {
+    update_external_default_emission_toggle(frm);
+  }
+});
+
+frappe.ui.form.on("External Good Default Emission Value", {
+  applicable_product(frm, cdt, cdn) {
+    const row = locals[cdt][cdn];
+    if (!row.applicable_product) {
+      update_external_default_emission_toggle(frm);
+      return;
+    }
+    (frm.doc.country_specific_default_emission_values || []).forEach(other => {
+      if (other.name !== row.name && other.applicable_product) {
+        other.applicable_product = 0;
+      }
+    });
+    frm.refresh_field("country_specific_default_emission_values");
+    frm.set_value("select_applicable_product_for_cn_code", 0);
+  }
 });
 
 function calculate_quantity(frm) {
@@ -118,14 +154,14 @@ function show_benchmark_status_eg(frm) {
     "Error": "red",
     "Manual Override": "blue"
   };
-  
+
   const color = status_colors[status] || "gray";
   const benchmark_value = frm.doc.country_specific_default_cbam_benchmark;
-  
+
   if (frm.fields_dict.benchmark_calculation_status && benchmark_value !== null && benchmark_value !== undefined) {
     const status_field = frm.fields_dict.benchmark_calculation_status;
     const wrapper = $(status_field.$wrapper);
-    
+
     // Add status indicator
     if (!wrapper.find('.benchmark-status-indicator').length) {
       wrapper.append(`

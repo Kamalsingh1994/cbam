@@ -1,7 +1,7 @@
 // Copyright (c) 2025, phamos GmbH and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Country Default Benchmark", {
+frappe.ui.form.on("Country Default Values", {
 	refresh: function(frm) {
 		// Update field visibility based on is_global_default
 		frm.toggle_display("country", !frm.doc.is_global_default);

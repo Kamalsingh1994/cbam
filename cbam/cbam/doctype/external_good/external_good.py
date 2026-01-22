@@ -4,14 +4,15 @@
 import json
 import frappe
 from frappe.model.document import Document
-from cbam.utils.benchmark import calculate_country_specific_benchmark
+from cbam.utils.benchmark import calculate_country_specific_benchmark, get_country_default_emission_values
 
 
 class ExternalGood(Document):
 	def validate(self):
 		self.set_year_from_report()
 		self.calculate_benchmark()
-	
+		self.calculate_default_emission_values()
+
 	def set_year_from_report(self):
 		"""Set year field from CBAM Report's from_date/to_date if not already set"""
 		if self.report_id and not self.year:
@@ -32,7 +33,7 @@ class ExternalGood(Document):
 			except Exception as e:
 				# Log error but don't fail validation
 				frappe.log_error(f"Error setting year from CBAM Report {self.report_id}: {str(e)}", "External Good Year Error")
-	
+
 	def calculate_benchmark(self):
 		"""Calculate and store country-specific CBAM benchmark"""
 		# Use manual override if enabled
@@ -45,7 +46,7 @@ class ExternalGood(Document):
 			})
 			self.benchmark_last_calculated_at = frappe.utils.now()
 			return
-		
+
 		# Calculate benchmark if CN code and installation country are available
 		if self.cn_code and self.installation_country:
 			try:
@@ -57,18 +58,18 @@ class ExternalGood(Document):
 					if year_value:
 						from datetime import date
 						reference_date = date(year_value, 1, 1)  # Use January 1st of the year
-				
+
 				result = calculate_country_specific_benchmark(
 					self.cn_code,
 					self.installation_country,
 					reference_date
 				)
-				
+
 				self.country_specific_default_cbam_benchmark = result.get("benchmark_value")
 				self.benchmark_calculation_status = result.get("status", "Error")
 				self.benchmark_calculation_details = json.dumps(result.get("details", {}))
 				self.benchmark_last_calculated_at = frappe.utils.now()
-				
+
 				# Log warnings if any (keep title short for error log)
 				warnings = result.get("warnings", [])
 				if warnings and self.benchmark_calculation_status != "Calculated":
@@ -96,6 +97,57 @@ class ExternalGood(Document):
 					"installation_country": not bool(self.installation_country)
 				}
 			})
+
+	def calculate_default_emission_values(self):
+		"""Populate default emission values from Country Default Values"""
+		if not self.cn_code or not self.installation_country:
+			self.country_specific_default_emission_values = []
+			self.select_applicable_product_for_cn_code = 0
+			return
+
+		should_refresh = self.is_new() or self.has_value_changed("cn_code") or self.has_value_changed("installation_country")
+		selected_key = None
+		if self.country_specific_default_emission_values:
+			for row in self.country_specific_default_emission_values:
+				if row.applicable_product:
+					selected_key = (row.cn_code, row.production_route_cbam_benchmark_indicator)
+					break
+
+		if should_refresh or not self.country_specific_default_emission_values:
+			rows, _details = get_country_default_emission_values(self.installation_country, self.cn_code)
+			self.country_specific_default_emission_values = []
+			for row in rows:
+				child = self.append("country_specific_default_emission_values", {
+					"cn_code": row.get("cn_code"),
+					"description": row.get("description"),
+					"default_value_direct_emissions": row.get("default_value_direct_emissions"),
+					"default_value_indirect_emissions": row.get("default_value_indirect_emissions"),
+					"default_value_total_emissions": row.get("default_value_total_emissions"),
+					"default_value_2026": row.get("default_value_2026"),
+					"default_value_2027": row.get("default_value_2027"),
+					"default_value_2028_onwards": row.get("default_value_2028_onwards"),
+					"production_route_cbam_benchmark_indicator": row.get("production_route_cbam_benchmark_indicator")
+				})
+				if selected_key and (child.cn_code, child.production_route_cbam_benchmark_indicator) == selected_key:
+					child.applicable_product = 1
+
+		self._sync_default_emission_selection_status()
+
+	def _sync_default_emission_selection_status(self):
+		applicable_rows = [row for row in self.country_specific_default_emission_values if row.applicable_product]
+		if len(applicable_rows) > 1:
+			frappe.throw("Only one Applicable Product can be selected.")
+
+		if applicable_rows:
+			self.select_applicable_product_for_cn_code = 0
+		else:
+			self.select_applicable_product_for_cn_code = 1 if len(self.country_specific_default_emission_values) > 1 else 0
+
+		year_value = None
+		if self.year:
+			year_value = frappe.db.get_value("Year", self.year, "year")
+
+		return
 
 
 @frappe.whitelist()
@@ -185,14 +237,14 @@ def get_or_create_year(year_value):
     """Get or create Year record for a given year value"""
     if not year_value:
         return None
-    
+
     # Year doctype uses autoname: field:year, so name is the year value itself
     year_name = str(year_value)
-    
+
     # Check if Year exists
     if frappe.db.exists("Year", year_name):
         return year_name
-    
+
     # Create Year record
     try:
         year_doc = frappe.get_doc({

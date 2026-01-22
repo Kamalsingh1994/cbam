@@ -13,7 +13,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         sessionStorage.removeItem('financial_exposure_forecast_reloaded');
     }
     $(wrapper).empty();
-    
+
     const page = frappe.ui.make_app_page({
         parent: wrapper,
         title: __('Financial Dashboard'),
@@ -67,7 +67,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             z-index: 1;
         }
       </style>`).appendTo('head');
-  
+
     // Insert tab navigation at the top of .page-content for perfect alignment
     $('.page-content').prepend(`
         <ul class="nav nav-tabs mb-0" id="dashboard-tabs">
@@ -119,11 +119,11 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         <!-- Cards will be populated dynamically -->
                     </div>
                 </div>
-                
+
                 <div id="chart-section-container" class="frappe-card mb-4 p-3">
                     <div id="chart-section"></div>
                 </div>
-                
+
                 <!-- Disclaimer Box -->
                 <div class="frappe-card mb-4 p-3" style="background-color: #f8f9fa; border-left: 4px solid #007bff;">
                     <div class="d-flex align-items-center" style="align-items: flex-start !important;">
@@ -131,16 +131,16 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         <div>
                             <strong class="text-primary">Disclaimer: </strong><br>
                             <strong>
-                            Please note that the calculations made on this page are only non-binding estimates. Due to the current legal situation, a binding 
-                            calculation is not possible at present, which is why we accept no liability for the accuracy and completeness of the calculation results 
+                            Please note that the calculations made on this page are only non-binding estimates. Due to the current legal situation, a binding
+                            calculation is not possible at present, which is why we accept no liability for the accuracy and completeness of the calculation results
                             provided here
                            </strong><br><br>
-                            For the calculations the following assumptions are used: The standard emission values as given by the EU commission for the transitional 
+                            For the calculations the following assumptions are used: The default emission values as given by the EU commission for the transitional
                             period; the benchmarks are roughly estimated using the EU-ETS benchmarks; the CBAM factor is used as given by the EU commission.
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="frappe-card mb-4" id="table-scroll-container" style="overflow-x: auto;">
                     <div id="table-section"></div>
                 </div>
@@ -149,7 +149,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
     }
 
     // --- Filter Setup ---
-    
+
     function setup_filters() {
         filters = {
             year: cbam.fe.create_filter('Year', 'Select', 'year', '#filter-section-group-1', []),
@@ -160,7 +160,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         filters.cbam_report.df.get_data = function(txt) {
             const selectedYear = filters.year ? filters.year.get_value() : null;
             let filters_list = [];
-            
+
             // Add year filter if year is selected
             // Adjust year filter logic to include past years if needed
             if (selectedYear) {
@@ -168,12 +168,12 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 filters_list.push(['from_date', '>=', `${pastYear}-01-01`]);
                 filters_list.push(['to_date', '<=', `${selectedYear}-12-31`]);
             }
-            
+
             // Add text search filter if provided
             if (txt) {
                 filters_list.push(['report_id', 'like', `%${txt}%`]);
             }
-            
+
             return frappe.db.get_list('CBAM Report', {
                 fields: ['name as value', 'report_id as description'],
                 filters: filters_list,
@@ -188,7 +188,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             if (yearContainer.length > 0) {
                 yearContainer.closest('.col-3').removeClass('col-3').addClass('col-4');
             }
-            
+
             // Adjust CBAM Report filter width (second filter) - make it wider
             const cbamReportContainer = $('#filter-section-group-1 .frappe-control').eq(1);
             if (cbamReportContainer.length > 0) {
@@ -257,14 +257,14 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 if (r.message && r.message.length > 0) {
                     // Set the options for the Select field
                     yearFilter.df.options = r.message;
-                    
+
                     // Refresh the filter
                     yearFilter.refresh();
-                    
+
                     // Set default value to current year if available, otherwise first available year
                     const currentYear = new Date().getFullYear();
                     const availableYears = r.message;
-                    
+
                     if (availableYears.includes(currentYear)) {
                         yearFilter.set_value(currentYear);
                         // Trigger initial data load after year is set
@@ -411,10 +411,10 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
             if (!cat) return;
             const parts = cat.trim().split(' ');
             if (parts.length < 2) return;
-            
+
             const mon = parts[0];
             const yr = parts[parts.length - 1]; // Get last part as year (handles "September 2025")
-            
+
             // Try to parse month name - handle both full and short names
             let monthIdx = -1;
             try {
@@ -448,21 +448,21 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 monthIdx = monthNames[mon.toLowerCase()];
                 if (monthIdx === undefined) monthIdx = -1;
             }
-            
+
             if (monthIdx === -1) return; // Skip if month couldn't be parsed
-            
+
             const dateObj = new Date(yr, monthIdx, 1);
             const shortLabel = getMonthNameEnglish(dateObj, 'short') + ' ' + yr;
             const longLabel = getMonthNameEnglish(dateObj, 'long') + ' ' + yr;
-            
+
             // Try to find matching category (try both short and long formats)
             const idx = categories.findIndex(c => {
                 const cLower = c.trim().toLowerCase();
-                return cLower === shortLabel.toLowerCase() || 
+                return cLower === shortLabel.toLowerCase() ||
                        cLower === longLabel.toLowerCase() ||
                        cLower === cat.toLowerCase(); // Also try exact match
             });
-            
+
             if (idx !== -1) {
                 arr[idx] = data[i];
             }
@@ -521,10 +521,10 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
     function render_chart(chart_data, selectedYear) {
         // Remove any existing toggle switch to prevent duplicates
         $('.tooltip-toggle-container').remove();
-        
+
         // Set default view to 'both' - no toggle switch needed
         let currentTooltipView = 'both'; // Always show both views
-        
+
         // Extract and prepare categories
         let categories = chart_data.categories || [];
         let yearDueDatesMap = chart_data.year_due_dates || {};
@@ -535,18 +535,18 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         const accumulatedExposureBasic = [];
         let cumulative = 0;
         let currentYearForAccumulation = null;
-        
+
         for (let i = 0; i < categories.length; i++) {
             // Extract year from category
             const match = categories[i].match(/\b(\d{4})\b/);
             const thisYear = match ? match[1] : null;
-            
+
             // Reset cumulative for new year
             if (thisYear !== currentYearForAccumulation) {
                 currentYearForAccumulation = thisYear;
                 cumulative = 0;
             }
-            
+
             const value = actualData[i] ?? forecastData[i];
             if (value !== null && value !== undefined) {
                 cumulative += value;
@@ -586,7 +586,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         // Find years that have actual data (from original categories with actual/forecast data)
         const yearsWithData = new Set();
         const originalCategories = chart_data.categories || [];
-        
+
         // Check which years have actual data (non-null, non-zero values)
         originalCategories.forEach((cat, index) => {
             const yearMatch = cat.match(/\b(\d{4})\b/);
@@ -600,14 +600,14 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 }
             }
         });
-        
+
         // Collect due date months that need to be shown even if the year has no data
         // Format: "YYYY-MM" -> true
         const dueDateMonthsToInclude = new Set();
         Object.keys(yearDueDatesMap).forEach(reportingYear => {
             const reportingYearInt = parseInt(reportingYear);
             const prevYear = reportingYearInt - 1;
-            
+
             // If the previous year has data, we need to show the due date month
             if (!isNaN(prevYear) && yearsWithData.has(prevYear)) {
                 const dueDateRaw = yearDueDatesMap[reportingYear];
@@ -620,7 +620,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 }
             }
         });
-        
+
         // Only generate categories for years that have actual data
         // Years with no data will not have their months displayed (except due date months)
         if (yearsWithData.size === 0) {
@@ -629,7 +629,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         } else {
             const allYearsArray = Array.from(yearsWithData).sort((a, b) => a - b);
             const minYear = Math.min(...allYearsArray);
-            
+
             // Find max year: include years with data and due date years
             const dueDateYears = new Set();
             Object.values(yearDueDatesMap).forEach(dateStr => {
@@ -639,25 +639,25 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 }
             });
             const maxYear = Math.max(...Array.from(yearsWithData), ...Array.from(dueDateYears));
-            
+
             // Find the latest due date to limit category generation
             const allDueDates = Object.values(yearDueDatesMap).map(dateStr => new Date(dateStr));
             const latestDueDate = allDueDates.length > 0 ? new Date(Math.max(...allDueDates.map(d => d.getTime()))) : null;
-            
+
             const monthCategories = [];
             for (let year = minYear; year <= maxYear; year++) {
                 const yearHasData = yearsWithData.has(year);
-                
+
                 if (yearHasData) {
                     // This year has actual data - show all months
                     for (let m = 0; m < 12; m++) {
                         const date = new Date(year, m, 1);
-                        
+
                         // If we have a latest due date, stop generating categories after that month
                         if (latestDueDate && date > latestDueDate) {
                             break;
                         }
-                        
+
                         const label = getMonthNameEnglish(date, 'short') + ' ' + year;
                         monthCategories.push(label);
                     }
@@ -673,13 +673,13 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         }
                     }
                 }
-                
+
                 // If we've reached the due date, break out of the year loop too
                 if (latestDueDate && year === latestDueDate.getFullYear()) {
                     break;
                 }
             }
-            
+
             // Sort categories to maintain chronological order
             monthCategories.sort(function(a, b) {
                 const yearMatchA = a.match(/\b(\d{4})\b/);
@@ -696,7 +696,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 const monthIndexB = monthNames.indexOf(monthNameB);
                 return monthIndexA - monthIndexB;
             });
-            
+
             categories = monthCategories;
         }
 
@@ -706,27 +706,27 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         const minRequiredActualMonth = mapDataToMonths(minRequiredActual, categories, chart_data.categories || []);
         const minRequiredForecastMonth = mapDataToMonths(minRequiredForecast, categories, chart_data.categories || []);
         const accumulatedExposureBasicMonth = mapDataToMonths(accumulatedExposureBasic, categories, chart_data.categories || []);
-        
 
-        
+
+
         // Now filter accumulated exposure to only show in December months (end of year)
         // This creates a clean chart that shows yearly progression at key milestones
         const accumulatedExposureMonth = [];
         const currentYear = new Date().getFullYear();
-        
+
         for (let i = 0; i < categories.length; i++) {
             const category = categories[i];
             if (!category) continue;
-            
+
             // Extract month name - handle both "Sep 2025" and "September 2025" formats
             const parts = category.trim().split(' ');
             const monthName = parts[0] ? parts[0].toLowerCase() : '';
             const yearMatch = category.match(/\b(\d{4})\b/);
             const year = yearMatch ? parseInt(yearMatch[1]) : null;
-            
+
             // Check if it's December - handle both "Dec" and "December"
             const isDecember = monthName === 'dec' || monthName === 'december';
-            
+
             if (isDecember) {
                 if (accumulatedExposureBasicMonth[i] !== null && accumulatedExposureBasicMonth[i] !== undefined) {
                     accumulatedExposureMonth.push(accumulatedExposureBasicMonth[i]);
@@ -738,7 +738,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         const catYear = catYearMatch ? parseInt(catYearMatch[1]) : null;
                         return catYear === year;
                     });
-                    
+
                     if (originalIndex !== -1 && accumulatedExposureBasicMonth[originalIndex] !== null) {
                         // Use the actual calculated value from backend
                         accumulatedExposureMonth.push(accumulatedExposureBasicMonth[originalIndex]);
@@ -768,7 +768,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         if (categories.length > 0 && lastYear) {
             yearDueDates.push({ idx: categories.length - 1, year: lastYear });
         }
-        
+
         // Debug: log due date, label, index, and categories for each plotLine
         Object.entries(yearDueDatesMap).forEach(([reportingYear, dueDateRaw]) => {
             const d = new Date(dueDateRaw);
@@ -783,11 +783,11 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 );
             });
         });
-        
+
         // Plot a vertical line for every reporting year at its due date
         // Show due lines based on the selected year filter, not current calendar year
         const selectedYearForLines = selectedYear ? parseInt(selectedYear) : new Date().getFullYear();
-        
+
         const plotLines = Object.entries(yearDueDatesMap)
             .filter(([reportingYear, dueDateRaw]) => {
                 // Show due lines for future years only, hide current and past years
@@ -811,14 +811,14 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     cstr === `${monthLong} ${yearStr}`.toLowerCase()
                 );
             });
-            
+
             // Check if the value for this year is 0 - if so, return null to skip this plot line
             const prevYear = (parseInt(reportingYear, 10) - 1).toString();
             const yearIndices = categories
                 .map((cat, idx) => ({ cat, idx }))
                 .filter(({ cat }) => cat.endsWith(prevYear))
                 .map(({ idx }) => idx);
-            
+
             let value = null;
             for (let i = yearIndices.length - 1; i >= 0; i--) {
                 const yearIdx = yearIndices[i];
@@ -827,12 +827,12 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     break;
                 }
             }
-            
+
             // Skip plot line if value is 0 or null
             if (value === null || value === 0 || isNaN(value)) {
                 return null;
             }
-            
+
             // Use the reporting year directly in the label to avoid confusion
             const labelText = `CBAM Certificate cost  ${reportingYear - 1} due: ${formatDueDate(dueDateRaw)}`;
             return {
@@ -857,7 +857,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
         const extraLineSeries = [];
         const extraDiamondSeries = [];
         let isFirstCertificateLine = true; // Track if this is the first line for legend purposes
-        
+
         Object.entries(yearDueDatesMap)
             .filter(([reportingYear, dueDateRaw]) => {
                 // Show due lines for future years only, hide current and past years
@@ -902,7 +902,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         break;
                     }
                 }
-                
+
                 // If still no value, use a default forecast value for future years
                 if (value === null) {
                     value = 50000; // Default forecast value for future years
@@ -940,7 +940,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     showInLegend: isFirstCertificateLine, // Only show first line in legend
                     zIndex: 2
                 });
-                
+
                 isFirstCertificateLine = false; // Subsequent lines won't show in legend
                 // Add the diamond at the due date
                 extraDiamondSeries.push({
@@ -986,11 +986,11 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 tickPositioner: function() {
                     const currentYear = new Date().getFullYear();
                     const positions = [];
-                    
+
                     categories.forEach((category, index) => {
                         const yearMatch = category.match(/\b(\d{4})\b/);
                         const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
-                        
+
                         if (dataYear && dataYear > currentYear) {
                             // For future years, use compact spacing (every 2nd position)
                             if (index % 2 === 0) {
@@ -1001,7 +1001,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                             positions.push(index);
                         }
                     });
-                    
+
                     return positions;
                 }
             },
@@ -1020,14 +1020,14 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
                         return (dataYear && dataYear <= currentYear) ? value : null;
                     });
-                    
+
                     const forecastDataFiltered = forecastDataMonth.map((value, index) => {
                         const category = categories[index];
                         const yearMatch = category?.match(/\b(\d{4})\b/);
                         const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
                         return (dataYear && dataYear <= currentYear) ? value : null;
                     });
-                    
+
                     return [
                         {
                             name: 'Quarterly Financial Exposure Based on Real Data',
@@ -1097,14 +1097,14 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
                         return (dataYear && dataYear <= currentYear) ? value : null;
                     });
-                    
+
                     const minRequiredForecastFiltered = minRequiredForecastMonth.map((value, index) => {
                         const category = categories[index];
                         const yearMatch = category?.match(/\b(\d{4})\b/);
                         const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
                         return (dataYear && dataYear <= currentYear) ? value : null;
                     });
-                    
+
                     return [
                         {
                             name: 'Minimum Required Account Balance',
@@ -1157,7 +1157,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         const category = this.categories[point.index];
                         const yearMatch = category?.match(/\b(\d{4})\b/);
                         const dataYear = yearMatch ? parseInt(yearMatch[1]) : null;
-                        
+
                         if (dataYear && dataYear > currentYear) {
                             // For future years, use compact spacing
                             return point.index * 0.5; // Reduce spacing by half
@@ -1175,11 +1175,11 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     let cost = this.y;  // Use this.y directly
                     let certText = '';
                     let costDisplay = '';
-                    
+
                     // Calculate certificates for ALL series if ETS price is available
                     if (cost !== null && !isNaN(cost) && Array.isArray(chart_data.ets_prices)) {
                         let ets_price;
-                        
+
                         // Special handling for Forecast total cost Due series
                         if (this.series.name.includes('Forecast total cost Due')) {
                             // For due line diamonds, use the first available ETS price
@@ -1195,20 +1195,20 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                             // For other series, use normal index-based lookup
                             ets_price = chart_data.ets_prices[this.point.index];
                         }
-                        
+
                         // Frontend fallback: if index is beyond array length, use last available price
                         if (ets_price === undefined && chart_data.ets_prices.length > 0) {
                             ets_price = chart_data.ets_prices[chart_data.ets_prices.length - 1];
                         }
-                        
+
                         // Validate ETS price before calculation
                         if (ets_price && !isNaN(ets_price) && isFinite(ets_price) && ets_price > 0) {
                             let certificates = cost / ets_price;
-                            
+
                             // Validate certificate calculation result
                             if (!isNaN(certificates) && isFinite(certificates) && certificates >= 0) {
                                 // Show certificates for diamond/overlay series and forecast total cost due
-                                if (this.series.name.includes('ETS Certificates') || 
+                                if (this.series.name.includes('ETS Certificates') ||
                                     this.series.name.includes('Minimum Required Account Balance') ||
                                     this.series.name.includes('Forecast total cost Due')) {
                                     // Always use English locale for number formatting
@@ -1217,7 +1217,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                             }
                         }
                     }
-                    
+
                     // Always prepare cost display
                     if (cost !== null && !isNaN(cost)) {
                         // Always use English locale for number formatting
@@ -1225,10 +1225,10 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     } else {
                         costDisplay = '€0';  // Fallback if no cost
                     }
-                    
+
                     // Show different labels based on series type
                     let seriesLabel = '';
-                    if (this.series.name.includes('ETS Certificates') || 
+                    if (this.series.name.includes('ETS Certificates') ||
                         this.series.name.includes('Minimum Required Account Balance') ||
                         this.series.name.includes('Forecast total cost Due')) {
                         // For diamond/overlay series and forecast total cost due, show "Amount Due"
@@ -1237,14 +1237,14 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         // For main bars, show the original series name
                         seriesLabel = this.series.name;
                     }
-                    
+
                     // Build tooltip content - always show both views since toggle is removed
                     let tooltipContent = '';
-                    
+
                     // Always show both Amount Due and Required Certificates (currentTooltipView is set to 'both')
                     tooltipContent = `
                         <span style=\"color:${this.color}\">●</span> ${seriesLabel}: <b>${costDisplay}</b>${certText}`;
-                    
+
                     return tooltipContent;
                 }
             },
@@ -1258,25 +1258,25 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 }
             }
         });
-        
+
         // Populate annual exposure stat cards
         populateAnnualExposureCards(accumulatedExposureMonth, categories);
     }
-    
+
     // Function to populate annual exposure stat cards
     function populateAnnualExposureCards(accumulatedExposureMonth, categories) {
         const cardsContainer = $('#annual-exposure-cards');
         cardsContainer.empty();
-        
+
         // Group accumulated exposure by year
         const yearlyExposure = {};
-        
+
         categories.forEach((category, index) => {
             const yearMatch = category.match(/\b(\d{4})\b/);
             if (yearMatch) {
                 const year = yearMatch[1];
                 const exposureValue = accumulatedExposureMonth[index];
-                
+
                 if (exposureValue !== null && exposureValue !== undefined) {
                     // Use the highest value for each year (usually December)
                     if (!yearlyExposure[year] || exposureValue > yearlyExposure[year]) {
@@ -1285,18 +1285,18 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                 }
             }
         });
-        
+
         // Create stat cards for each year (skip cards with 0 value)
         Object.keys(yearlyExposure)
             .sort((a, b) => parseInt(a) - parseInt(b))
             .forEach(year => {
                 const exposureValue = yearlyExposure[year];
-                
+
                 // Skip cards with 0 or null/undefined values
                 if (!exposureValue || exposureValue === 0 || isNaN(exposureValue)) {
                     return;
                 }
-                
+
                 // Always use English locale for number formatting to avoid locale-dependent issues
                 const formattedValue = new Intl.NumberFormat('en-US', {
                     style: 'currency',
@@ -1304,7 +1304,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0
                 }).format(exposureValue);
-                
+
                 const cardHtml = `
                     <div class="flex-shrink-0 me-3 mb-3" style="min-width: 160px; max-width: 200px;">
                         <div class="frappe-card p-2 text-center" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; height: 55px;">
@@ -1319,7 +1319,7 @@ frappe.pages['financial-exposure-forecast'].on_page_load = function(wrapper) {
                         </div>
                     </div>
                 `;
-                
+
                 cardsContainer.append(cardHtml);
             });
     }

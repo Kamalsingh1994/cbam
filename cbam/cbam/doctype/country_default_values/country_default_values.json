@@ -2,7 +2,7 @@
  "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "format:CDB-{####}",
+ "autoname": "format:CDV-{####}",
  "creation": "2025-12-15 15:17:10.203633",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -34,13 +34,13 @@
   {
    "fieldname": "benchmark_values_section",
    "fieldtype": "Section Break",
-   "label": "Benchmark Values"
+   "label": "Default Values"
   },
   {
    "fieldname": "benchmark_values",
    "fieldtype": "Table",
-   "label": "Benchmark Values",
-   "options": "Country Default Benchmark Value",
+   "label": "Default Values",
+   "options": "Country Default Value",
    "reqd": 1
   }
  ],
@@ -49,7 +49,7 @@
  "modified": "2025-01-15 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "CBAM",
- "name": "Country Default Benchmark",
+ "name": "Country Default Values",
  "owner": "Administrator",
  "permissions": [
   {

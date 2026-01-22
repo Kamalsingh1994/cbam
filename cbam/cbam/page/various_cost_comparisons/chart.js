@@ -5,27 +5,27 @@ frappe.provide('cbam')
 cbam.get_chart_data = function get_chart_data(data, per_tonne = false) {
     const labels = [];
     const actual_costs = [];
-    const standard_costs = [];
-    if (!data) return { labels: [], actual_costs: [], standard_costs: [] };
+    const default_costs = [];
+    if (!data) return { labels: [], actual_costs: [], default_costs: [] };
     data.forEach(row => {
         const article = row.article_number || '';
         const supplier = row.supplier || '';
         labels.push(`${article} (${supplier})`);
         let mass = Number(row.raw_mass) || 0;
         let actual = Number(row.real_emission_cost) || 0;
-        let standard = Number(row.standard_emission_cost) || 0;
+        let standard = Number(row.default_emission_cost) || 0;
         if (per_tonne && mass > 0) {
             let mass_tonnes = mass / 1000;
             actual = actual / mass_tonnes;
             standard = standard / mass_tonnes;
         }
         actual_costs.push(actual);
-        standard_costs.push(standard);
+        default_costs.push(standard);
     });
     return {
         labels,
         actual_costs,
-        standard_costs
+        default_costs
     };
 }
 
@@ -74,8 +74,8 @@ cbam.update_chart = function update_chart(chart_data) {
                     color: '#3b5bdb'
                 },
                 {
-                    name: __('Standard Cost'),
-                    data: chart_data.standard_costs,
+                    name: __('Default Cost'),
+                    data: chart_data.default_costs,
                     color: '#fa5252'
                 }
             ]
@@ -109,6 +109,6 @@ cbam.update_chart = function update_chart(chart_data) {
             }
         }
     }
-    
+
     loadChart();
 }

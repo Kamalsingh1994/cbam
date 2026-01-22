@@ -6,7 +6,7 @@ app_email = "wolfram.schmidt@phamos.eu"
 app_license = "mit"
 
 after_install = "cbam.utils.after_install.after_install"
-#update boot context 
+#update boot context
 boot_session = "cbam.boot.update_boot_context"
 extend_bootinfo = "cbam.boot.update_website_context"
 website_context = {
@@ -30,7 +30,7 @@ website_context = {
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/cbam/css/cbam.css"
+app_include_css = "/assets/cbam/css/cbam.css"
 app_include_js = [
     "cbam.bundle.js",
     "cbam-utils.bundle.js"
@@ -276,7 +276,7 @@ override_whitelisted_methods = {
 # }
 
 fixtures = [
-    
+
     {"dt": "Role", "filters": [
         [
             "name", "in", [
