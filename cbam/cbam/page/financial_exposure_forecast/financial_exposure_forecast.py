@@ -58,7 +58,7 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
     cbam_factor_cache = {}
     bench_mark_cache = {}
     default_emission_value_cache = {}
-	default_emission_rows_cache = {}
+    default_emission_rows_cache = {}
     for report in cbam_reports:
         parent = frappe.get_doc("CBAM Report", report)
         report_year = get_year_from_creation(parent.creation)
