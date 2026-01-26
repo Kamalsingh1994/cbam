@@ -308,21 +308,38 @@ def _serialize_default_emission_row(row):
 	}
 
 
+def resolve_report_year(report_year):
+	"""Resolve report year from int, string, or Year link."""
+	if not report_year:
+		return None
+	if isinstance(report_year, int):
+		return report_year
+	if isinstance(report_year, str):
+		try:
+			return int(report_year)
+		except ValueError:
+			year_value = frappe.db.get_value("Year", report_year, "year")
+			return int(year_value) if year_value else None
+	if hasattr(report_year, "year"):
+		try:
+			return int(report_year.year)
+		except (TypeError, ValueError):
+			return None
+	return None
+
+
 def pick_default_emission_value(row, report_year):
 	"""Pick default emission value based on reporting year."""
 	if not row:
 		return None
 
-	try:
-		year_value = int(report_year) if report_year else None
-	except (ValueError, TypeError):
-		year_value = None
+	year_value = resolve_report_year(report_year)
 
 	if year_value == 2026 and row.get("default_value_2026") is not None:
 		return row.get("default_value_2026")
 	if year_value == 2027 and row.get("default_value_2027") is not None:
 		return row.get("default_value_2027")
-	if year_value and year_value >= 2028 and row.get("default_value_2028_onwards") is not None:
+	if year_value == 2028 and row.get("default_value_2028_onwards") is not None:
 		return row.get("default_value_2028_onwards")
 
 	return row.get("default_value_total_emissions")

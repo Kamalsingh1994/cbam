@@ -161,7 +161,8 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
                     NULL AS good_name,
                     eg.name,
                     'CBAM Report Data' as data_source,
-                    eg.reporting_period as reporting_period
+                    eg.reporting_period as reporting_period,
+                    eg.year as external_good_year
                 FROM `tabExternal Good` eg
                 {where_sql_eg}
                 UNION
@@ -175,7 +176,8 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
                     g.name AS good_name,
                     g.name,
                     'Supplier Data' as data_source,
-                    g.internal_customs_import_number as reporting_period
+                    g.internal_customs_import_number as reporting_period,
+                    NULL as external_good_year
                 FROM `tabGood` g
                 {where_sql}
             ) AS main_table
@@ -230,11 +232,16 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
         external_good_names = [row.get("name") for row in data if not row.get("good_name")]
         default_values_by_good = get_good_default_emission_values(good_names)
         default_values_by_external_good = get_external_good_default_emission_values(external_good_names)
-        reporting_periods = [row.get("reporting_period") for row in data if row.get("good_name") and row.get("reporting_period")]
+        reporting_periods = [row.get("reporting_period") for row in data if row.get("reporting_period")]
         reporting_years = get_customs_import_year_map(reporting_periods)
 
         for row in data:
-            report_year = reporting_years.get(row.get("reporting_period")) or year
+            from cbam.utils.benchmark import resolve_report_year
+            report_year = (
+                resolve_report_year(row.get("external_good_year"))
+                or reporting_years.get(row.get("reporting_period"))
+                or year
+            )
             default_value = None
             if row.get("good_name"):
                 good_rows = default_values_by_good.get(row.get("good_name"), [])

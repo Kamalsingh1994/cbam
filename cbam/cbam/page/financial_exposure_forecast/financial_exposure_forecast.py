@@ -132,7 +132,9 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
                 bench_mark = extract_numeric_value(getattr(eg, "country_specific_default_cbam_benchmark", None) or 0.0)
                 # Round to 4 decimal places (German calculation standard)
                 bench_mark = round(bench_mark, 4)
-                sev_key = (report_year, installation_country, cn_code)
+                from cbam.utils.benchmark import resolve_report_year
+                default_emission_year = resolve_report_year(getattr(eg, "year", None) or report_year) or report_year
+                sev_key = (default_emission_year, installation_country, cn_code)
 
                 if sev_key not in default_emission_value_cache:
                     sev_value = None
@@ -154,12 +156,12 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
                     selected_rows = default_emission_rows_cache[eg.name]
                     applicable = [row for row in selected_rows if row.get("applicable_product")]
                     if len(applicable) == 1:
-                        sev_value = pick_default_emission_value(applicable[0], report_year)
+                        sev_value = pick_default_emission_value(applicable[0], default_emission_year)
                     elif len(selected_rows) == 1:
-                        sev_value = pick_default_emission_value(selected_rows[0], report_year)
+                        sev_value = pick_default_emission_value(selected_rows[0], default_emission_year)
                     if sev_value is None:
                         from cbam.utils.benchmark import get_default_emission_value
-                        sev_value = get_default_emission_value(installation_country, cn_code, report_year)
+                        sev_value = get_default_emission_value(installation_country, cn_code, default_emission_year)
                     default_emission_value_cache[sev_key] = sev_value or 0.0
 
                 default_emission_value = extract_numeric_value(default_emission_value_cache[sev_key])

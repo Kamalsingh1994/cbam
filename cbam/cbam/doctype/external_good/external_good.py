@@ -101,11 +101,16 @@ class ExternalGood(Document):
 	def calculate_default_emission_values(self):
 		"""Populate default emission values from Country Default Values"""
 		if not self.cn_code or not self.installation_country:
-			self.country_specific_default_emission_values = []
-			self.select_applicable_product_for_cn_code = 0
+			if not self.country_specific_default_emission_values:
+				self.country_specific_default_emission_values = []
+				self.select_applicable_product_for_cn_code = 0
 			return
 
-		should_refresh = self.is_new() or self.has_value_changed("cn_code") or self.has_value_changed("installation_country")
+		should_refresh = (
+			self.has_value_changed("cn_code")
+			or self.has_value_changed("installation_country")
+			or not self.country_specific_default_emission_values
+		)
 		selected_key = None
 		if self.country_specific_default_emission_values:
 			for row in self.country_specific_default_emission_values:
