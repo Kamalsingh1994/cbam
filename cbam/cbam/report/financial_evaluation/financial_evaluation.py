@@ -193,6 +193,7 @@ def get_data(filters=None):
             COALESCE(eg.country_specific_default_cbam_benchmark, 0.0) AS bench_mark,
             NULL AS good_name,
             eg.reporting_period,
+            eg.year as external_good_year,
             IFNULL(cbam.cbam_factor,0.0) AS cbam_factor,
             {ets_carbon_price} as ets_carbon_price,
             ((
@@ -227,6 +228,7 @@ def get_data(filters=None):
             COALESCE(g.country_specific_default_cbam_benchmark, 0.0) AS bench_mark,
             g.name AS good_name,
             g.internal_customs_import_number as reporting_period,
+            NULL as external_good_year,
             IFNULL(cbam.cbam_factor,0.0) AS cbam_factor,
             {ets_carbon_price} as ets_carbon_price,
             ((
@@ -253,7 +255,7 @@ def get_data(filters=None):
     external_good_names = [row.get("name") for row in data if not row.get("good_name")]
     default_values_by_good = get_good_default_emission_values(good_names)
     default_values_by_external_good = get_external_good_default_emission_values(external_good_names)
-    reporting_periods = [row.get("reporting_period") for row in data if row.get("good_name") and row.get("reporting_period")]
+    reporting_periods = [row.get("reporting_period") for row in data if row.get("reporting_period")]
     reporting_years = get_customs_import_year_map(reporting_periods)
 
     for row in data:
@@ -268,7 +270,11 @@ def get_data(filters=None):
                 if row.get("bench_mark") is not None:
                     row["bench_mark"] = round(float(row["bench_mark"]), 4)
 
-                report_year = reporting_years.get(row.get("reporting_period"))
+                from cbam.utils.benchmark import resolve_report_year
+                report_year = (
+                    resolve_report_year(row.get("external_good_year"))
+                    or reporting_years.get(row.get("reporting_period"))
+                )
                 if row.get("good_name"):
                     default_rows = default_values_by_good.get(row.get("good_name"), [])
                     default_value = select_default_emission_value(default_rows, report_year)

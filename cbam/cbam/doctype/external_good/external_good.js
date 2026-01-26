@@ -33,6 +33,13 @@ frappe.ui.form.on("External Good", {
       show_benchmark_status_eg(frm);
     }
     update_external_default_emission_toggle(frm);
+    highlight_external_applicable_product_rows(frm);
+  },
+  year(frm) {
+    if (frm.__external_good_year_cache) {
+      frm.__external_good_year_cache = null;
+    }
+    highlight_external_applicable_product_rows(frm);
   },
   raw_mass_tonne(frm) {
       if (frm.doc.raw_mass_tonne != null) {
@@ -92,6 +99,10 @@ frappe.ui.form.on("External Good Default Emission Value", {
     });
     frm.refresh_field("country_specific_default_emission_values");
     frm.set_value("select_applicable_product_for_cn_code", 0);
+    highlight_external_applicable_product_rows(frm);
+  },
+  form_render(frm, cdt, cdn) {
+    highlight_external_applicable_product_rows(frm);
   }
 });
 
@@ -105,6 +116,92 @@ function calculate_mass_per_article(frm) {
   if (frm.doc.raw_mass && frm.doc.quantity_of_articles) {
     frm.set_value('mass_per_article', frm.doc.raw_mass / frm.doc.quantity_of_articles);
   }
+}
+
+function highlight_external_applicable_product_rows(frm) {
+  const grid = frm.fields_dict.country_specific_default_emission_values?.grid;
+  if (!grid || !grid.grid_rows || grid.grid_rows.length === 0) {
+    setTimeout(() => highlight_external_applicable_product_rows(frm), 150);
+    return;
+  }
+  get_external_good_year_value(frm).then(year_value => {
+    const year_field = get_external_default_emission_year_field(year_value);
+    (frm.doc.country_specific_default_emission_values || []).forEach(row => {
+      const grid_row = grid.get_row(row.name);
+      if (!grid_row || !grid_row.row) {
+        return;
+      }
+      const $row = $(grid_row.row);
+      $row.toggleClass("applicable-product-row", !!row.applicable_product);
+      $row.find(".applicable-product-year").removeClass("applicable-product-year");
+      if (row.applicable_product && year_field) {
+        $row.find(`[data-fieldname="${year_field}"]`).addClass("applicable-product-year");
+      }
+      highlight_external_applicable_product_form(grid_row, row.applicable_product, year_field);
+    });
+  });
+}
+
+function highlight_external_applicable_product_form(grid_row, is_applicable, year_field) {
+  if (!grid_row || !grid_row.grid_form || !grid_row.grid_form.fields_dict) {
+    return;
+  }
+  const fields = [
+    "default_value_total_emissions",
+    "default_value_2026",
+    "default_value_2027",
+    "default_value_2028_onwards"
+  ];
+  fields.forEach(fieldname => {
+    const field = grid_row.grid_form.fields_dict[fieldname];
+    if (!field || !field.$wrapper) {
+      return;
+    }
+    field.$wrapper.removeClass("applicable-product-year");
+    field.$wrapper.find(".control-label, input, .input-with-feedback, .static-area")
+      .removeClass("applicable-product-year");
+  });
+  if (!is_applicable || !year_field) {
+    return;
+  }
+  const target = grid_row.grid_form.fields_dict[year_field];
+  if (!target || !target.$wrapper) {
+    return;
+  }
+  target.$wrapper.addClass("applicable-product-year");
+  target.$wrapper.find(".control-label, input, .input-with-feedback, .static-area")
+    .addClass("applicable-product-year");
+}
+
+function get_external_default_emission_year_field(year) {
+  if (!year) {
+    return "default_value_total_emissions";
+  }
+  if (year === 2026) {
+    return "default_value_2026";
+  }
+  if (year === 2027) {
+    return "default_value_2027";
+  }
+  if (year === 2028) {
+    return "default_value_2028_onwards";
+  }
+  return "default_value_total_emissions";
+}
+
+function get_external_good_year_value(frm) {
+  const year_link = frm.doc.year;
+  if (!year_link) {
+    return Promise.resolve(null);
+  }
+  if (frm.__external_good_year_cache?.name === year_link) {
+    return Promise.resolve(frm.__external_good_year_cache.year);
+  }
+  return frappe.db.get_value("Year", year_link, "year").then(year_res => {
+    const year_value = year_res && year_res.message ? parseInt(year_res.message.year, 10) : null;
+    frm.__external_good_year_cache = { name: year_link, year: year_value };
+    return year_value;
+  });
 }
 
 add_custom_links = (fieldname, doctype, docname, doctype_label) => {

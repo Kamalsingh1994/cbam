@@ -31,11 +31,17 @@ frappe.ui.form.on('Good', {
         if (frm.doc.benchmark_calculation_status) {
             show_benchmark_status(frm);
         }
-		highlight_applicable_product_rows(frm);
+        highlight_applicable_product_rows(frm);
     },
 	onload(frm) {
 		highlight_applicable_product_rows(frm);
 	},
+    internal_customs_import_number(frm) {
+        if (frm.__customs_import_year_cache) {
+            frm.__customs_import_year_cache = null;
+        }
+        highlight_applicable_product_rows(frm);
+    },
     raw_mass(frm) {
         if (frm.doc.raw_mass != null) {
             const value = flt(frm.doc.raw_mass) / 1000;
@@ -281,6 +287,9 @@ frappe.ui.form.on("Good Default Emission Value", {
         frm.refresh_field("country_specific_default_emission_values");
         frm.set_value("select_applicable_product_for_cn_code", 0);
         highlight_applicable_product_rows(frm);
+    },
+    form_render(frm, cdt, cdn) {
+        highlight_applicable_product_rows(frm);
     }
 });
 
@@ -296,12 +305,95 @@ function highlight_applicable_product_rows(frm) {
         setTimeout(() => highlight_applicable_product_rows(frm), 150);
         return;
     }
-    (frm.doc.country_specific_default_emission_values || []).forEach(row => {
-        const grid_row = grid.get_row(row.name);
-        if (grid_row && grid_row.row) {
-            $(grid_row.row).toggleClass("applicable-product-row", !!row.applicable_product);
-        }
+    get_customs_import_year(frm).then(customs_year => {
+        const year_field = get_default_emission_year_field(customs_year);
+        (frm.doc.country_specific_default_emission_values || []).forEach(row => {
+            const grid_row = grid.get_row(row.name);
+            if (!grid_row || !grid_row.row) {
+                return;
+            }
+            const $row = $(grid_row.row);
+            $row.toggleClass("applicable-product-row", !!row.applicable_product);
+            $row.find(".applicable-product-year").removeClass("applicable-product-year");
+            if (row.applicable_product && year_field) {
+                $row.find(`[data-fieldname="${year_field}"]`).addClass("applicable-product-year");
+            }
+            highlight_applicable_product_form(grid_row, row.applicable_product, year_field);
+        });
     });
+}
+
+function highlight_applicable_product_form(grid_row, is_applicable, year_field) {
+    if (!grid_row || !grid_row.grid_form || !grid_row.grid_form.fields_dict) {
+        return;
+    }
+    const fields = [
+        "default_value_total_emissions",
+        "default_value_2026",
+        "default_value_2027",
+        "default_value_2028_onwards"
+    ];
+    fields.forEach(fieldname => {
+        const field = grid_row.grid_form.fields_dict[fieldname];
+        if (!field || !field.$wrapper) {
+            return;
+        }
+        field.$wrapper.removeClass("applicable-product-year");
+        field.$wrapper.find(".control-label, input, .input-with-feedback, .static-area")
+            .removeClass("applicable-product-year");
+    });
+    if (!is_applicable || !year_field) {
+        return;
+    }
+    const target = grid_row.grid_form.fields_dict[year_field];
+    if (!target || !target.$wrapper) {
+        return;
+    }
+    target.$wrapper.addClass("applicable-product-year");
+    target.$wrapper.find(".control-label, input, .input-with-feedback, .static-area")
+        .addClass("applicable-product-year");
+}
+
+function get_default_emission_year_field(year) {
+    if (!year) {
+        return null;
+    }
+    if (year < 2026) {
+        return "default_value_total_emissions";
+    }
+    if (year === 2026) {
+        return "default_value_2026";
+    }
+    if (year === 2027) {
+        return "default_value_2027";
+    }
+    if (year === 2028) {
+        return "default_value_2028_onwards";
+    }
+    return "default_value_total_emissions";
+}
+
+function get_customs_import_year(frm) {
+    const customs_import = frm.doc.internal_customs_import_number;
+    if (!customs_import) {
+        return Promise.resolve(null);
+    }
+    if (frm.__customs_import_year_cache?.name === customs_import) {
+        return Promise.resolve(frm.__customs_import_year_cache.year);
+    }
+    return frappe.db.get_value("Customs Import", customs_import, "year")
+        .then(res => {
+            const year_link = res && res.message ? res.message.year : null;
+            if (!year_link) {
+                frm.__customs_import_year_cache = { name: customs_import, year: null };
+                return null;
+            }
+            return frappe.db.get_value("Year", year_link, "year").then(year_res => {
+                const year_value = year_res && year_res.message ? parseInt(year_res.message.year, 10) : null;
+                frm.__customs_import_year_cache = { name: customs_import, year: year_value };
+                return year_value;
+            });
+        });
 }
 
 function show_rejection_banner(frm) {

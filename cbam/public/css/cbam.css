@@ -1,3 +1,18 @@
 .applicable-product-row {
     background-color: #e8f5e9 !important;
 }
+
+.applicable-product-year {
+    background-color: #fff8e1 !important;
+}
+
+.applicable-product-year.control-label,
+.applicable-product-year .control-label {
+    color: #8a5a00 !important;
+    font-weight: 600;
+}
+
+.applicable-product-year .static-area,
+.applicable-product-year input {
+    background-color: #fff8e1 !important;
+}
