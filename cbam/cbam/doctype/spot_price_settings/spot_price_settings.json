@@ -1,0 +1,95 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-01-27 13:25:41.174175",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "is_active",
+  "website_url",
+  "username",
+  "password",
+  "column_break_avgq",
+  "filter_settings",
+  "last_sync_date"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "description": "Enable/disable automatic spot price import",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Is Active"
+  },
+  {
+   "default": "sebastian.gallehr@gallehr.de",
+   "description": "Matflixx account email",
+   "fieldname": "username",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Username",
+   "reqd": 1
+  },
+  {
+   "description": "Login password (encrypted)",
+   "fieldname": "password",
+   "fieldtype": "Password",
+   "in_list_view": 1,
+   "label": "Password",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_avgq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1y",
+   "description": "API filter Parameter",
+   "fieldname": "filter_settings",
+   "fieldtype": "Select",
+   "label": "Filter Settings",
+   "options": "1d\n1w\n1m\n3m\n6m\n1y\n2y\n5y"
+  },
+  {
+   "description": "Last succesful import timestamp",
+   "fieldname": "last_sync_date",
+   "fieldtype": "Datetime",
+   "label": "Last Sync Date",
+   "read_only": 1
+  },
+  {
+   "default": "https://api.matflixx.de",
+   "description": "Matflixx API base URL",
+   "fieldname": "website_url",
+   "fieldtype": "Data",
+   "label": "Website URL",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-01-27 14:22:56.512022",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "Spot Price Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

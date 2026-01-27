@@ -189,7 +189,10 @@ scheduler_events = {
     "cron": {
         "0 21 * * *": [
             "cbam.utils.notification.generate_alerts"
-        ]
+        ],
+	"0 6 * * *": [
+		"cbam.cbam.api.spot_price_import.fetch_daily_spot_prices"
+	]
     },
     "daily":[
         "cbam.utils.ets_import.scheduled_import.scheduled_ets_import"
@@ -197,6 +200,7 @@ scheduler_events = {
     "daily": [
         "cbam.cbam.page.various_cost_comparisons.missing_data_email.send_missing_data_summary"
     ]
+
 }
 
 # Testing
