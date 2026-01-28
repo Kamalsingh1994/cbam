@@ -280,24 +280,37 @@ override_whitelisted_methods = {
 # }
 
 fixtures = [
-
-    {"dt": "Role", "filters": [
-        [
-            "name", "in", [
-                "Declarant",
-                "Commercial Contact",
-                "CBAM Representative"
+    {
+        "dt": "Role",
+        "filters": [
+            [
+                "name", "in", [
+                    "Declarant",
+                    "Commercial Contact",
+                    "CBAM Representative"
+                ]
             ]
         ]
-    ]
     },
-    {"dt": "Module Profile", "filters": [
-        [
-            "name", "in", [
-                "Declarant"
+    {
+        "dt": "Module Profile",
+        "filters": [
+            [
+                "name", "in", [
+                    "Declarant"
+                ]
             ]
         ]
-    ]}
+    },
+    "Custom Field",
+    "Property Setter",
+    "Client Script",
+    "Server Script",
+]
+
+permission_query_conditions = {
+    "User": "cbam.utils.utils.user_permission_query"
+}    
     # {"dt": "Custom DocPerm", "filters": [
     #     [
     #         "role", "in", [
@@ -318,8 +331,4 @@ fixtures = [
     #     ]
     # ]
     # },
-]
 
-permission_query_conditions = {
-    "User": "cbam.utils.utils.user_permission_query"
-}
