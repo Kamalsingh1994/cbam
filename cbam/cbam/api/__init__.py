@@ -1,0 +1,1 @@
+from .spot_price_import import fetch_daily_spot_prices
