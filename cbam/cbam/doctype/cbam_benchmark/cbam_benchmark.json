@@ -11,8 +11,10 @@
   "cn_code",
   "reporting_period",
   "column_break_zmxu",
-  "bench_mark",
-  "year"
+  "valid_from_year",
+  "valid_to_year",
+  "benchmark_values_section",
+  "benchmark_values"
  ],
  "fields": [
   {
@@ -20,11 +22,6 @@
    "fieldtype": "Link",
    "label": "CN Code",
    "options": "CN Code"
-  },
-  {
-   "fieldname": "bench_mark",
-   "fieldtype": "Data",
-   "label": "Emission Benchmark [tCO2/tproduct]"
   },
   {
    "default": "CN-BM-",
@@ -45,10 +42,34 @@
    "options": "Reporting Period"
   },
   {
-   "fieldname": "year",
+   "fieldname": "valid_from_year",
    "fieldtype": "Link",
-   "label": "Year",
-   "options": "Year"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Valid From Year",
+   "options": "Year",
+   "reqd": 1
+  },
+  {
+   "fieldname": "valid_to_year",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Valid To Year",
+   "options": "Year",
+   "description": "Leave empty for open-ended validity"
+  },
+  {
+   "fieldname": "benchmark_values_section",
+   "fieldtype": "Section Break",
+   "label": "Benchmark Values"
+  },
+  {
+   "fieldname": "benchmark_values",
+   "fieldtype": "Table",
+   "label": "Benchmark Values",
+   "options": "CBAM Benchmark Value",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,

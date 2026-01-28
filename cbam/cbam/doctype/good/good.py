@@ -6,6 +6,7 @@ from frappe.model.document import Document
 from cbam.send_email.create_email import create_email
 from cbam.send_email.create_new_supplier_user import create_new_supplier_user
 from frappe.model.naming import getseries
+from cbam.utils.benchmark import calculate_country_specific_benchmark, get_country_default_emission_values
 
 
 class Good(Document):
@@ -24,6 +25,9 @@ class Good(Document):
 			self.supplier_number, self.supplier_name = frappe.db.get_values("Operating Company", self.operating_company, ['supplier_number', 'supplier_name'])[0]
 
 		self.update_name()
+		self.calculate_benchmark()
+		self.update_rejection_flags()
+		self.calculate_default_emission_values()
 
 	def update_name(self):
 		for row in self.split_details:
@@ -36,8 +40,147 @@ class Good(Document):
 				row.name_ = frappe.db.get_value("CBAM Installation", row.source_name, "name_of_the_installation")
 
 	def set_countries(self):
-		self.country_of_origin = frappe.db.get_value("Country", {"code": self.country_of_origin_code}, "name")
-		self.shipping_country = frappe.db.get_value("Country", {"code": self.shipping_country_code}, "name")
+		# Only set country_of_origin from code if code is provided and country_of_origin is not already set
+		# This prevents resetting country_of_origin when user sets it directly
+		if self.country_of_origin_code:
+			country_from_code = frappe.db.get_value("Country", {"code": self.country_of_origin_code}, "name")
+			if country_from_code:
+				self.country_of_origin = country_from_code
+		# If country_of_origin is set directly but code is not, try to get code from country
+		elif self.country_of_origin and not self.country_of_origin_code:
+			country_code = frappe.db.get_value("Country", self.country_of_origin, "code")
+			if country_code:
+				self.country_of_origin_code = country_code
+
+		# Only set shipping_country from code if code is provided
+		if self.shipping_country_code:
+			shipping_from_code = frappe.db.get_value("Country", {"code": self.shipping_country_code}, "name")
+			if shipping_from_code:
+				self.shipping_country = shipping_from_code
+		# If shipping_country is set directly but code is not, try to get code from country
+		elif self.shipping_country and not self.shipping_country_code:
+			shipping_code = frappe.db.get_value("Country", self.shipping_country, "code")
+			if shipping_code:
+				self.shipping_country_code = shipping_code
+
+	def calculate_benchmark(self):
+		"""Calculate and store country-specific CBAM benchmark"""
+		# Use manual override if enabled
+		if self.use_benchmark_override and self.benchmark_manual_override:
+			self.country_specific_default_cbam_benchmark = self.benchmark_manual_override
+			self.benchmark_calculation_status = "Manual Override"
+			self.benchmark_calculation_details = json.dumps({
+				"source": "manual_override",
+				"override_value": self.benchmark_manual_override
+			})
+			self.benchmark_last_calculated_at = frappe.utils.now()
+			return
+
+		# Calculate benchmark if CN code and country are available
+		if self.cn_code and self.country_of_origin:
+			try:
+				result = calculate_country_specific_benchmark(
+					self.cn_code,
+					self.country_of_origin,
+					self.hand_over_date
+				)
+
+				self.country_specific_default_cbam_benchmark = result.get("benchmark_value")
+				self.benchmark_calculation_status = result.get("status", "Error")
+				self.benchmark_calculation_details = json.dumps(result.get("details", {}))
+				self.benchmark_last_calculated_at = frappe.utils.now()
+
+				# Log warnings if any (keep title short for error log)
+				warnings = result.get("warnings", [])
+				if warnings and self.benchmark_calculation_status != "Calculated":
+					# Truncate warnings for title, full details in message
+					warnings_str = ', '.join(warnings)
+					message = f"Good: {self.name}\nCN Code: {self.cn_code}\nCountry: {self.country_of_origin}\nWarnings: {warnings_str}"
+					title = f"Benchmark warnings: Good {self.name}"[:140]
+					frappe.log_error(title, message)
+			except Exception as e:
+				error_msg = str(e)[:500]  # Limit error message length
+				message = f"Good: {self.name}\nCN Code: {self.cn_code}\nCountry: {self.country_of_origin}\nError: {error_msg}"
+				title = f"Benchmark calc error: Good {self.name}"[:140]
+				frappe.log_error(title, message)
+				self.country_specific_default_cbam_benchmark = None
+				self.benchmark_calculation_status = "Error"
+				self.benchmark_calculation_details = json.dumps({"error": str(e)})
+				self.benchmark_last_calculated_at = frappe.utils.now()
+		else:
+			# Missing required fields
+			self.country_specific_default_cbam_benchmark = None
+			self.benchmark_calculation_status = "Missing Data"
+			self.benchmark_calculation_details = json.dumps({
+				"missing_fields": {
+					"cn_code": not bool(self.cn_code),
+					"country_of_origin": not bool(self.country_of_origin)
+				}
+			})
+
+	def calculate_default_emission_values(self):
+		"""Populate default emission values from Country Default Values"""
+		if not self.cn_code or not self.country_of_origin:
+			self.country_specific_default_emission_values = []
+			self.select_applicable_product_for_cn_code = 0
+			return
+
+		should_refresh = self.is_new() or self.has_value_changed("cn_code") or self.has_value_changed("country_of_origin")
+		selected_key = None
+		if self.country_specific_default_emission_values:
+			for row in self.country_specific_default_emission_values:
+				if row.applicable_product:
+					selected_key = (row.cn_code, row.production_route_cbam_benchmark_indicator)
+					break
+
+		if should_refresh or not self.country_specific_default_emission_values:
+			rows, _details = get_country_default_emission_values(self.country_of_origin, self.cn_code)
+			self.country_specific_default_emission_values = []
+			for row in rows:
+				child = self.append("country_specific_default_emission_values", {
+					"cn_code": row.get("cn_code"),
+					"description": row.get("description"),
+					"default_value_direct_emissions": row.get("default_value_direct_emissions"),
+					"default_value_indirect_emissions": row.get("default_value_indirect_emissions"),
+					"default_value_total_emissions": row.get("default_value_total_emissions"),
+					"default_value_2026": row.get("default_value_2026"),
+					"default_value_2027": row.get("default_value_2027"),
+					"default_value_2028_onwards": row.get("default_value_2028_onwards"),
+					"production_route_cbam_benchmark_indicator": row.get("production_route_cbam_benchmark_indicator")
+				})
+				if selected_key and (child.cn_code, child.production_route_cbam_benchmark_indicator) == selected_key:
+					child.applicable_product = 1
+
+		self._sync_default_emission_selection_status()
+
+	def update_rejection_flags(self):
+		"""Set rejection flags for declarant visibility."""
+		if self.status != "Rejected":
+			self.rejected_within_supply_chain = 0
+			self.rejected_to_declarant = 0
+			return
+
+		if not self.rejected_from_supplier or not self.operating_company:
+			self.rejected_within_supply_chain = 0
+			self.rejected_to_declarant = 0
+			return
+
+		if self.rejected_from_supplier == self.operating_company:
+			self.rejected_within_supply_chain = 0
+			self.rejected_to_declarant = 1
+		else:
+			self.rejected_within_supply_chain = 1
+			self.rejected_to_declarant = 0
+
+	def _sync_default_emission_selection_status(self):
+		applicable_rows = [row for row in self.country_specific_default_emission_values if row.applicable_product]
+		if len(applicable_rows) > 1:
+			frappe.throw("Only one Applicable Product can be selected.")
+
+		if applicable_rows:
+			self.select_applicable_product_for_cn_code = 0
+		else:
+			self.select_applicable_product_for_cn_code = 1 if len(self.country_specific_default_emission_values) > 1 else 0
 
 
 	def _before_save(self):
@@ -64,7 +207,7 @@ class Good(Document):
 
 
 	def forward_goods(self):
-		
+
 		self.forwarded_from_employee = self.employee
 		if self.forward_to == "Another Supplier":
 			self.forwarded_from_supplier = self.supplier
@@ -78,13 +221,13 @@ class Good(Document):
 		self.forward_to_employee = ""
 		self.manufacture = "I am able to provide the emission data of this product"
 		self.is_data_confirmed = False
-	
+
 	def on_update(self):
 		"""Called after document is saved to database"""
 		# Only process if document has a name (is saved)
 		if self.name:
 			self.add_emission_attachment_to_sidebar()
-	
+
 	def on_trash(self):
 		self.delete_all_good_item()
 
@@ -123,13 +266,13 @@ class Good(Document):
 			frappe.throw(f"The raw mass total of the components is not equal to the raw mass of the original good. <br><br> The total should be {original_raw_mass}, not {total_raw_mass}. <br><br> Please change the raw masses of the components and ensure that they add up to a total of {original_raw_mass}.")
 
 	def split_goods(self):
-		
+
 		for i in self.split_details:
 			self.create_new_good_doc(i.source, i.source_name, i.qty_to_split)
 
 		self.status = "Split"
 		self.save(ignore_permissions=True)
-		
+
 
 
 	def create_new_good_doc(self, source, source_name, qty):
@@ -148,7 +291,7 @@ class Good(Document):
 		new_good.insert(ignore_permissions=True)
 		if not new_good.installation:
 			new_good.send_data_request()
-		
+
 		#new_good.send_email(responsiblity)
 
 	def add_to_supplier_cht(self):
@@ -200,7 +343,7 @@ class Good(Document):
 		"""Add/Update all files with same file_url from emission_data_attachment to sidebar"""
 		if not self.name:
 			return
-		
+
 		try:
 			# Get old emission_data_attachment if document was updated
 			old_attachment = None
@@ -209,17 +352,17 @@ class Good(Document):
 			if doc_before_save:
 				old_attachment = doc_before_save.get("emission_data_attachment")
 				old_emission_data = doc_before_save.get("emission_data")
-			
+
 			# Check if emission_data has changed - if so, we need to update sidebar
 			emission_data_changed = old_emission_data != self.emission_data
-			
+
 			# Get current emission_data_attachment
 			# Always get from emission_data directly to ensure we have the latest value
 			# This is important because fetch fields might not be updated yet when on_update runs
 			current_attachment = None
 			if self.emission_data:
 				current_attachment = frappe.db.get_value("CBAM Emission Data", self.emission_data, "emission_attachment")
-			
+
 			# Fallback to fetch field value if emission_data not linked
 			if not current_attachment:
 				current_attachment = self.emission_data_attachment
@@ -228,11 +371,11 @@ class Good(Document):
 					db_value = frappe.db.get_value("Good", self.name, "emission_data_attachment")
 					if db_value:
 						current_attachment = db_value
-			
+
 			# If emission_data changed, also check old attachment from old emission_data
 			if emission_data_changed and old_emission_data:
 				old_attachment = frappe.db.get_value("CBAM Emission Data", old_emission_data, "emission_attachment")
-			
+
 			# Remove all old files with the old file_url if attachment changed
 			if old_attachment and old_attachment != current_attachment:
 				# Get all files attached to Good document with the old file_url
@@ -241,28 +384,28 @@ class Good(Document):
 					"attached_to_doctype": "Good",
 					"attached_to_name": self.name
 				}, ["name"])
-				
+
 				# Remove all old files
 				for old_file in old_files:
 					try:
 						frappe.delete_doc("File", old_file.name, ignore_permissions=True, force=True)
 					except Exception as e:
 						frappe.log_error(f"Error removing old emission attachment: {str(e)}", "Good.add_emission_attachment_to_sidebar")
-				
+
 				if old_files:
 					frappe.db.commit()
-			
+
 			# If no current attachment, return (old ones already removed above if they existed)
 			if not current_attachment:
 				return
-			
+
 			file_url = current_attachment
-			
+
 			# Get ALL files with this file_url (there can be multiple files with same URL but different filenames)
 			all_files_with_url = frappe.get_all("File", {
 				"file_url": file_url
 			}, ["name", "file_name", "is_private"], order_by="creation desc")
-			
+
 			if not all_files_with_url:
 				# No files found with this URL, try to create one from the URL
 				file_name = file_url.split('/')[-1]
@@ -283,28 +426,28 @@ class Good(Document):
 					except Exception as e:
 						frappe.log_error(f"Error creating file from URL: {str(e)}", "Good.add_emission_attachment_to_sidebar")
 				return
-			
+
 			# Get list of files already attached to this Good document with this file_url
 			existing_files = frappe.get_all("File", {
 				"file_url": file_url,
 				"attached_to_doctype": "Good",
 				"attached_to_name": self.name
 			}, ["file_name"])
-			
+
 			existing_file_names = {f.file_name for f in existing_files}
-			
+
 			# Attach all files with this file_url that are not already attached
 			for file_info in all_files_with_url:
 				file_name = file_info.file_name
-				
+
 				# Skip if this file is already attached to this Good document
 				if file_name in existing_file_names:
 					continue
-				
+
 				# Create a new File record with the same file_url reference
 				# Determine if file is private
 				is_private = file_info.is_private if file_info.is_private is not None else (1 if file_url.startswith("/private/files/") else 0)
-				
+
 				# Create new File record attached to this Good document
 				try:
 					new_file = frappe.get_doc({
@@ -322,7 +465,7 @@ class Good(Document):
 					pass
 				except Exception as e:
 					frappe.log_error(f"Error adding emission attachment to sidebar: {str(e)}", "Good.add_emission_attachment_to_sidebar")
-			
+
 			frappe.db.commit()
 		except Exception as e:
 			frappe.log_error(f"Error in add_emission_attachment_to_sidebar: {str(e)}", "Good.add_emission_attachment_to_sidebar")
@@ -388,7 +531,7 @@ class Good(Document):
 		if self.status in ["Data Submitted", "Rejected"]:
 			return
 		email = frappe.get_doc("Notification", frappe.db.get_single_value("CBAM Settings", "data_request_template"))
-		
+
 		if not email:
 			frappe.throw("Please setup Data Request Notification Template in CBAM Settings")
 		opp = frappe.get_doc("Operating Company", self.operating_company)
@@ -439,7 +582,7 @@ def send_data_request(goods):
 	email = frappe.get_doc("Notification", frappe.db.get_single_value("CBAM Settings", "data_request_template"))
 	if not email:
 		frappe.throw("Please setup Data Request Notification Template in CBAM Settings")
-		
+
 	for s in supp:
 		op = frappe.get_doc("Operating Company", s)
 		op.declarant = op.declarant
@@ -474,13 +617,13 @@ def update_good_sidebar_on_emission_data_update(emission_data_doc, method):
 	"""Update Good document sidebar attachments when emission_data is updated"""
 	if not emission_data_doc.emission_attachment:
 		return
-	
+
 	# Find all Good documents linked to this emission_data
-	good_docs = frappe.get_all("Good", 
+	good_docs = frappe.get_all("Good",
 		filters={"emission_data": emission_data_doc.name},
 		fields=["name"]
 	)
-	
+
 	for good in good_docs:
 		try:
 			good_doc = frappe.get_doc("Good", good.name)

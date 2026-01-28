@@ -12,6 +12,7 @@
   "carbon_price_source",
   "price",
   "import_source",
+  "custom_data_source",
   "column_break_moht",
   "price_date",
   "creation_date",
@@ -53,7 +54,6 @@
    "set_only_once": 1
   },
   {
-   "default": "EU Commission",
    "fieldname": "carbon_price_source",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -96,12 +96,19 @@
    "fieldtype": "Data",
    "label": "Import Source",
    "read_only": 1
+  },
+  {
+   "default": "Manual",
+   "fieldname": "custom_data_source",
+   "fieldtype": "Select",
+   "label": "Data Source",
+   "options": "Manual\nAutomated Import"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-27 18:30:23.352794",
+ "modified": "2026-01-27 17:23:33.548895",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "ETS Carbon Price",

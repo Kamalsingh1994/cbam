@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-12-15 15:17:10.203633",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "cn_code",
+  "description",
+  "default_value_direct_emissions",
+  "default_value_indirect_emissions",
+  "default_value_total_emissions",
+  "default_value_2026",
+  "default_value_2027",
+  "default_value_2028_onwards",
+  "production_route_cbam_benchmark_indicator"
+ ],
+ "fields": [
+  {
+   "fieldname": "cn_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "CN Code",
+   "options": "CN Code",
+   "reqd": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Description"
+  },
+  {
+   "fieldname": "default_value_direct_emissions",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Default Value (direct emissions)"
+  },
+  {
+   "fieldname": "default_value_indirect_emissions",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Default Value (indirect emissions)"
+  },
+  {
+   "fieldname": "default_value_total_emissions",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Default Value (total emissions)"
+  },
+  {
+   "fieldname": "default_value_2026",
+   "fieldtype": "Float",
+   "label": "2026 Default Value (including mark-up)"
+  },
+  {
+   "fieldname": "default_value_2027",
+   "fieldtype": "Float",
+   "label": "2027 Default Value (including mark-up)"
+  },
+  {
+   "fieldname": "default_value_2028_onwards",
+   "fieldtype": "Float",
+   "label": "2028 and onwards Default Value (including mark-up)"
+  },
+  {
+   "fieldname": "production_route_cbam_benchmark_indicator",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Production Route / CBAM Benchmark Indicator",
+   "options": "CBAM Benchmark Indicator"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-01-15 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "Country Default Value",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
+

@@ -7,7 +7,9 @@
  "engine": "InnoDB",
  "field_order": [
   "cn_code",
-  "column_break_dkpq"
+  "parent_cn_code",
+  "column_break_dkpq",
+  "is_group"
  ],
  "fields": [
   {
@@ -21,18 +23,35 @@
    "unique": 1
   },
   {
+   "fieldname": "parent_cn_code",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "in_list_view": 1,
+   "label": "Parent CN Code",
+   "options": "CN Code"
+  },
+  {
    "fieldname": "column_break_dkpq",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_group",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Group"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_tree": 1,
  "links": [],
  "modified": "2025-06-27 12:13:14.982194",
  "modified_by": "Administrator",
  "module": "CBAM",
  "name": "CN Code",
  "naming_rule": "By fieldname",
+ "nsm_parent_field": "parent_cn_code",
  "owner": "Administrator",
  "permissions": [
   {

@@ -6,7 +6,7 @@ app_email = "wolfram.schmidt@phamos.eu"
 app_license = "mit"
 
 after_install = "cbam.utils.after_install.after_install"
-#update boot context 
+#update boot context
 boot_session = "cbam.boot.update_boot_context"
 extend_bootinfo = "cbam.boot.update_website_context"
 website_context = {
@@ -30,7 +30,7 @@ website_context = {
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/cbam/css/cbam.css"
+app_include_css = "/assets/cbam/css/cbam.css"
 app_include_js = [
     "cbam.bundle.js",
     "cbam-utils.bundle.js"
@@ -189,7 +189,10 @@ scheduler_events = {
     "cron": {
         "0 21 * * *": [
             "cbam.utils.notification.generate_alerts"
-        ]
+        ],
+	"0 6 * * *": [
+		"cbam.cbam.api.spot_price_import.fetch_daily_spot_prices"
+	]
     },
     "daily":[
         "cbam.utils.ets_import.scheduled_import.scheduled_ets_import"
@@ -197,6 +200,7 @@ scheduler_events = {
     "daily": [
         "cbam.cbam.page.various_cost_comparisons.missing_data_email.send_missing_data_summary"
     ]
+
 }
 
 # Testing

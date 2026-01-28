@@ -1,6 +1,6 @@
 [pre_model_sync]
 # Patches added in this section will be executed before doctypes are migrated
-# Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations 
+# Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations
 
 cbam.patches.v15_4_3.setup_cbam_rep_name
 
@@ -18,3 +18,4 @@ cbam.patches.v15_4_3.remove_old_pages
 cbam.patches.v15_4_3.add_system_manager_role_to_workspaces
 cbam.patches.v15_4_3.update_customs_import_year
 cbam.patches.v15_4_3.update_declarant_user_permissions
+cbam.patches.v15_4_4.add_cn_code_tree_structure

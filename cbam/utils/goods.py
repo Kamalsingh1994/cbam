@@ -54,13 +54,22 @@ def reject_goods(goods, reason=None):
         
         if _parent_operating_company: #if tier n+1 supplier
             parent_operating_company = frappe.get_doc("Operating Company", _parent_operating_company)
+            # Re-assign good to parent operating company
+            doc.operating_company = _parent_operating_company
             doc.supplier_name, doc.supplier_number = parent_operating_company.supplier_name , parent_operating_company.supplier_number
-            doc.status = "Data Requested"
+            # Set status to Rejected and keep rejection reason
+            doc.status = "Rejected"
+            doc.save(ignore_permissions=True)
+            # Explicitly update status in database to ensure it persists
+            frappe.db.set_value("Good", g, "status", "Rejected", update_modified=False)
         else:    
             doc.supplier_name, doc.supplier_number = "", ""
             doc.rejection_reason = reason
             doc.status = "Rejected"
-        doc.save(ignore_permissions=True)
+            doc.save(ignore_permissions=True)
+            # Explicitly update status in database to ensure it persists
+            frappe.db.set_value("Good", g, "status", "Rejected", update_modified=False)
+        frappe.db.commit()  # Explicitly commit to ensure status is saved
         
         # Collect good information for email
         article_num = doc.article_number or doc.name or doc.cn_code or "N/A"
