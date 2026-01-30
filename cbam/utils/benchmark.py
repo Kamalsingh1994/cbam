@@ -339,7 +339,7 @@ def pick_default_emission_value(row, report_year):
 		return row.get("default_value_2026")
 	if year_value == 2027 and row.get("default_value_2027") is not None:
 		return row.get("default_value_2027")
-	if year_value == 2028 and row.get("default_value_2028_onwards") is not None:
+	if year_value and year_value >= 2028 and row.get("default_value_2028_onwards") is not None:
 		return row.get("default_value_2028_onwards")
 
 	return row.get("default_value_total_emissions")
