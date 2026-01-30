@@ -367,7 +367,7 @@ function get_default_emission_year_field(year) {
     if (year === 2027) {
         return "default_value_2027";
     }
-    if (year === 2028) {
+    if (year >= 2028) {
         return "default_value_2028_onwards";
     }
     return "default_value_total_emissions";
