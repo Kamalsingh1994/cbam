@@ -11,8 +11,6 @@
   "cn_code",
   "reporting_period",
   "column_break_zmxu",
-  "valid_from_year",
-  "valid_to_year",
   "benchmark_values_section",
   "benchmark_values"
  ],
@@ -42,27 +40,10 @@
    "options": "Reporting Period"
   },
   {
-   "fieldname": "valid_from_year",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Valid From Year",
-   "options": "Year",
-   "reqd": 1
-  },
-  {
-   "fieldname": "valid_to_year",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Valid To Year",
-   "options": "Year",
-   "description": "Leave empty for open-ended validity"
-  },
-  {
    "fieldname": "benchmark_values_section",
    "fieldtype": "Section Break",
-   "label": "Benchmark Values"
+   "label": "Benchmark Values",
+   "description": "(1) and (2) indicate time bound values. (1)…Value is to be used for production years 2026-27 (2)… Value is to be used for production years 2028-30. If no time bound values available, system will default to column (1) values."
   },
   {
    "fieldname": "benchmark_values",
