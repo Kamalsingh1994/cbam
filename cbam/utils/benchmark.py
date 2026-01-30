@@ -419,32 +419,33 @@ def get_cbam_benchmark(cn_code, indicator, year):
 	# Get CN code hierarchy for fallback lookup
 	cn_code_hierarchy = get_cn_code_hierarchy(cn_code)
 
+	# Decide which column to use based on reporting year
+	# (1) -> years 2026-27, (2) -> years 2028-30, fallback to (1)
+	benchmark_column = "emission_benchmark"
+	benchmark_alt_column = "emission_benchmark_2"
+	use_alt = year_value is not None and year_value >= 2028
+
 	# Try each CN code in hierarchy (most specific first)
 	for cn_code_to_try in cn_code_hierarchy:
-		# Find CBAM Benchmark with valid date range
+		# Find CBAM Benchmark for CN code (single record per CN code)
 		cbam_docs = frappe.get_all("CBAM Benchmark",
 			filters={"cn_code": cn_code_to_try},
-			fields=["name", "valid_from_year", "valid_to_year"]
+			fields=["name"]
 		)
 
 		for cbam_doc in cbam_docs:
-			from_year = frappe.db.get_value("Year", cbam_doc.valid_from_year, "year") if cbam_doc.valid_from_year else None
-			to_year = frappe.db.get_value("Year", cbam_doc.valid_to_year, "year") if cbam_doc.valid_to_year else None
-
-			# Check if year is in range
-			if from_year and year_value < from_year:
-				continue
-			if to_year and year_value > to_year:
-				continue
-
-			# Year is in range, get the benchmark document
 			cbam = frappe.get_doc("CBAM Benchmark", cbam_doc.name)
 
 			# Find matching indicator
 			for row in cbam.benchmark_values:
 				if row.cbam_benchmark_indicator == indicator:
+					value_primary = getattr(row, benchmark_column, None)
+					value_alt = getattr(row, benchmark_alt_column, None)
+					selected_value = value_alt if use_alt and value_alt is not None else value_primary
+					if selected_value is None:
+						continue
 					return {
-						"emission_benchmark": flt(row.emission_benchmark),
+						"emission_benchmark": flt(selected_value),
 						"cn_code_used": cn_code_to_try
 					}
 

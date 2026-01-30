@@ -6,7 +6,8 @@
  "engine": "InnoDB",
  "field_order": [
   "cbam_benchmark_indicator",
-  "emission_benchmark"
+  "emission_benchmark",
+  "emission_benchmark_2"
  ],
  "fields": [
   {
@@ -21,9 +22,16 @@
    "fieldname": "emission_benchmark",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Emission Benchmark [tCO2/tproduct]",
+   "label": "Emission Benchmark [tCO2/tproduct] (1)",
    "non_negative": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "emission_benchmark_2",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Emission Benchmark [tCO2/tproduct] (2)",
+   "non_negative": 1
   }
  ],
  "index_web_pages_for_search": 1,
