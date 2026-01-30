@@ -97,18 +97,26 @@ def fetch_cbam_report_rows(cbam_reports, from_year, to_year):
                     fields=["price_year", "price", "price_date"],
                     order_by="price_date desc"
                 )
-                if ets_prices:
-                    latest_ets = ets_prices[0]
-                    year = int(latest_ets.price_year)
-                    # Use quarter_year for filtering instead of ETS price year to get actual report data
-                    report_year = quarter_year
-
-                    if (from_year and report_year < from_year) or (to_year and report_year > to_year):
-                        continue
-
-                    ets_price = extract_numeric_value(latest_ets.price)
-                else:
+                if not ets_prices:
+                    # Fallback to latest available ETS price if year-specific price is missing
+                    ets_prices = frappe.get_all(
+                        "ETS Carbon Price",
+                        fields=["price_year", "price", "price_date"],
+                        order_by="price_date desc",
+                        limit=1
+                    )
+                if not ets_prices:
                     continue
+
+                latest_ets = ets_prices[0]
+                year = int(latest_ets.price_year)
+                # Use quarter_year for filtering instead of ETS price year to get actual report data
+                report_year = quarter_year
+
+                if (from_year and report_year < from_year) or (to_year and report_year > to_year):
+                    continue
+
+                ets_price = extract_numeric_value(latest_ets.price)
 
                 # Use quarter_year (report year) for all lookups to ensure consistency
                 report_year = quarter_year
@@ -474,6 +482,9 @@ def get_cbam_report_data(cbam_reports=None, start=0, page_length=50, year=None, 
         else:
             max_future_year = current_year  # fallback: no future projection if no ETS price
 
+        # Cap future projection range to avoid overly long x-axis
+        max_report_year = max(years_with_reports) if years_with_reports else current_year
+        max_future_year = min(max_future_year, max_report_year + 1)
         future_years = [year for year in range(current_year + 1, max_future_year + 1) if year not in years_with_reports]
         future_rows = duplicate_future_year_rows(base_rows, future_years)
 
