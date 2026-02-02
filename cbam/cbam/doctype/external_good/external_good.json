@@ -41,6 +41,9 @@
   "benchmark_last_calculated_at",
   "use_benchmark_override",
   "benchmark_manual_override",
+  "supplier_specific_default_cbam_benchmark_section",
+  "supplier_specific_default_cbam_benchmark",
+  "supplier_specific_benchmark_values",
   "country_specific_default_emission_values_section",
   "select_applicable_product_for_cn_code",
   "country_specific_default_emission_values"
@@ -253,6 +256,24 @@
    "fieldname": "benchmark_manual_override",
    "fieldtype": "Float",
    "label": "Manual Benchmark Override"
+  },
+  {
+   "fieldname": "supplier_specific_default_cbam_benchmark_section",
+   "fieldtype": "Section Break",
+   "label": "Supplier Specific Default CBAM Benchmark"
+  },
+  {
+   "description": "Supplier-specific benchmark selection based on CN Code and selected production route",
+   "fieldname": "supplier_specific_default_cbam_benchmark",
+   "fieldtype": "Float",
+   "label": "Supplier Specific Default CBAM Benchmark",
+   "read_only": 1
+  },
+  {
+   "fieldname": "supplier_specific_benchmark_values",
+   "fieldtype": "Table",
+   "label": "Supplier Specific Benchmark Values",
+   "options": "Supplier Specific CBAM Benchmark Value"
   },
   {
    "fieldname": "country_specific_default_emission_values_section",

@@ -4,14 +4,24 @@
 import json
 import frappe
 from frappe.model.document import Document
-from cbam.utils.benchmark import calculate_country_specific_benchmark, get_country_default_emission_values
+from cbam.utils.benchmark import (
+	calculate_country_specific_benchmark,
+	get_cbam_benchmark,
+	get_cbam_benchmark_rows,
+	get_country_default_benchmark,
+	get_global_default_benchmark,
+	get_country_default_emission_values,
+	resolve_report_year,
+)
 
 
 class ExternalGood(Document):
 	def validate(self):
 		self.set_year_from_report()
-		self.calculate_benchmark()
 		self.calculate_default_emission_values()
+		self.calculate_supplier_specific_benchmark_values()
+		self.calculate_benchmark()
+		self.calculate_supplier_specific_benchmark()
 
 	def set_year_from_report(self):
 		"""Set year field from CBAM Report's from_date/to_date if not already set"""
@@ -154,6 +164,84 @@ class ExternalGood(Document):
 
 		return
 
+	def calculate_supplier_specific_benchmark_values(self):
+		"""Populate supplier-specific benchmark values from CBAM Benchmark."""
+		if not self.cn_code:
+			self.supplier_specific_benchmark_values = []
+			return
+
+		should_refresh = self.is_new() or self.has_value_changed("cn_code") or not self.supplier_specific_benchmark_values
+		selected_indicator = None
+		for row in self.supplier_specific_benchmark_values or []:
+			if row.applicable_product and row.cbam_benchmark_indicator:
+				selected_indicator = row.cbam_benchmark_indicator
+				break
+		if not selected_indicator:
+			for row in self.country_specific_default_emission_values or []:
+				if row.applicable_product and row.production_route_cbam_benchmark_indicator:
+					selected_indicator = row.production_route_cbam_benchmark_indicator
+					break
+
+		if should_refresh:
+			rows, _cn_code_used = get_cbam_benchmark_rows(self.cn_code)
+			self.supplier_specific_benchmark_values = []
+			for row in rows:
+				child = self.append("supplier_specific_benchmark_values", {
+					"cbam_benchmark_indicator": row.get("cbam_benchmark_indicator"),
+					"emission_benchmark": row.get("emission_benchmark"),
+					"emission_benchmark_2": row.get("emission_benchmark_2"),
+				})
+				if selected_indicator and child.cbam_benchmark_indicator == selected_indicator:
+					child.applicable_product = 1
+
+		self._sync_supplier_specific_benchmark_selection_status()
+
+	def _sync_supplier_specific_benchmark_selection_status(self):
+		applicable_rows = [row for row in self.supplier_specific_benchmark_values or [] if row.applicable_product]
+		if len(applicable_rows) > 1:
+			frappe.throw("Only one Supplier Specific Benchmark can be selected.")
+
+	def _get_supplier_specific_indicator(self):
+		for row in self.supplier_specific_benchmark_values or []:
+			if row.applicable_product and row.cbam_benchmark_indicator:
+				return row.cbam_benchmark_indicator
+		return None
+
+	def _get_reporting_year(self):
+		if self.year:
+			return resolve_report_year(self.year)
+		if self.reporting_period:
+			customs_year = frappe.db.get_value("Customs Import", self.reporting_period, "year")
+			return resolve_report_year(customs_year)
+		return None
+
+	def calculate_supplier_specific_benchmark(self):
+		"""Calculate supplier-specific CBAM benchmark value."""
+		if not self.cn_code:
+			self.supplier_specific_default_cbam_benchmark = None
+			return
+
+		indicator = self._get_supplier_specific_indicator()
+		if not indicator:
+			for row in self.country_specific_default_emission_values or []:
+				if row.applicable_product and row.production_route_cbam_benchmark_indicator:
+					indicator = row.production_route_cbam_benchmark_indicator
+					break
+
+		if not indicator and self.installation_country:
+			cdb = get_country_default_benchmark(self.installation_country, self.cn_code)
+			if not cdb:
+				cdb = get_global_default_benchmark(self.cn_code)
+			indicator = cdb.get("cbam_benchmark_indicator") if cdb else None
+
+		if not indicator:
+			self.supplier_specific_default_cbam_benchmark = None
+			return
+
+		report_year = self._get_reporting_year()
+		result = get_cbam_benchmark(self.cn_code, indicator, report_year)
+		self.supplier_specific_default_cbam_benchmark = result.get("emission_benchmark") if result else None
+
 
 @frappe.whitelist()
 def bulk_create_external_goods(rows, declarant=None, cbam_report=None, reporting_period=None, declarant_acts_as_importer=None, importer=None):
@@ -261,5 +349,7 @@ def get_or_create_year(year_value):
     except Exception as e:
         frappe.log_error(f"Error creating Year {year_value}: {str(e)}", "Year Creation Error")
         return None
+
+
 
 

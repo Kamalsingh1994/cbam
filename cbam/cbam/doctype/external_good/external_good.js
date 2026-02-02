@@ -106,6 +106,21 @@ frappe.ui.form.on("External Good Default Emission Value", {
   }
 });
 
+frappe.ui.form.on("Supplier Specific CBAM Benchmark Value", {
+  applicable_product(frm, cdt, cdn) {
+    const row = locals[cdt][cdn];
+    if (!row.applicable_product) {
+      return;
+    }
+    (frm.doc.supplier_specific_benchmark_values || []).forEach(other => {
+      if (other.name !== row.name && other.applicable_product) {
+        other.applicable_product = 0;
+      }
+    });
+    frm.refresh_field("supplier_specific_benchmark_values");
+  }
+});
+
 function calculate_quantity(frm) {
   if (frm.doc.raw_mass && frm.doc.mass_per_article) {
     frm.set_value('quantity_of_articles', frm.doc.raw_mass / frm.doc.mass_per_article);

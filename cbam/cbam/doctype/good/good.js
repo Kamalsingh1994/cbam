@@ -293,6 +293,21 @@ frappe.ui.form.on("Good Default Emission Value", {
     }
 });
 
+frappe.ui.form.on("Supplier Specific CBAM Benchmark Value", {
+    applicable_product(frm, cdt, cdn) {
+        const row = locals[cdt][cdn];
+        if (!row.applicable_product) {
+            return;
+        }
+        (frm.doc.supplier_specific_benchmark_values || []).forEach(other => {
+            if (other.name !== row.name && other.applicable_product) {
+                other.applicable_product = 0;
+            }
+        });
+        frm.refresh_field("supplier_specific_benchmark_values");
+    }
+});
+
 frappe.ui.form.on("Good", {
     refresh(frm) {
         show_rejection_banner(frm);

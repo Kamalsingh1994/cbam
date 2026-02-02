@@ -6,7 +6,15 @@ from frappe.model.document import Document
 from cbam.send_email.create_email import create_email
 from cbam.send_email.create_new_supplier_user import create_new_supplier_user
 from frappe.model.naming import getseries
-from cbam.utils.benchmark import calculate_country_specific_benchmark, get_country_default_emission_values
+from cbam.utils.benchmark import (
+	calculate_country_specific_benchmark,
+	get_cbam_benchmark,
+	get_cbam_benchmark_rows,
+	get_country_default_benchmark,
+	get_global_default_benchmark,
+	get_country_default_emission_values,
+	resolve_report_year,
+)
 
 
 class Good(Document):
@@ -26,7 +34,9 @@ class Good(Document):
 
 		self.update_name()
 		self.calculate_default_emission_values()
+		self.calculate_supplier_specific_benchmark_values()
 		self.calculate_benchmark()
+		self.calculate_supplier_specific_benchmark()
 		self.update_rejection_flags()
 
 	def update_name(self):
@@ -126,6 +136,73 @@ class Good(Document):
 			if row.applicable_product and row.production_route_cbam_benchmark_indicator:
 				return row.production_route_cbam_benchmark_indicator
 		return None
+
+	def calculate_supplier_specific_benchmark_values(self):
+		"""Populate supplier-specific benchmark values from CBAM Benchmark."""
+		if not self.cn_code:
+			self.supplier_specific_benchmark_values = []
+			return
+
+		should_refresh = self.is_new() or self.has_value_changed("cn_code") or not self.supplier_specific_benchmark_values
+		selected_indicator = None
+		for row in self.supplier_specific_benchmark_values or []:
+			if row.applicable_product and row.cbam_benchmark_indicator:
+				selected_indicator = row.cbam_benchmark_indicator
+				break
+		if not selected_indicator:
+			selected_indicator = self._get_selected_benchmark_indicator()
+
+		if should_refresh:
+			rows, _cn_code_used = get_cbam_benchmark_rows(self.cn_code)
+			self.supplier_specific_benchmark_values = []
+			for row in rows:
+				child = self.append("supplier_specific_benchmark_values", {
+					"cbam_benchmark_indicator": row.get("cbam_benchmark_indicator"),
+					"emission_benchmark": row.get("emission_benchmark"),
+					"emission_benchmark_2": row.get("emission_benchmark_2"),
+				})
+				if selected_indicator and child.cbam_benchmark_indicator == selected_indicator:
+					child.applicable_product = 1
+
+		self._sync_supplier_specific_benchmark_selection_status()
+
+	def _sync_supplier_specific_benchmark_selection_status(self):
+		applicable_rows = [row for row in self.supplier_specific_benchmark_values or [] if row.applicable_product]
+		if len(applicable_rows) > 1:
+			frappe.throw("Only one Supplier Specific Benchmark can be selected.")
+
+	def _get_supplier_specific_indicator(self):
+		for row in self.supplier_specific_benchmark_values or []:
+			if row.applicable_product and row.cbam_benchmark_indicator:
+				return row.cbam_benchmark_indicator
+		return None
+
+	def _get_reporting_year(self):
+		if self.internal_customs_import_number:
+			customs_year = frappe.db.get_value("Customs Import", self.internal_customs_import_number, "year")
+			return resolve_report_year(customs_year)
+		return None
+
+	def calculate_supplier_specific_benchmark(self):
+		"""Calculate supplier-specific CBAM benchmark value."""
+		if not self.cn_code:
+			self.supplier_specific_default_cbam_benchmark = None
+			return
+
+		indicator = self._get_supplier_specific_indicator() or self._get_selected_benchmark_indicator()
+		if not indicator and self.country_of_origin:
+			cdb = get_country_default_benchmark(self.country_of_origin, self.cn_code)
+			if not cdb:
+				cdb = get_global_default_benchmark(self.cn_code)
+			indicator = cdb.get("cbam_benchmark_indicator") if cdb else None
+
+		if not indicator:
+			self.supplier_specific_default_cbam_benchmark = None
+			return
+
+		report_year = self._get_reporting_year() or self.hand_over_date
+		result = get_cbam_benchmark(self.cn_code, indicator, report_year)
+		self.supplier_specific_default_cbam_benchmark = result.get("emission_benchmark") if result else None
 
 	def calculate_default_emission_values(self):
 		"""Populate default emission values from Country Default Values"""
@@ -602,6 +679,8 @@ def send_data_request(goods):
 	for g in goods:
 		if g.get('status') == "Draft":
 			frappe.db.set_value("Good", g.get("name"), "status", "Data Requested")
+
+
 
 
 @frappe.whitelist()

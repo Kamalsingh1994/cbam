@@ -39,7 +39,8 @@ def get_columns():
         {"fieldname": "supplier", "fieldtype": "Data", "label": "Supplier", "width": 200},
         {"fieldname": "raw_mass_tonne", "fieldtype": "Data", "label": "Mass [t]", "width": 150},
         {"fieldname": "installation_country", "fieldtype": "Data", "label": "Installation Country", "width": 180},
-        {"fieldname": "cbam_benchmark", "fieldtype": "Data", "label": "CBAM Benchmark [tCO2/t product]", "width": 200},
+        {"fieldname": "cbam_benchmark", "fieldtype": "Data", "label": "CBAM Default Benchmark [tCO2/t product]", "width": 220},
+        {"fieldname": "supplier_specific_benchmark", "fieldtype": "Data", "label": "Supplier Specific Benchmark [tCO2/t product]", "width": 230},
         {"fieldname": "default_emission_factor", "fieldtype": "Data", "label": "Default Emission Value [tCO2/t product]", "width": 220},
         {"fieldname": "default_emission_cost", "fieldtype": "Data", "label": "Default Cost [€]", "width": 180},
         {"fieldname": "real_emission_value", "fieldtype": "Data", "label": "Specific (Direct) Emission Value [tCO2/t product]", "width": 280},
@@ -128,6 +129,18 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
         if result:
             cbam_factor = float(result[0].get('cbam_factor', 0.0) or 0.0)
             ets_carbon_price = float(result[0].get('ets_price', 0.0) or 0.0)
+        # Fallback: if no ETS price for the selected type, use latest price for the year
+        if year and (not ets_carbon_price or ets_carbon_price == 0):
+            fallback_price = frappe.db.sql("""
+                SELECT price
+                FROM `tabETS Carbon Price`
+                WHERE price_year = %(year)s
+                AND price IS NOT NULL
+                ORDER BY price_date DESC, modified DESC
+                LIMIT 1
+            """, {"year": year}, as_dict=True)
+            if fallback_price:
+                ets_carbon_price = float(fallback_price[0].get("price", 0.0) or 0.0)
 
     # Count total rows for pagination
     total_count = get_count(where_sql, where_sql_eg)
@@ -137,11 +150,12 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
         default_emission_expr = "0.0"
         return f"""
             COALESCE(IFNULL({table_alias}.country_specific_default_cbam_benchmark, 0.0), 0.0) AS cbam_benchmark,
+            COALESCE(IFNULL({table_alias}.supplier_specific_default_cbam_benchmark, {table_alias}.country_specific_default_cbam_benchmark), 0.0) AS supplier_specific_benchmark,
             {default_emission_expr} AS default_emission_factor,
             0.0 AS default_emission_cost,
             IFNULL({table_alias}.specific_direct_embedded_emissions,0.0) AS real_emission_value,
             ((
-                IFNULL({table_alias}.specific_direct_embedded_emissions,0.0) - ({cbam_factor} * COALESCE(IFNULL({table_alias}.country_specific_default_cbam_benchmark, 0.0), 0.0))
+                IFNULL({table_alias}.specific_direct_embedded_emissions,0.0) - ({cbam_factor} * COALESCE(IFNULL({table_alias}.supplier_specific_default_cbam_benchmark, {table_alias}.country_specific_default_cbam_benchmark), 0.0))
                 - ((IFNULL({table_alias}.specific_direct_embedded_emissions,0.0) * IFNULL({table_alias}.carbon_price_due, 0.0)) / {ets_carbon_price})
             ) * IFNULL({table_alias}.raw_mass_tonne, 0.0) * {ets_carbon_price}) AS real_emission_cost
         """
@@ -194,6 +208,7 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
                     IFNULL(eg.raw_mass_tonne,0.0) AS raw_mass_tonne,
                     eg.installation_country,
                     COALESCE(IFNULL(eg.country_specific_default_cbam_benchmark, 0.0), 0.0) AS cbam_benchmark,
+                    COALESCE(IFNULL(eg.supplier_specific_default_cbam_benchmark, eg.country_specific_default_cbam_benchmark), 0.0) AS supplier_specific_benchmark,
                     0.0 AS default_emission_factor,
                     0.0 AS default_emission_cost,
                     IFNULL(eg.specific_direct_embedded_emissions,0.0) AS real_emission_value,
@@ -212,6 +227,7 @@ def get_data(filters=None, selected_filters=None, start=0, page_length=50):
                     IFNULL(g.raw_mass_tonne,0.0) AS raw_mass_tonne,
                     g.installation_country,
                     COALESCE(IFNULL(g.country_specific_default_cbam_benchmark, 0.0), 0.0) AS cbam_benchmark,
+                    COALESCE(IFNULL(g.supplier_specific_default_cbam_benchmark, g.country_specific_default_cbam_benchmark), 0.0) AS supplier_specific_benchmark,
                     0.0 AS default_emission_factor,
                     0.0 AS default_emission_cost,
                     IFNULL(g.specific_direct_embedded_emissions,0.0) AS real_emission_value,

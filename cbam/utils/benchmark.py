@@ -389,6 +389,31 @@ def get_country_default_emission_values(country, cn_code):
 	return [], {"source": source, "cn_code_used": None}
 
 
+def get_cbam_benchmark_rows(cn_code):
+	"""Fetch CBAM Benchmark rows for a CN code (with hierarchy fallback)."""
+	if not cn_code:
+		return [], None
+
+	cn_code_hierarchy = get_cn_code_hierarchy(cn_code)
+	for cn_code_to_try in cn_code_hierarchy:
+		cbam_docs = frappe.get_all("CBAM Benchmark",
+			filters={"cn_code": cn_code_to_try},
+			fields=["name"]
+		)
+		for cbam_doc in cbam_docs:
+			cbam = frappe.get_doc("CBAM Benchmark", cbam_doc.name)
+			rows = []
+			for row in cbam.benchmark_values:
+				rows.append({
+					"cbam_benchmark_indicator": row.cbam_benchmark_indicator,
+					"emission_benchmark": row.emission_benchmark,
+					"emission_benchmark_2": getattr(row, "emission_benchmark_2", None)
+				})
+			if rows:
+				return rows, cn_code_to_try
+	return [], None
+
+
 def get_default_emission_value(country, cn_code, report_year):
 	"""Get a single Default Emission Value when no Good selection exists."""
 	rows, _details = get_country_default_emission_values(country, cn_code)
@@ -676,6 +701,10 @@ def update_affected_goods_by_cn_code(cn_code):
 		# Update immediately for small sets
 		for good in goods:
 			try:
+				good_doc = frappe.get_doc("Good", good.name)
+				good_doc.calculate_supplier_specific_benchmark_values()
+				good_doc.calculate_supplier_specific_benchmark()
+				good_doc.save(ignore_permissions=True)
 				recalculate_good_benchmark(good.name)
 				recalculate_good_default_emission_values(good.name)
 			except Exception as e:
@@ -685,6 +714,10 @@ def update_affected_goods_by_cn_code(cn_code):
 
 		for eg in external_goods:
 			try:
+				eg_doc = frappe.get_doc("External Good", eg.name)
+				eg_doc.calculate_supplier_specific_benchmark_values()
+				eg_doc.calculate_supplier_specific_benchmark()
+				eg_doc.save(ignore_permissions=True)
 				recalculate_external_good_benchmark(eg.name)
 				recalculate_external_good_default_emission_values(eg.name)
 			except Exception as e:
@@ -743,6 +776,10 @@ def update_affected_goods_by_country(country):
 		# Update immediately for small sets
 		for good in goods:
 			try:
+				good_doc = frappe.get_doc("Good", good.name)
+				good_doc.calculate_supplier_specific_benchmark_values()
+				good_doc.calculate_supplier_specific_benchmark()
+				good_doc.save(ignore_permissions=True)
 				recalculate_good_benchmark(good.name)
 				recalculate_good_default_emission_values(good.name)
 			except Exception as e:
@@ -752,6 +789,10 @@ def update_affected_goods_by_country(country):
 
 		for eg in external_goods:
 			try:
+				eg_doc = frappe.get_doc("External Good", eg.name)
+				eg_doc.calculate_supplier_specific_benchmark_values()
+				eg_doc.calculate_supplier_specific_benchmark()
+				eg_doc.save(ignore_permissions=True)
 				recalculate_external_good_benchmark(eg.name)
 				recalculate_external_good_default_emission_values(eg.name)
 			except Exception as e:
@@ -784,6 +825,10 @@ def batch_update_benchmarks_by_cn_code(cn_code):
 
 	for good in goods:
 		try:
+			good_doc = frappe.get_doc("Good", good.name)
+			good_doc.calculate_supplier_specific_benchmark_values()
+			good_doc.calculate_supplier_specific_benchmark()
+			good_doc.save(ignore_permissions=True)
 			result = recalculate_good_benchmark(good.name)
 			recalculate_good_default_emission_values(good.name)
 			if result.get("success"):
@@ -796,6 +841,10 @@ def batch_update_benchmarks_by_cn_code(cn_code):
 
 	for eg in external_goods:
 		try:
+			eg_doc = frappe.get_doc("External Good", eg.name)
+			eg_doc.calculate_supplier_specific_benchmark_values()
+			eg_doc.calculate_supplier_specific_benchmark()
+			eg_doc.save(ignore_permissions=True)
 			result = recalculate_external_good_benchmark(eg.name)
 			recalculate_external_good_default_emission_values(eg.name)
 			if result.get("success"):
@@ -836,6 +885,10 @@ def batch_update_benchmarks_by_country(country):
 
 	for good in goods:
 		try:
+			good_doc = frappe.get_doc("Good", good.name)
+			good_doc.calculate_supplier_specific_benchmark_values()
+			good_doc.calculate_supplier_specific_benchmark()
+			good_doc.save(ignore_permissions=True)
 			result = recalculate_good_benchmark(good.name)
 			recalculate_good_default_emission_values(good.name)
 			if result.get("success"):
@@ -848,6 +901,10 @@ def batch_update_benchmarks_by_country(country):
 
 	for eg in external_goods:
 		try:
+			eg_doc = frappe.get_doc("External Good", eg.name)
+			eg_doc.calculate_supplier_specific_benchmark_values()
+			eg_doc.calculate_supplier_specific_benchmark()
+			eg_doc.save(ignore_permissions=True)
 			result = recalculate_external_good_benchmark(eg.name)
 			recalculate_external_good_default_emission_values(eg.name)
 			if result.get("success"):
