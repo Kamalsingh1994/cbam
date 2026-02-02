@@ -25,9 +25,9 @@ class Good(Document):
 			self.supplier_number, self.supplier_name = frappe.db.get_values("Operating Company", self.operating_company, ['supplier_number', 'supplier_name'])[0]
 
 		self.update_name()
+		self.calculate_default_emission_values()
 		self.calculate_benchmark()
 		self.update_rejection_flags()
-		self.calculate_default_emission_values()
 
 	def update_name(self):
 		for row in self.split_details:
@@ -79,10 +79,12 @@ class Good(Document):
 		# Calculate benchmark if CN code and country are available
 		if self.cn_code and self.country_of_origin:
 			try:
+				indicator_override = self._get_selected_benchmark_indicator()
 				result = calculate_country_specific_benchmark(
 					self.cn_code,
 					self.country_of_origin,
-					self.hand_over_date
+					self.hand_over_date,
+					indicator_override=indicator_override
 				)
 
 				self.country_specific_default_cbam_benchmark = result.get("benchmark_value")
@@ -117,6 +119,13 @@ class Good(Document):
 					"country_of_origin": not bool(self.country_of_origin)
 				}
 			})
+
+	def _get_selected_benchmark_indicator(self):
+		"""Use applicable product's production route for benchmark selection."""
+		for row in self.country_specific_default_emission_values or []:
+			if row.applicable_product and row.production_route_cbam_benchmark_indicator:
+				return row.production_route_cbam_benchmark_indicator
+		return None
 
 	def calculate_default_emission_values(self):
 		"""Populate default emission values from Country Default Values"""

@@ -7,7 +7,7 @@ from frappe.utils import flt, today, getdate
 
 
 @frappe.whitelist()
-def calculate_country_specific_benchmark(cn_code, country, reference_date=None):
+def calculate_country_specific_benchmark(cn_code, country, reference_date=None, indicator_override=None):
 	"""
 	Calculate country-specific CBAM benchmark with multi-tier fallback
 
@@ -26,13 +26,13 @@ def calculate_country_specific_benchmark(cn_code, country, reference_date=None):
 	"""
 	warnings = []
 	details = {
-		"cn_code": cn_code,
-		"country": country,
-		"indicator_used": None,
-		"factor_used": None,
-		"base_value": None,
-		"source": None
-	}
+			"cn_code": cn_code,
+			"country": country,
+			"indicator_used": None,
+			"factor_used": None,
+			"base_value": None,
+			"source": None
+		}
 
 	if not cn_code or not country:
 		return {
@@ -63,39 +63,43 @@ def calculate_country_specific_benchmark(cn_code, country, reference_date=None):
 	details["reference_year"] = reference_year
 
 	try:
-		# Step 1: Get Country Default Values
-		cdb = get_country_default_benchmark(country, cn_code)
+		indicator = None
+		if indicator_override:
+			indicator = indicator_override
+			details["source"] = "selected_in_good"
+		else:
+			# Step 1: Get Country Default Values
+			cdb = get_country_default_benchmark(country, cn_code)
 
-		if not cdb:
-			# Fallback: Try global default
-			cdb = get_global_default_benchmark(cn_code)
 			if not cdb:
-				warnings.append(f"No Country Default for {country} / CN {cn_code}")
-				warnings.append(f"No Global Default for CN {cn_code}")
+				# Fallback: Try global default
+				cdb = get_global_default_benchmark(cn_code)
+				if not cdb:
+					warnings.append(f"No Country Default for {country} / CN {cn_code}")
+					warnings.append(f"No Global Default for CN {cn_code}")
+					return {
+						"benchmark_value": None,
+						"status": "Missing Data",
+						"details": details,
+						"warnings": warnings
+					}
+				details["source"] = "global_default"
+			else:
+				details["source"] = "country_specific"
+
+			indicator = cdb.get("cbam_benchmark_indicator")
+
+			if not indicator:
+				warnings.append("Indicator missing in Country Default Values")
 				return {
 					"benchmark_value": None,
 					"status": "Missing Data",
 					"details": details,
 					"warnings": warnings
 				}
-			details["source"] = "global_default"
-		else:
-			details["source"] = "country_specific"
-
-		indicator = cdb.get("cbam_benchmark_indicator")
-		factor = 1.0
 
 		details["indicator_used"] = indicator
-		details["factor_used"] = factor
-
-		if not indicator:
-			warnings.append("Indicator missing in Country Default Values")
-			return {
-				"benchmark_value": None,
-				"status": "Missing Data",
-				"details": details,
-				"warnings": warnings
-			}
+		details["factor_used"] = None
 
 		# Step 2: Get CBAM Benchmark
 		cbam_benchmark = get_cbam_benchmark(cn_code, indicator, reference_year)
@@ -122,8 +126,8 @@ def calculate_country_specific_benchmark(cn_code, country, reference_date=None):
 				"warnings": warnings
 			}
 
-		# Step 3: Calculate
-		result = flt(base_value) * flt(factor)
+		# Step 3: Use benchmark value directly (no multiplication factor)
+		result = flt(base_value)
 		details["calculated_value"] = result
 
 		return {
