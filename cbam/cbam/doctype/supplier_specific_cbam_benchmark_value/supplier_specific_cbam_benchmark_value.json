@@ -1,0 +1,58 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-01-21 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "cbam_benchmark_indicator",
+  "emission_benchmark",
+  "emission_benchmark_2",
+  "applicable_product"
+ ],
+ "fields": [
+  {
+   "fieldname": "cbam_benchmark_indicator",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "CBAM Benchmark Indicator",
+   "options": "CBAM Benchmark Indicator",
+   "reqd": 1
+  },
+  {
+   "fieldname": "emission_benchmark",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Emission Benchmark [tCO2/tproduct] (1)",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "emission_benchmark_2",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Emission Benchmark [tCO2/tproduct] (2)",
+   "non_negative": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "applicable_product",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Applicable Benchmark"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-01-21 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "CBAM",
+ "name": "Supplier Specific CBAM Benchmark Value",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
